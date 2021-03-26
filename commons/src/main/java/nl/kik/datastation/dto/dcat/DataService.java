@@ -1,5 +1,8 @@
 package nl.kik.datastation.dto.dcat;
 
+import java.net.URL;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -11,6 +14,9 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class DataService {
-
+public class DataService extends Resource {
+	URL endpointURL;
+	Object endpointDescription;
+	List<Dataset> servesDataset;
+	
 }
