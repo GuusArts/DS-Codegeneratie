@@ -1,0 +1,124 @@
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>nl.kik-v.datastation</groupId>
+	<artifactId>parent</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<name>KIK-V Datastation</name>
+	<properties>
+		<maven.compiler.source>11</maven.compiler.source>
+		<spring.boot.version>2.4.4</spring.boot.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+		<junit.version>5.7.0</junit.version>
+		<jena.version>3.17.0</jena.version>
+	</properties>
+
+	<parent>
+		<groupId>com.ocs.cicd</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.0.8</version>
+		<relativePath />
+	</parent>
+
+	<repositories>
+		<repository>
+			<id>ocs-maven-release</id>
+			<url>https://maven.square.opencirclesolutions.nl/releases/</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>ocs-maven-release</id>
+			<url>https://maven.square.opencirclesolutions.nl/releases/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>ocs-maven-release</id>
+			<url>https://maven.square.opencirclesolutions.nl/releases/</url>
+		</repository>
+	</distributionManagement>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<!-- Import dependency management from Spring Boot -->
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<version>${spring.boot.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>commons</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
+	<modules>
+		<module>commons</module>
+		<module>server</module>
+		<module>client</module>
+		<module>server-spring</module>
+		<module>client-spring</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<configuration>
+					<suppressionFiles>
+						<suppressionFile>project-suppression.xml</suppressionFile>
+					</suppressionFiles>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
