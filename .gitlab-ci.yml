@@ -10,4 +10,9 @@ image: maven:3.6-jdk-11-slim
       - external
 
 .deploy:
-      - external
+      only: 
+       - external
+
+.golive:
+      only: 
+       - external
