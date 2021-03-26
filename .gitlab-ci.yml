@@ -5,37 +5,9 @@ include:
 
 image: maven:3.6-jdk-11-slim
 
-stages:
-  - compile
-  - unit test
-  - quality test
-  - package
-  - deploy test
-  - publish reports
-  - external
-  - release
-  - uat
-  - approval
-  - go-live
-  - registry
-
 .testphase:
       only: 
       - external
 
 .deploy:
-      environment:
-            url: https://decentral.$CI_ENVIRONMENT_SLUG.volt.kik-v.ocs.nu
-
-deploy registry:
-  extends: .productionphase
-  stage: registry
-  environment:
-    name: production
-  before_script:
-    - echo      
-  script:
-    - mvn -pl decentral -am $MAVEN_CLI_OPTS clean install
-    - mvn -pl decentral -am $MAVEN_CLI_OPTS fabric8:resource fabric8:build -Dpublish.location=registry.istandaarden.nl/kik-v/volt -Dpublish.tag=latest -Dfabric8.generator.registry=registry.istandaarden.nl/kik-v/volt -Docs.enricher.slug=production
-    - mvn -pl decentral -am $MAVEN_CLI_OPTS fabric8:push -Dpublish.location=registry.istandaarden.nl/kik-v/volt -Dpublish.tag=latest -Ddocker.registry=registry.istandaarden.nl/kik-v/volt -Ddocker.username=$CI_PROD_REGISTRY_USER -Ddocker.password=$CI_PROD_REGISTRY_PASSWORD
-
+      - external
