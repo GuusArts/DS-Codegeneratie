@@ -1,4 +1,6 @@
-package nl.kik.datastation.dto.dcat;
+package nl.kik.datastation.dto.foaf;
+
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -11,6 +13,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class LicenseDocument {
-
+public class Group extends Agent {
+	List<Agent> member;
 }

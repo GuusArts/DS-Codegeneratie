@@ -11,6 +11,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class MediaType {
+public class Role {
 
 }

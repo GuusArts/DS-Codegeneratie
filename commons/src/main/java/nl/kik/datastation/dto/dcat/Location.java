@@ -12,5 +12,7 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 public class Location {
-
+	String geometry;
+	String bbox;
+	String centroid;
 }

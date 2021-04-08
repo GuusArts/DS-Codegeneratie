@@ -1,6 +1,5 @@
 package nl.kik.datastation.dto.dcat;
 
-import java.net.URL;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -16,11 +15,11 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_NULL)
 public class Catalog extends Dataset {
 //	foaf:Document homepage;
-	Object themeTaxonomy;
+	List<Object> themeTaxonomy;
 	List<Resource> hasPart;
 	List<Dataset> dataset;
-	DataService service;
-	Catalog catalog;
-	CatalogRecord record;
+	List<DataService> service;
+	List<Catalog> catalog;
+	List<CatalogRecord> record;
 	
 }

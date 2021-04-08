@@ -21,18 +21,18 @@ public class Distribution {
 	String description;
 	ZonedDateTime issued;
 	ZonedDateTime modified;
-	LicenseDocument license;
-	List<RightsStatement> accessRights;
-	List<RightsStatement> rights;
+//	LicenseDocument license;
+//	List<RightsStatement> accessRights;
+//	List<RightsStatement> rights;
 	// odrl:Policy hasPolicy;
-	URL accessURL;
-	DataService accessService;
-	URL downloadURL;
+	List<URL> accessURL;
+	List<DataService> accessService;
+	List<URL> downloadURL;
 	Double byteSize;
 	Float spatialResolutionInMeters;
 	Duration temporalResolution;
-	Standard conformsTo;
-	MediaType mediaType;
-	MediaTypeOrExtent format;
-	MediaType packageFormat;
+	URL conformsTo;// Standard
+//	List<MediaType> mediaType;
+//	List<MediaTypeOrExtent> format;
+//	List<MediaType> packageFormat;
 }

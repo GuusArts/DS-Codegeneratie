@@ -1,5 +1,6 @@
 package nl.kik.datastation.dto.dcat;
 
+import java.net.URL;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -9,22 +10,23 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import nl.kik.datastation.dto.foaf.Agent;
 
 @SuperBuilder(toBuilder = true)
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 public class Resource {
-	List<RightsStatement> accessRights;
-	Standard conformsTo;
+//	List<RightsStatement> accessRights;
+	URL conformsTo; // Standard
 	Kind contactPoint;
-//	foaf:Agent creator;
+	Agent creator;
 	String description;
 	String title;
 	ZonedDateTime issued;
 	ZonedDateTime modified;
 	String language;
-//	foaf:Agent publisher;
+	Agent publisher;
 	String identifier;
 //	skos:Concept;
 //	rdfs:Class type;
@@ -32,9 +34,9 @@ public class Resource {
 	List<Relationship> qualifiedInfluence;
 	List<String> keyword;
 //	foaf:Document landingPage;
-//	prov:Attribution qalifiedAttribution;
-	LicenseDocument license;
-	List<RightsStatement> rights;
+//	prov:Attribution qualifiedAttribution;
+	URL license; // LicenseDocument
+//	List<RightsStatement> rights;
 //	odrl:Policy;
 	List<Object> isReferencedBy;
 }

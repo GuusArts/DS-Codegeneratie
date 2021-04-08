@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_NULL)
 public class DataService extends Resource {
 	URL endpointURL;
-	Object endpointDescription;
+	List<Object> endpointDescription;
 	List<Dataset> servesDataset;
 	
 }

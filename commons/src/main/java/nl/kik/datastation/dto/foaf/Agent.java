@@ -1,4 +1,6 @@
-package nl.kik.datastation.dto.dcat;
+package nl.kik.datastation.dto.foaf;
+
+import java.net.URL;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -11,6 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class RightsStatement {
-
+public abstract class Agent {
+	private String name;
+	private URL type;
 }
