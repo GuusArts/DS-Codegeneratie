@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class Location {
+public class Location extends DCATObject {
 	String geometry;
 	String bbox;
 	String centroid;

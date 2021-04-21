@@ -16,7 +16,7 @@ import nl.kik.datastation.dto.foaf.Agent;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class Resource {
+public class Resource extends DCATObject {
 //	List<RightsStatement> accessRights;
 	URL conformsTo; // Standard
 	Kind contactPoint;

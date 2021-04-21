@@ -357,4 +357,8 @@ public class RDFService {
 		m.end();
 	}
 
+	protected static <K, V> Map<V, K> reverse(Map<K, V> input) {
+		return input.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+	}
+
 }

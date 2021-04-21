@@ -16,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class Distribution {
+public class Distribution extends DCATObject {
 	String title;
 	String description;
 	ZonedDateTime issued;

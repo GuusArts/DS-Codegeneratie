@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class PeriodOfTime {
+public class PeriodOfTime extends DCATObject {
 	ZonedDateTime startDate;
 	ZonedDateTime endDate;
 //	time:Instance hasBeginning;

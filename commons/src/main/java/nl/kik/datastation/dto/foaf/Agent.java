@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public abstract class Agent {
+public abstract class Agent extends FOAFObject {
 	private String name;
 	private URL type;
 }

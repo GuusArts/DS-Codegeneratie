@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-public class Relationship {
+public class Relationship extends DCATObject {
 	List<Object> relation;
 	Role hadRole;
 }
