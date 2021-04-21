@@ -18,7 +18,7 @@ class SetupDCATModelTest {
 	private Catalog catalog;
 	private Dataset dataset;
 	private Distribution distribution;
-	private DataService dataservice;
+	private DataService dataservice, sparqlservice, graphstoreservice;
 	private Agent publisher;
 
 	@BeforeEach
@@ -32,8 +32,23 @@ class SetupDCATModelTest {
 				.title("Gevalideerde vragen") //
 				.description("Service voor het uitvoeren van gevalideerde vragen via sparql") //
 				.endpointURL(new URL("http://data.example.com/api/verifiedsparql")).build();
+		sparqlservice = DataService.builder() //
+				.conformsTo(Constants.STANDARD_SPARQL) //
+				.title("SPARQL") //
+				.description("Service voor het uitvoeren van vragen via sparql") //
+				.endpointURL(new URL("http://data.example.com/api/sparql")).build();
+		graphstoreservice = DataService.builder() //
+				.conformsTo(Constants.STANDARD_GRAPHSTORE) //
+				.title("GRAPHSTORE") //
+				.description("Service voor graph store") //
+				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
+		graphstoreservice = DataService.builder() //
+				.conformsTo(Constants.STANDARD_GRAPHSTORE) //
+				.title("GRAPHSTORE") //
+				.description("Service voor graph store") //
+				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
 		distribution = Distribution.builder() //
-				.accessService(List.of(dataservice)) //
+				.accessService(List.of(dataservice, sparqlservice, graphstoreservice)) //
 				.conformsTo(Constants.STANDARD_RDF) //
 				.build();
 		dataset = Dataset.builder() //

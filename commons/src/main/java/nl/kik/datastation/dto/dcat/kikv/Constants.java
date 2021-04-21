@@ -7,7 +7,7 @@ public class Constants {
 	public static final URL STANDARD_RDF = url("https://www.w3.org/TR/rdf-schema");
 	public static final URL STANDARD_VERIFIED_SPARQL = url("https://verwijzing-naar-de-gepubliceerde-specificatie/");
 	public static final URL STANDARD_SPARQL = url("https://www.w3.org/TR/sparql11-protocol/");
-	public static final URL STANDARD_GRAPHTRANSFER = url("https://www.w3.org/TR/sparql11-protocol/");
+	public static final URL STANDARD_GRAPHSTORE = url("https://www.w3.org/TR/2013/REC-sparql11-http-rdf-update-20130321/");
 	public static final URL STANDARD_SHACL = url("https://verwijzing-naar-de-gepubliceerde-specificatie/shacl");
 
 	public static final URL FREQUENCY_CONTINUOUS = url("http://purl.org/cld/freq/continuous");

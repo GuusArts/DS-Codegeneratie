@@ -20,12 +20,26 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.kik-v.datastation</groupId>
+			<artifactId>commons-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>nl.kik-v.datastation</groupId>
 			<artifactId>server</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>${jena.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-fuseki-main</artifactId>
+			<version>${jena.version}</version>
 		</dependency>
 
 		<!-- Test -->

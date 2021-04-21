@@ -16,8 +16,9 @@
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-		<junit.version>5.7.0</junit.version>
-		<jena.version>3.17.0</jena.version>
+		<spring.boot.version>2.4.5</spring.boot.version>
+		<junit.version>5.7.1</junit.version>
+		<jena.version>4.0.0</jena.version>
 	</properties>
 
 	<parent>
@@ -65,12 +66,27 @@
 			</dependency>
 			<dependency>
 				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>commons-spring</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
 				<artifactId>client</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>client-spring</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
 				<artifactId>server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.datastation</groupId>
+				<artifactId>server-spring</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
@@ -104,6 +120,7 @@
 		<module>commons</module>
 		<module>server</module>
 		<module>client</module>
+		<module>commons-spring</module>
 		<module>server-spring</module>
 		<module>client-spring</module>
 	</modules>
