@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import nl.kik.datastation.dto.RDFObject;
 
 @SuperBuilder(toBuilder = true)
 @Getter
@@ -15,7 +16,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_NULL)
 public class Catalog extends Dataset {
 //	foaf:Document homepage;
-	List<Object> themeTaxonomy;
+	List<RDFObject> themeTaxonomy;
 	List<Resource> hasPart;
 	List<Dataset> dataset;
 	List<DataService> service;

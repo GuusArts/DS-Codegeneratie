@@ -1,19 +1,27 @@
-package nl.kik.datastation.dto.dcat;
+package nl.kik.datastation.service;
 
 import java.net.URL;
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import nl.kik.datastation.dto.Graph;
 import nl.kik.datastation.dto.RDFObject;
+import nl.kik.datastation.dto.dcat.Catalog;
+import nl.kik.datastation.dto.dcat.DataService;
+import nl.kik.datastation.dto.dcat.Dataset;
+import nl.kik.datastation.dto.dcat.Distribution;
 import nl.kik.datastation.dto.dcat.kikv.Constants;
 import nl.kik.datastation.dto.foaf.Agent;
 import nl.kik.datastation.dto.foaf.Organization;
 
-public class SetupDCATModelTest {
+public class DCATServiceTest {
 	private static final ZoneId ZONE = ZoneId.of("Europe/Amsterdam");
 	private List<RDFObject> model;
 	private Catalog catalog;
@@ -21,6 +29,8 @@ public class SetupDCATModelTest {
 	private Distribution distribution;
 	private DataService dataservice, sparqlservice, graphstoreservice;
 	private Agent publisher;
+	
+	private DCATService service;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -71,11 +81,17 @@ public class SetupDCATModelTest {
 				.dataset(List.of(dataset)) //
 				.build();
 		model = List.of(catalog, publisher, dataset, distribution, dataservice);
+		
+		service = new DCATService();
 	}
 
 	@Test
 	void test() {
-		System.out.println(model);
+		Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
+		for (RDFObject m : model) {
+			service.save(g, m);
+		}
+		RDFService.snapshot(g, true, null);
 	}
 
 }

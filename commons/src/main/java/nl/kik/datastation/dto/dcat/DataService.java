@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import nl.kik.datastation.dto.RDFObject;
 
 @SuperBuilder(toBuilder = true)
 @Getter
@@ -16,7 +17,7 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_NULL)
 public class DataService extends Resource {
 	URL endpointURL;
-	List<Object> endpointDescription;
+	List<RDFObject> endpointDescription;
 	List<Dataset> servesDataset;
 	
 }

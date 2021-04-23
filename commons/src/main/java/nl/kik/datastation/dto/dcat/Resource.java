@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import nl.kik.datastation.dto.RDFObject;
 import nl.kik.datastation.dto.foaf.Agent;
 
 @SuperBuilder(toBuilder = true)
@@ -25,18 +26,18 @@ public class Resource extends DCATObject {
 	String title;
 	ZonedDateTime issued;
 	ZonedDateTime modified;
-	String language;
+//	dct:LinguisticSystem language;
 	Agent publisher;
 	String identifier;
 //	skos:Concept;
 //	rdfs:Class type;
-	List<Object> relation;
-	List<Relationship> qualifiedInfluence;
+	List<RDFObject> relation;
+	List<Relationship> qualifiedRelation;
 	List<String> keyword;
 //	foaf:Document landingPage;
 //	prov:Attribution qualifiedAttribution;
 	URL license; // LicenseDocument
 //	List<RightsStatement> rights;
 //	odrl:Policy;
-	List<Object> isReferencedBy;
+	List<RDFObject> isReferencedBy;
 }

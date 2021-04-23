@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 public class Dataset extends Resource {
 	List<Distribution> distribution;
 	URL accrualPeriodicity; // Frequency
-	Location spatial;
+//	Location spatial;
 	Float spatialResolutionInMeters;
 	PeriodOfTime temporal;
 	Duration temporalResolution;
