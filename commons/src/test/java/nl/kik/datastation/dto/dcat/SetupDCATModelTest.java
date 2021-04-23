@@ -4,6 +4,7 @@ import java.net.URL;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,18 +50,18 @@ public class SetupDCATModelTest {
 				.description("Service voor graph store") //
 				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
 		distribution = Distribution.builder() //
-				.accessService(List.of(dataservice, sparqlservice, graphstoreservice)) //
+				.accessService(Set.of(dataservice, sparqlservice, graphstoreservice)) //
 				.conformsTo(Constants.STANDARD_RDF) //
 				.build();
 		dataset = Dataset.builder() //
 				.title("Linked data personeel") //
 				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
-				.keyword(List.of("Personeel")) //
+				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
 				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE)) //
 				.conformsTo(new URL("http://purl.org/ozo/hr")) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
-				.distribution(List.of(distribution)) //
+				.distribution(Set.of(distribution)) //
 				.build();
 		catalog = Catalog.builder() //
 				.title("Datacatalogus voorbeeldzorg") //
@@ -68,7 +69,7 @@ public class SetupDCATModelTest {
 				.publisher(publisher) //
 				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE)) //
 				.license(new URL("https://creativecommons.org/licenses/by/4.0/")) //
-				.dataset(List.of(dataset)) //
+				.dataset(Set.of(dataset)) //
 				.build();
 		model = List.of(catalog, publisher, dataset, distribution, dataservice);
 	}

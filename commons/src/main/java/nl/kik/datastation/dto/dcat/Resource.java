@@ -2,11 +2,12 @@ package nl.kik.datastation.dto.dcat;
 
 import java.net.URL;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
@@ -17,6 +18,7 @@ import nl.kik.datastation.dto.foaf.Agent;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
+@EqualsAndHashCode(callSuper = true)
 public class Resource extends DCATObject {
 //	List<RightsStatement> accessRights;
 	URL conformsTo; // Standard
@@ -31,13 +33,13 @@ public class Resource extends DCATObject {
 	String identifier;
 //	skos:Concept;
 //	rdfs:Class type;
-	List<RDFObject> relation;
-	List<Relationship> qualifiedRelation;
-	List<String> keyword;
+	Set<RDFObject> relation;
+	Set<Relationship> qualifiedRelation;
+	Set<String> keyword;
 //	foaf:Document landingPage;
 //	prov:Attribution qualifiedAttribution;
 	URL license; // LicenseDocument
 //	List<RightsStatement> rights;
 //	odrl:Policy;
-	List<RDFObject> isReferencedBy;
+	Set<RDFObject> isReferencedBy;
 }

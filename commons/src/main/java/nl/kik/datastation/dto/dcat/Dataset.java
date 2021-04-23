@@ -2,11 +2,12 @@ package nl.kik.datastation.dto.dcat;
 
 import java.net.URL;
 import java.time.Duration;
-import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
@@ -15,8 +16,9 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
+@EqualsAndHashCode(callSuper = true)
 public class Dataset extends Resource {
-	List<Distribution> distribution;
+	Set<Distribution> distribution;
 	URL accrualPeriodicity; // Frequency
 //	Location spatial;
 	Float spatialResolutionInMeters;

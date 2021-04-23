@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -22,6 +25,7 @@ import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +121,7 @@ public class RDFService {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected MultiValuedMap<Property, RDFNode> getProperties(Graph<? extends Model> g, Resource r) {
-		return (MultiValuedMap<Property, RDFNode>) (MultiValuedMap) search(g, r, null, null, s -> s) //
+		return (MultiValuedMap) search(g, r, null, null, s -> s) //
 				.collect(HashSetValuedHashMap::new, (b, s) -> b.put(s.getPredicate(), s.getObject()),
 						(b1, b2) -> b1.putAll(b2)); //
 	}
@@ -202,7 +206,7 @@ public class RDFService {
 	public String getString(Graph<? extends Model> g, Resource r, Property p) {
 		g.beginRead();
 		try {
-			return g.getModel().getProperty(r, p).getString();
+			return getString(g.getModel().getProperty(r, p).getObject());
 		} catch (Exception e) {
 			return null;
 		} finally {
@@ -217,7 +221,64 @@ public class RDFService {
 	 */
 	public String getString(MultiValuedMap<Property, RDFNode> properties, Property p) {
 		try {
-			return properties.get(p).iterator().next().asLiteral().getString();
+			return getString(properties.get(p).iterator().next());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	protected String getString(RDFNode node) {
+		try {
+			return node.asLiteral().getString();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public URL getURL(MultiValuedMap<Property, RDFNode> properties, Property p) {
+		try {
+			return getURL(properties.get(p).iterator().next());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	protected URL getURL(RDFNode node) {
+		try {
+			return new URL(node.asResource().getURI());
+		} catch (Exception e) {
+			try {
+				return new URL(node.asLiteral().getString());
+			} catch (Exception e2) {
+				return null;
+			}
+		}
+	}
+
+	public Set<URL> getURLSet(MultiValuedMap<Property, RDFNode> properties, Property p) {
+		return getSet(properties, p, this::getURL);
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public Float getFloat(MultiValuedMap<Property, RDFNode> properties, Property p) {
+		try {
+			return properties.get(p).iterator().next().asLiteral().getFloat();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	public Double getDouble(MultiValuedMap<Property, RDFNode> properties, Property p) {
+		try {
+			return properties.get(p).iterator().next().asLiteral().getDouble();
 		} catch (Exception e) {
 			return null;
 		}
@@ -231,6 +292,13 @@ public class RDFService {
 	public ZonedDateTime getDateTime(MultiValuedMap<Property, RDFNode> properties, Property p) {
 		try {
 			return ZonedDateTime.parse(properties.get(p).iterator().next().asLiteral().getString());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	public Duration getDuration(MultiValuedMap<Property, RDFNode> properties, Property p) {
+		try {
+			return Duration.parse(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (Exception e) {
 			return null;
 		}
@@ -359,6 +427,48 @@ public class RDFService {
 
 	protected static <K, V> Map<V, K> reverse(Map<K, V> input) {
 		return input.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+	}
+
+	protected void addAllURLs(Graph<? extends Model> g, Resource resource, Property property,
+			Collection<? extends URL> list) {
+		for (URL value : CollectionUtils.emptyIfNull(list)) {
+			addURL(g, resource, property, value);
+		}
+	}
+
+	/**
+	 * @param g
+	 * @param resource
+	 * @param object
+	 */
+	protected void addURL(Graph<? extends Model> g, Resource resource, Property property, URL url) {
+		if (url != null) {
+			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
+		}
+	}
+
+	/**
+	 * @param <T>
+	 * @param graph
+	 * @param properties
+	 * @param property
+	 * @param clazz
+	 * @return
+	 */
+	protected <T> Set<T> getSet(MultiValuedMap<Property, RDFNode> properties, Property property,
+			Function<RDFNode, T> getter) {
+		Set<T> result = properties.get(property).stream() //
+				.map(getter) //
+				.filter(Objects::nonNull) //
+				.collect(Collectors.toSet());
+		if (result.isEmpty()) {
+			return null;
+		}
+		return result;
+	}
+
+	protected Set<String> getStringSet(MultiValuedMap<Property, RDFNode> properties, Property property) {
+		return getSet(properties, property, this::getString);
 	}
 
 }

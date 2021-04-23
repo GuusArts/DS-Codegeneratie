@@ -3,11 +3,12 @@ package nl.kik.datastation.dto.dcat;
 import java.net.URL;
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
@@ -16,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
+@EqualsAndHashCode(callSuper = true)
 public class Distribution extends DCATObject {
 	String title;
 	String description;
@@ -25,9 +27,9 @@ public class Distribution extends DCATObject {
 //	List<RightsStatement> accessRights;
 //	List<RightsStatement> rights;
 	// odrl:Policy hasPolicy;
-	List<URL> accessURL;
-	List<DataService> accessService;
-	List<URL> downloadURL;
+	Set<URL> accessURL;
+	Set<DataService> accessService;
+	Set<URL> downloadURL;
 	Double byteSize;
 	Float spatialResolutionInMeters;
 	Duration temporalResolution;
