@@ -33,7 +33,7 @@ public class DCATServiceTest {
 	private Catalog catalog;
 	private Dataset dataset;
 	private Distribution distribution;
-	private DataService dataservice, sparqlservice, graphstoreservice;
+	private DataService dataservice, sparqlservice, graphstoreservice, shaclservice;
 	private Agent publisher;
 
 	private DCATService service;
@@ -59,13 +59,13 @@ public class DCATServiceTest {
 				.title("GRAPHSTORE") //
 				.description("Service voor graph store") //
 				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
-		graphstoreservice = DataService.builder() //
-				.conformsTo(Constants.STANDARD_GRAPHSTORE) //
-				.title("GRAPHSTORE") //
-				.description("Service voor graph store") //
-				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
+		shaclservice = DataService.builder() //
+				.conformsTo(Constants.STANDARD_SHACL) //
+				.title("SHACL") //
+				.description("Service voor shacl") //
+				.endpointURL(new URL("http://data.example.com/api/shacl")).build();
 		distribution = Distribution.builder() //
-				.accessService(Set.of(dataservice, sparqlservice, graphstoreservice)) //
+				.accessService(Set.of(dataservice, sparqlservice, graphstoreservice, shaclservice)) //
 				.conformsTo(Constants.STANDARD_RDF) //
 				.build();
 		dataset = Dataset.builder() //
@@ -73,7 +73,7 @@ public class DCATServiceTest {
 				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
 				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE)) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) // Remove TS info
 				.conformsTo(new URL("http://purl.org/ozo/hr")) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
 				.distribution(Set.of(distribution)) //
@@ -82,7 +82,7 @@ public class DCATServiceTest {
 				.title("Datacatalogus voorbeeldzorg") //
 				.description("Een beschrijving van de datasets in het datastation van voorbeeldzorg") //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE)) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) // Remove TS info
 				.license(new URL("https://creativecommons.org/licenses/by/4.0/")) //
 				.dataset(Set.of(dataset)) //
 				.build();

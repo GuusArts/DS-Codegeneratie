@@ -192,7 +192,7 @@ public abstract class AbstractService extends RDFService {
 						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
 			} else if (value instanceof ZonedDateTime) {
 				g.getModel().add(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), new XSDDateTimeType("dateTime")));
+						g.getModel().createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), new XSDDateTimeType("dateTime")));
 			} else {
 				g.getModel().add(resource, property, g.getModel().createTypedLiteral(value));
 			}
