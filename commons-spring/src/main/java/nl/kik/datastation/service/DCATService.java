@@ -1,14 +1,19 @@
 package nl.kik.datastation.service;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.DCAT;
 import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
@@ -564,6 +569,15 @@ public class DCATService extends AbstractService {
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
 		return getRDFObject(graph, properties, resource, builder) //
 		;
+	}
+
+	public Collection<? extends Catalog> getAllCatalogs(Graph<? extends Model> graph) {
+		return search(graph, null, RDF.type, Vocabulary.Catalog, Statement::getSubject) //
+				.map(r -> Pair.of(r, getProperties(graph, r))) //
+				.map(p -> getObject(graph, p.getRight(), p.getLeft())) //
+				.filter(Catalog.class::isInstance) //
+				.map(Catalog.class::cast) //
+				.collect(Collectors.toList());
 	}
 
 }
