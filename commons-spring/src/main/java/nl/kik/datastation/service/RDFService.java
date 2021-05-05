@@ -325,7 +325,7 @@ public class RDFService {
 		}
 	}
 
-	public Boolean getBoolan(MultiValuedMap<Property, RDFNode> properties, Property p) {
+	public Boolean getBoolean(MultiValuedMap<Property, RDFNode> properties, Property p) {
 		try {
 			return properties.get(p).iterator().next().asLiteral().getBoolean();
 		} catch (Exception e) {

@@ -3,18 +3,15 @@ package nl.kik.datastation.service;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import nl.kik.datastation.dto.dcat.Catalog;
 import nl.kik.datastation.dto.dcat.DataService;
 import nl.kik.datastation.dto.dcat.Dataset;
 import nl.kik.datastation.dto.dcat.Distribution;
 
-@Slf4j
 public class CatalogService {
 	/**
 	 * Return all datasets that provide a dataservice conforming to the provided
