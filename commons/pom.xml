@@ -24,7 +24,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-
 		<!-- Std APIs -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -42,6 +41,12 @@
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+
+		<!-- JWT -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
 		</dependency>
 
 		<!-- Test -->

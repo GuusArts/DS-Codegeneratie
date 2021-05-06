@@ -14,7 +14,7 @@ import nl.kik.datastation.dto.foaf.Agent;
 import nl.kik.datastation.dto.foaf.Organization;
 
 public abstract class AbstractDCATTest {
-	protected static final ZoneId ZONE = ZoneId.of("Europe/Amsterdam");
+	protected static final ZoneId ZONE = ZoneId.systemDefault();
 	protected List<RDFObject> model;
 	protected Catalog catalog;
 	protected Dataset dataset;

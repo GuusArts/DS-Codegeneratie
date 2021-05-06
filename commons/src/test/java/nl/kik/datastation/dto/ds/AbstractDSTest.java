@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractDSTest {
-	protected static final ZoneId ZONE = ZoneId.of("Europe/Amsterdam");
+	protected static final ZoneId ZONE = ZoneId.systemDefault();
 	protected Message<String> request, response, error;
 	protected List<Message<String>> messages;
 
