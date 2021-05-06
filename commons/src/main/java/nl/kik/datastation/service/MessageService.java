@@ -7,7 +7,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
-import java.util.function.Function;
 
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JOSEObjectType;
@@ -23,6 +22,7 @@ import nl.kik.datastation.dto.ds.async.ErrorReport;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.ds.async.Request;
 import nl.kik.datastation.dto.ds.async.Response;
+import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class MessageService extends AbstractTokenService {
 	public static final JOSEObjectType JWM = new JOSEObjectType("JWM");
@@ -39,7 +39,8 @@ public class MessageService extends AbstractTokenService {
 	private static final String RESPONSE = "v1/basic-message/response";
 	private static final String ERROR_REPORT = "v1/error-report";
 
-	public <T> JOSEObject wrap(Message<T> m, Function<T, JSONObject> bodyEncoder) {
+	public <T, E extends Exception> JOSEObject wrap(Message<T> m, FunctionWithException<T, JSONObject, E> bodyEncoder)
+			throws E {
 		m = fillDefaults(m);
 		PlainHeader header = new PlainHeader(JWM, null, null, null, null);
 
@@ -58,16 +59,18 @@ public class MessageService extends AbstractTokenService {
 		return new PlainObject(header, payload);
 	}
 
-	public <T> Function<Message<T>, JOSEObject> wrap(Function<T, JSONObject> bodyEncoder) {
+	public <T, E extends Exception> FunctionWithException<Message<T>, JOSEObject, E> wrap(
+			FunctionWithException<T, JSONObject, E> bodyEncoder) {
 		return m -> wrap(m, bodyEncoder);
 	}
 
-	public Function<JOSEObject, JSONObject> base64Wrapper() {
-		return o -> new JSONObject(Map.of(MESSAGE, o.serialize()));
+	public <T, E extends Exception> FunctionWithException<T, JSONObject, E> base64Wrapper(
+			FunctionWithException<T, ? extends JOSEObject, E> preprocessor) {
+		return o -> new JSONObject(Map.of(MESSAGE, preprocessor.apply(o).serialize()));
 	}
 
-	public <T> Message<T> unwrapMessage(String encoded, Function<JSONObject, T> bodyDecoder)
-			throws ParseException, MalformedURLException {
+	public <T, E extends Exception> Message<T> unwrapMessage(String encoded,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws ParseException, MalformedURLException, E {
 		JSONObject json = JSONObjectUtils.parse(encoded);
 		PlainHeader header = PlainHeader.parse(getRequiredJSONObject(json, PROTECTED));
 		JWTClaimsSet claims = JWTClaimsSet.parse(getRequiredJSONObject(json, PAYLOAD));
@@ -90,8 +93,8 @@ public class MessageService extends AbstractTokenService {
 				.build();
 	}
 
-	private <T> Message.MessageBuilder<T, ?, ?> unwrap(JWTClaimsSet claims, Function<JSONObject, T> bodyDecoder)
-			throws ParseException, MalformedURLException {
+	private <T, E extends Exception> Message.MessageBuilder<T, ?, ?> unwrap(JWTClaimsSet claims,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws ParseException, MalformedURLException {
 		String type = getRequiredString(claims, TYPE);
 		switch (type) {
 		case REQUEST:
@@ -101,24 +104,34 @@ public class MessageService extends AbstractTokenService {
 		case ERROR_REPORT:
 			return unwrapErrorReport(claims, bodyDecoder);
 		default:
-			throw new ParseException("message has invalid type " + type, 0);
+			return unwrapExtension(claims, bodyDecoder, type);
 		}
 	}
 
-	private <T> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(JWTClaimsSet claims,
-			Function<JSONObject, T> bodyDecoder) throws MalformedURLException, ParseException {
+	/**
+	 * @param type
+	 * @throws ParseException
+	 */
+	protected <T, E extends Exception> Message.MessageBuilder<T, ?, ?> unwrapExtension(JWTClaimsSet claims,
+			FunctionWithException<JSONObject, T, E> bodyDecoder, String type)
+			throws ParseException, MalformedURLException {
+		throw new ParseException("message has invalid type " + type, 0);
+	}
+
+	private <T, E extends Exception> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(JWTClaimsSet claims,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return ErrorReport.<T>builder() //
 		;
 	}
 
-	private <T> Response.ResponseBuilder<T, ?, ?> unwrapResponse(JWTClaimsSet claims,
-			Function<JSONObject, T> bodyDecoder) throws MalformedURLException, ParseException {
+	private <T, E extends Exception> Response.ResponseBuilder<T, ?, ?> unwrapResponse(JWTClaimsSet claims,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return Response.<T>builder() //
 		;
 	}
 
-	private <T> Request.RequestBuilder<T, ?, ?> unwrapRequest(JWTClaimsSet claims, Function<JSONObject, T> bodyDecoder)
-			throws MalformedURLException, ParseException {
+	private <T, E extends Exception> Request.RequestBuilder<T, ?, ?> unwrapRequest(JWTClaimsSet claims,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return Request.<T>builder() //
 				.replyUrl(new URL(getRequiredString(claims, REPLY_URL))) //
 		;
@@ -134,6 +147,13 @@ public class MessageService extends AbstractTokenService {
 		if (m instanceof ErrorReport<?>) {
 			return wrap(claims, (ErrorReport<?>) m);
 		}
+		return wrapExtension(claims, m);
+	}
+
+	/**
+	 * @param m
+	 */
+	protected Builder wrapExtension(Builder claims, Message<?> m) {
 		throw new IllegalArgumentException(
 				"Received unexpected subclass of Message (" + m.getClass().getCanonicalName() + ")");
 	}
@@ -158,11 +178,15 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	private <T> Message<T> fillDefaults(Message<T> m) {
-		return m.toBuilder() //
+		return fillDefaultsExtension(m.toBuilder() //
 				.id(m.getId() == null ? randomUUID() : m.getId()) //
 				.creation(m.getCreation() == null ? OffsetDateTime.now().toZonedDateTime() : m.getCreation()) //
 				.threadId(m.getThreadId() == null ? randomUUID() : m.getThreadId()) //
-				.build();
+				.build());
+	}
+
+	protected <T> Message<T> fillDefaultsExtension(Message<T> m) {
+		return m;
 	}
 
 }

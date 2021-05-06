@@ -1,25 +1,42 @@
 package nl.kik.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.net.MalformedURLException;
-import java.text.ParseException;
-import java.util.Map;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObject;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.Ed25519Signer;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.OctetKeyPair;
+import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
-import nl.kik.datastation.dto.ds.async.AbstractMessageTest;
-import nl.kik.datastation.dto.ds.async.Message;
+import nl.kik.datastation.dto.ds.async.Request;
 import nl.kik.datastation.dto.vc.AbstractVerifiableCredentialTest;
+import nl.kik.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.datastation.util.FunctionWrapper;
 
 @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
 class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 	private VerifiableCredentialService service;
+	private OctetKeyPair jwk;
+	private OctetKeyPair publicJWK;
+	private JWSSigner signer;
+
+	@BeforeAll
+	void setUpKey() throws JOSEException {
+		jwk = new OctetKeyPairGenerator(Curve.Ed25519) //
+				.keyID("urk:key") //
+				.generate();
+		publicJWK = jwk.toPublicJWK();
+		signer = new Ed25519Signer(jwk);
+	}
 
 	@BeforeEach
 	void setUpService() throws Exception {
@@ -28,11 +45,24 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 
 	@Test
 	void testSave() {
-		messages.forEach(m -> {
-			JOSEObject wrapped = service.wrap(m);
+		messages.forEach(FunctionWrapper.wrapper(m -> {
+			JWSObject wrapped = service.wrap(m, (c, w) -> service.sign(signer).apply(w));
+			wrapped.sign(signer);
 			System.out.println("Header: " + wrapped.getHeader().toJSONObject());
 			System.out.println("Payload: " + wrapped.getPayload().toJSONObject());
-		});
+			System.out.println("Base64: " + wrapped.serialize());
+		}));
+	}
+
+	@Test
+	void testWrapInMessage() throws Exception {
+		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
+				.body(presentation) //
+				.build();
+		MessageService messageService = new MessageService();
+		JOSEObject wrapped = messageService.wrap(message,
+				messageService.base64Wrapper(service.wrapAndSign(signer, (c, w) -> service.sign(signer).apply(w))));
+		System.out.println(messageService.serialize(wrapped).toString());
 	}
 //
 //	@Test
