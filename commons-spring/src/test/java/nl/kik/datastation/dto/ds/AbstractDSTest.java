@@ -18,8 +18,8 @@ public abstract class AbstractDSTest {
 				.id("urn:request") //
 				.from("did:sender") //
 				.to("did:recipient") //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
+				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.replyUrl(new URL("http://example.com/service/reply")) //
 				.body("Ping") //
@@ -28,8 +28,8 @@ public abstract class AbstractDSTest {
 				.id("urn:response") //
 				.to("did:sender") //
 				.from("did:recipient") //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
+				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.body("Pong") //
 				.build();
@@ -37,8 +37,8 @@ public abstract class AbstractDSTest {
 				.id("urn:error") //
 				.to("did:sender") //
 				.from("did:recipient") //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime()) //
+				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.body("Wrong") //
 				.build();

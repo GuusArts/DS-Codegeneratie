@@ -1,6 +1,6 @@
 package nl.kik.datastation.dto.ds;
 
-import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,6 +14,6 @@ import lombok.experimental.SuperBuilder;
 public class Message<T> {
 	private String id, threadId;
 	private String from, to;
-	private OffsetDateTime expiration, creation;
+	private ZonedDateTime expiration, creation;
 	private T body;
 }

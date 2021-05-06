@@ -1,8 +1,13 @@
 package nl.kik.datastation.service;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -11,6 +16,7 @@ import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.PlainHeader;
 import com.nimbusds.jose.PlainObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 
@@ -24,7 +30,7 @@ public class MessageService {
 	public static final JOSEObjectType JWM = new JOSEObjectType("JWM");
 
 	private static final String FROM = "from";
-	private static final String TO = "from";
+	private static final String TO = "to";
 	private static final String THREAD = "thread_id";
 	private static final String BODY = "body";
 	private static final String TYPE = "type";
@@ -72,6 +78,87 @@ public class MessageService {
 		));
 	}
 
+	public <T> Message<T> unwrapMessage(String encoded, Function<JSONObject, T> bodyDecoder)
+			throws ParseException, MalformedURLException {
+		JSONObject json = JSONObjectUtils.parse(encoded);
+		PlainHeader header = PlainHeader.parse(getRequiredJSONObject(json, PROTECTED));
+		JWTClaimsSet claims = JWTClaimsSet.parse(getRequiredJSONObject(json, PAYLOAD));
+//		Payload payload = new Payload(claims.toJSONObject());
+//		PlainObject object = new PlainObject(header, payload);
+		checkEquals("jti", JWM, header.getType());
+
+		return unwrap(claims, bodyDecoder) //
+				.id(claims.getJWTID()) //
+				.from(claims.getStringClaim(FROM)) //
+				.to(claims.getStringClaim(TO)) //
+				.expiration(claims.getExpirationTime() == null ? null
+						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
+				.creation(claims.getIssueTime() == null ? null
+						: claims.getIssueTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
+				.threadId(claims.getStringClaim(THREAD)) //
+				.body(bodyDecoder.apply(claims.getJSONObjectClaim(BODY))) //
+				.build();
+	}
+
+	private <T> Message.MessageBuilder<T, ?, ?> unwrap(JWTClaimsSet claims, Function<JSONObject, T> bodyDecoder)
+			throws ParseException, MalformedURLException {
+		String type = getRequiredString(claims, TYPE);
+		switch (type) {
+		case REQUEST:
+			return unwrapRequest(claims, bodyDecoder);
+		case RESPONSE:
+			return unwrapResponse(claims, bodyDecoder);
+		case ERROR_REPORT:
+			return unwrapErrorReport(claims, bodyDecoder);
+		default:
+			throw new ParseException("message has invalid type " + type, 0);
+		}
+	}
+
+	private <T> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(JWTClaimsSet claims,
+			Function<JSONObject, T> bodyDecoder) throws MalformedURLException, ParseException {
+		return ErrorReport.<T>builder() //
+		;
+	}
+
+	private <T> Response.ResponseBuilder<T, ?, ?> unwrapResponse(JWTClaimsSet claims,
+			Function<JSONObject, T> bodyDecoder) throws MalformedURLException, ParseException {
+		return Response.<T>builder() //
+		;
+	}
+
+	private <T> Request.RequestBuilder<T, ?, ?> unwrapRequest(JWTClaimsSet claims, Function<JSONObject, T> bodyDecoder)
+			throws MalformedURLException, ParseException {
+		return Request.<T>builder() //
+				.replyUrl(new URL(getRequiredString(claims, REPLY_URL))) //
+		;
+	}
+
+	private <T> T checkEquals(String name, T expected, T actual) throws ParseException {
+		if (!Objects.equals(expected, actual)) {
+			throw new ParseException(
+					name + " does not match expectation (expected " + expected + ", got " + actual + ")", 0);
+		}
+		return actual;
+	}
+
+	private <T> T checkNonNull(String name, T value) throws ParseException {
+		if (value == null) {
+			throw new ParseException("Required parameter " + name + " is absent", 0);
+		}
+		return value;
+	}
+
+	private JSONObject getRequiredJSONObject(JSONObject json, String key) throws ParseException {
+		return checkNonNull(key, JSONObjectUtils.getJSONObject(json, key));
+	}
+
+	private String getRequiredString(JWTClaimsSet claims, String key) throws ParseException {
+		return checkNonNull(key, claims.getStringClaim(key));
+	}
+
 	private Builder wrap(Builder claims, Message<?> m) {
 		if (m instanceof Request) {
 			return wrap(claims, (Request<?>) m);
@@ -108,7 +195,7 @@ public class MessageService {
 	private <T> Message<T> fillDefaults(Message<T> m) {
 		return m.toBuilder() //
 				.id(m.getId() == null ? randomUUID() : m.getId()) //
-				.creation(m.getCreation() == null ? OffsetDateTime.now() : m.getCreation()) //
+				.creation(m.getCreation() == null ? OffsetDateTime.now().toZonedDateTime() : m.getCreation()) //
 				.threadId(m.getThreadId() == null ? randomUUID() : m.getThreadId()) //
 				.build();
 	}
