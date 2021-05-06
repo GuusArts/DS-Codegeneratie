@@ -1,4 +1,6 @@
-package nl.kik.datastation.dto.ds;
+package nl.kik.datastation.dto.ds.async;
+
+import java.net.URL;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,5 +11,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ErrorReport<T> extends Message<T> {
+public class Request<T> extends Message<T> {
+	private URL replyUrl;
 }

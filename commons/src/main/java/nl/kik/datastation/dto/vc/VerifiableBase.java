@@ -1,4 +1,4 @@
-package nl.kik.datastation.dto.ds;
+package nl.kik.datastation.dto.vc;
 
 import java.time.ZonedDateTime;
 
@@ -6,14 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import nl.kik.datastation.dto.Token;
 
 @SuperBuilder(toBuilder = true)
 @Getter
 @ToString(callSuper = true)
-@EqualsAndHashCode
-public class Message<T> {
-	private String id, threadId;
-	private String from, to;
-	private ZonedDateTime expiration, creation;
-	private T body;
+@EqualsAndHashCode(callSuper = true)
+public class VerifiableBase extends Token {
+	private String keyId;
+	private ZonedDateTime validFrom;
 }

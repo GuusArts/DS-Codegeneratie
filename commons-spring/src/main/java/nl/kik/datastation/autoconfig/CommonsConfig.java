@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import nl.kik.datastation.service.CatalogService;
+import nl.kik.datastation.service.MessageService;
+import nl.kik.datastation.service.VerifiableCredentialService;
 
 @Configuration
 public class CommonsConfig {
@@ -12,5 +14,17 @@ public class CommonsConfig {
 	@ConditionalOnMissingBean
 	public CatalogService catalogServce() {
 		return new CatalogService();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public MessageService messageService() {
+		return new MessageService();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public VerifiableCredentialService verifiableCredentialService() {
+		return new VerifiableCredentialService();
 	}
 }

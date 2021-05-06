@@ -1,8 +1,8 @@
-package nl.kik.datastation.dto.ds;
+package nl.kik.datastation.dto.ds.async;
 
 import org.junit.jupiter.api.Test;
 
-public class CreateDSMessageTest extends AbstractDSTest {
+public class SetupMessageModelTest extends AbstractMessageTest {
 
 	@Test
 	void test() {

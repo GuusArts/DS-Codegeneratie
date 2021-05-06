@@ -7,8 +7,6 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
 import java.util.function.Function;
 
 import com.nimbusds.jose.JOSEObject;
@@ -21,12 +19,12 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 
 import net.minidev.json.JSONObject;
-import nl.kik.datastation.dto.ds.ErrorReport;
-import nl.kik.datastation.dto.ds.Message;
-import nl.kik.datastation.dto.ds.Request;
-import nl.kik.datastation.dto.ds.Response;
+import nl.kik.datastation.dto.ds.async.ErrorReport;
+import nl.kik.datastation.dto.ds.async.Message;
+import nl.kik.datastation.dto.ds.async.Request;
+import nl.kik.datastation.dto.ds.async.Response;
 
-public class MessageService {
+public class MessageService extends AbstractTokenService {
 	public static final JOSEObjectType JWM = new JOSEObjectType("JWM");
 
 	private static final String FROM = "from";
@@ -36,8 +34,6 @@ public class MessageService {
 	private static final String TYPE = "type";
 	private static final String REPLY_URL = "reply_url";
 	private static final String MESSAGE = "message";
-	private static final String PROTECTED = "protected";
-	private static final String PAYLOAD = "payload";
 
 	private static final String REQUEST = "v1/basic-message/request";
 	private static final String RESPONSE = "v1/basic-message/response";
@@ -45,7 +41,6 @@ public class MessageService {
 
 	public <T> JOSEObject wrap(Message<T> m, Function<T, JSONObject> bodyEncoder) {
 		m = fillDefaults(m);
-
 		PlainHeader header = new PlainHeader(JWM, null, null, null, null);
 
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //
@@ -69,13 +64,6 @@ public class MessageService {
 
 	public Function<JOSEObject, JSONObject> base64Wrapper() {
 		return o -> new JSONObject(Map.of(MESSAGE, o.serialize()));
-	}
-
-	public JSONObject serialize(JOSEObject o) {
-		return new JSONObject(Map.of( //
-				PROTECTED, o.getHeader().toJSONObject(), //
-				PAYLOAD, o.getPayload().toJSONObject() //
-		));
 	}
 
 	public <T> Message<T> unwrapMessage(String encoded, Function<JSONObject, T> bodyDecoder)
@@ -136,29 +124,6 @@ public class MessageService {
 		;
 	}
 
-	private <T> T checkEquals(String name, T expected, T actual) throws ParseException {
-		if (!Objects.equals(expected, actual)) {
-			throw new ParseException(
-					name + " does not match expectation (expected " + expected + ", got " + actual + ")", 0);
-		}
-		return actual;
-	}
-
-	private <T> T checkNonNull(String name, T value) throws ParseException {
-		if (value == null) {
-			throw new ParseException("Required parameter " + name + " is absent", 0);
-		}
-		return value;
-	}
-
-	private JSONObject getRequiredJSONObject(JSONObject json, String key) throws ParseException {
-		return checkNonNull(key, JSONObjectUtils.getJSONObject(json, key));
-	}
-
-	private String getRequiredString(JWTClaimsSet claims, String key) throws ParseException {
-		return checkNonNull(key, claims.getStringClaim(key));
-	}
-
 	private Builder wrap(Builder claims, Message<?> m) {
 		if (m instanceof Request) {
 			return wrap(claims, (Request<?>) m);
@@ -198,10 +163,6 @@ public class MessageService {
 				.creation(m.getCreation() == null ? OffsetDateTime.now().toZonedDateTime() : m.getCreation()) //
 				.threadId(m.getThreadId() == null ? randomUUID() : m.getThreadId()) //
 				.build();
-	}
-
-	public String randomUUID() {
-		return "urn:uuid:" + UUID.randomUUID();
 	}
 
 }

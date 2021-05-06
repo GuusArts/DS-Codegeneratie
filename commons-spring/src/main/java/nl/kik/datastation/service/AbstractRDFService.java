@@ -31,7 +31,7 @@ import nl.kik.datastation.dto.RDFObject;
 import nl.kik.datastation.dto.RDFObject.RDFObjectBuilder;
 
 @Slf4j
-public abstract class AbstractService extends RDFService {
+public abstract class AbstractRDFService extends RDFService {
 	public <U extends RDFObject> U save(Graph<? extends Model> g, U object) {
 		saveDetails(g, object);
 		return object;

@@ -1,4 +1,4 @@
-package nl.kik.datastation.dto.ds;
+package nl.kik.datastation.dto.ds.async;
 
 import java.net.URL;
 import java.time.ZoneId;
@@ -7,9 +7,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 
-public abstract class AbstractDSTest {
+public abstract class AbstractMessageTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
-	protected Message<String> request, response, error;
+	protected Request<String> request; 
+	protected Response<String> response;
+	protected ErrorReport<String> error;
 	protected List<Message<String>> messages;
 
 	@BeforeEach
@@ -33,7 +35,7 @@ public abstract class AbstractDSTest {
 				.threadId("urn:thread") //
 				.body("Pong") //
 				.build();
-		error = Response.<String>builder() //
+		error = ErrorReport.<String>builder() //
 				.id("urn:error") //
 				.to("did:sender") //
 				.from("did:recipient") //

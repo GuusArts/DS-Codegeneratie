@@ -54,7 +54,7 @@ import nl.kik.datastation.dto.foaf.Person;
 import nl.kik.datastation.dto.foaf.Person.PersonBuilder;
 
 @Service
-public class DCATService extends AbstractService {
+public class DCATService extends AbstractRDFService {
 	public static class Vocabulary extends DCAT {
 		private static final Model m = ModelFactory.createDefaultModel();
 

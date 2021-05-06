@@ -1,4 +1,4 @@
-package nl.kik.datastation.dto.ds;
+package nl.kik.datastation.dto.ds.async;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

@@ -13,11 +13,11 @@ import com.nimbusds.jose.JOSEObject;
 
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
-import nl.kik.datastation.dto.ds.AbstractDSTest;
-import nl.kik.datastation.dto.ds.Message;
+import nl.kik.datastation.dto.ds.async.AbstractMessageTest;
+import nl.kik.datastation.dto.ds.async.Message;
 
 @Slf4j
-class MessageServiceTest extends AbstractDSTest {
+class MessageServiceTest extends AbstractMessageTest {
 	private MessageService service;
 
 	@BeforeEach
