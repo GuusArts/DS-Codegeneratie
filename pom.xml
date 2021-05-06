@@ -69,26 +69,6 @@
 				<artifactId>commons-spring</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>nl.kik-v.datastation</groupId>
-				<artifactId>client</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>nl.kik-v.datastation</groupId>
-				<artifactId>client-spring</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>nl.kik-v.datastation</groupId>
-				<artifactId>server</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>nl.kik-v.datastation</groupId>
-				<artifactId>server-spring</artifactId>
-				<version>${project.version}</version>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -107,11 +87,7 @@
 
 	<modules>
 		<module>commons</module>
-		<module>server</module>
-		<module>client</module>
 		<module>commons-spring</module>
-		<module>server-spring</module>
-		<module>client-spring</module>
 	</modules>
 
 	<build>

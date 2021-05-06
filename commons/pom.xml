@@ -24,11 +24,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- JWT -->
-		<dependency>
-			<groupId>com.nimbusds</groupId>
-			<artifactId>nimbus-jose-jwt</artifactId>
-		</dependency>
 
 		<!-- Std APIs -->
 		<dependency>
