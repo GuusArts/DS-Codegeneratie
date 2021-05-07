@@ -1,11 +1,18 @@
 package nl.kik.datastation.service;
 
+import java.lang.reflect.Array;
+import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -13,18 +20,25 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.PlainHeader;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
 
+import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.VerifiableBase;
+import nl.kik.datastation.dto.vc.VerifiableBase.VerifiableBaseBuilder;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
 import nl.kik.datastation.util.FunctionWrapper.BiFunctionWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
+@Slf4j
 public class VerifiableCredentialService extends AbstractTokenService {
 	protected static final String VP = "vp";
 	protected static final String VC = "vc";
@@ -162,6 +176,130 @@ public class VerifiableCredentialService extends AbstractTokenService {
 				.creation(m.getCreation() == null ? OffsetDateTime.now().toZonedDateTime() : m.getCreation()) //
 				.validFrom(m.getValidFrom() == null ? OffsetDateTime.now().toZonedDateTime() : m.getValidFrom()) //
 				.build();
+	}
+
+	public <E extends Exception> VerifiableBase unwrapVerifiable(String encoded,
+			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			throws E, ParseException, MalformedURLException {
+		SignedJWT object = SignedJWT.parse(encoded);
+		JWSHeader header = object.getHeader();
+		credentialValidator.apply(header.getKeyID(), object);
+		JWTClaimsSet claims = object.getJWTClaimsSet();
+		checkEquals("jti", JOSEObjectType.JWT, header.getType());
+		checkEquals("alg", JWSAlgorithm.EdDSA, header.getAlgorithm());
+
+		return unwrap(claims, credentialValidator) //
+				.id(claims.getJWTID()) //
+				.keyId(header.getKeyID()) //
+				.from(claims.getIssuer()) //
+				.to(claims.getAudience().stream().findFirst().orElse(null)) //
+				.expiration(claims.getExpirationTime() == null ? null
+						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
+				.creation(claims.getIssueTime() == null ? null
+						: claims.getIssueTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
+				.validFrom(claims.getNotBeforeTime() == null ? null
+						: claims.getNotBeforeTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
+				.build();
+
+	}
+
+	private <E extends Exception> VerifiableBase.VerifiableBaseBuilder<?, ?> unwrap(JWTClaimsSet claims,
+			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			throws ParseException, MalformedURLException, E {
+		JSONObject vp = claims.getJSONObjectClaim(VP);
+		JSONObject vc = claims.getJSONObjectClaim(VC);
+		if (!(vp == null ^ vc == null)) {
+			throw new ParseException("Exactly one of vc or vp must be given", 0);
+		}
+		if (vp != null) {
+			return unwrapPresentation(vp, credentialValidator);
+		}
+		if (vc != null) {
+			return unwrapCredential(vc, credentialValidator);
+		}
+		throw new IllegalArgumentException("It should not be possible to reach this code");
+	}
+
+	private <E extends Exception> VerifiablePresentation.VerifiablePresentationBuilder<?, ?> unwrapPresentation(
+			JSONObject vp, BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			throws ParseException, MalformedURLException, E {
+		Set<String> types = getTypes(vp);
+		Set<String> contexts = getContexts(vp);
+		boolean vpType = !types.remove(VERIFIABLE_PRESENTATION_TYPE);
+		boolean vpContext = !contexts.remove(CREDENTIALS_CONTEXT);
+		if (vpType && vpContext) {
+			throw new ParseException("Expecting VC to contain type " + VERIFIABLE_PRESENTATION_TYPE + " and context "
+					+ CREDENTIALS_CONTEXT, 0);
+		}
+		return VerifiablePresentation.builder() //
+				.credential(
+						requireType(unwrapVerifiable(getRequiredString(vp, VERIFIABLE_CREDENTIAL), credentialValidator),
+								VerifiableCredential.class));
+	}
+
+	protected <T> T requireType(Object o, Class<T> clazz) throws ParseException, MalformedURLException {
+		if (o == null || !clazz.isInstance(o)) {
+			throw new ParseException("Expecting object to be " + clazz.getCanonicalName() + " but it is " + o, 0);
+		}
+		return clazz.cast(o);
+	}
+
+	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredential(JSONObject vc,
+			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+		Set<String> types = getTypes(vc);
+		Set<String> contexts = getContexts(vc);
+		boolean vcType = !types.remove(VERIFIABLE_CREDENTIAL_TYPE);
+		boolean vcContext = !contexts.remove(CREDENTIALS_CONTEXT);
+		if (vcType && vcContext) {
+			throw new ParseException(
+					"Expecting VC to contain type " + VERIFIABLE_CREDENTIAL + " and context " + CREDENTIALS_CONTEXT, 0);
+		}
+		VerifiableCredential.VerifiableCredentialBuilder<?, ?> builder;
+		if (types.remove(VALIDATED_QUERY_CREDENTIAL_TYPE)) {
+			builder = unwrapValidatedQuery(vc, types, contexts, credentialValidator);
+		} else {
+			builder = unwrapCredentialExtension(vc, types, contexts, credentialValidator);
+
+		}
+		if (!types.isEmpty()) {
+			log.info("Received unexpected types; they are ignored " + types);
+		}
+		if (!contexts.isEmpty()) {
+			log.info("Received unexpected contexts; they are ignored " + contexts);
+		}
+		return builder //
+		;
+	}
+
+	private <E extends Exception> ValidatedQuery.ValidatedQueryBuilder<?, ?> unwrapValidatedQuery(JSONObject vc,
+			Set<String> types, Set<String> contexts,
+			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+		if (!contexts.remove(VALIDATED_QUERY_CONTEXT)) {
+			throw new ParseException("Expecting validated query to contain context " + VALIDATED_QUERY_CONTEXT, 0);
+		}
+		JSONObject subject = getRequiredJSONObject(vc, CREDENTIAL_SUBJECT);
+		return ValidatedQuery.builder() //
+				.query(getRequiredString(subject, QUERY)) //
+				.profile(getRequiredString(subject, PROFILE)) //
+				.ontology(getRequiredString(subject, ONTOLOGY)) //
+		;
+	}
+
+	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredentialExtension(
+			JSONObject vc, Set<String> types, Set<String> contexts,
+			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+		throw new ParseException("Received unexected VC; types = " + types + "; contexts = " + contexts, 0);
+	}
+
+	private Set<String> getTypes(JSONObject o) throws ParseException {
+		return new HashSet<String>(getList(o, TYPE, String.class));
+	}
+
+	private Set<String> getContexts(JSONObject o) throws ParseException {
+		return new HashSet<String>(getList(o, CONTEXT, String.class));
 	}
 
 	public static class VCBuilder {
