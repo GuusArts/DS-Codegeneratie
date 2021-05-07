@@ -69,6 +69,11 @@ public class MessageService extends AbstractTokenService {
 		return o -> new JSONObject(Map.of(MESSAGE, preprocessor.apply(o).serialize()));
 	}
 
+	public <T, E extends Exception> FunctionWithException<JSONObject, T, E> base64Unwrapper(
+			FunctionWithException<String, T, E> preprocessor) {
+		return o -> preprocessor.apply(o.getAsString(MESSAGE));
+	}
+
 	public <T, E extends Exception> Message<T> unwrapMessage(String encoded,
 			FunctionWithException<JSONObject, T, E> bodyDecoder) throws ParseException, MalformedURLException, E {
 		JSONObject json = JSONObjectUtils.parse(encoded);

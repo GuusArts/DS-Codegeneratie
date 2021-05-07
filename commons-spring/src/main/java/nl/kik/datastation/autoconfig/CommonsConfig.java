@@ -2,6 +2,7 @@ package nl.kik.datastation.autoconfig;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import nl.kik.datastation.service.CatalogService;
@@ -9,6 +10,7 @@ import nl.kik.datastation.service.MessageService;
 import nl.kik.datastation.service.VerifiableCredentialService;
 
 @Configuration
+@ComponentScan(basePackages = "nl.kik.datastation")
 public class CommonsConfig {
 	@Bean
 	@ConditionalOnMissingBean

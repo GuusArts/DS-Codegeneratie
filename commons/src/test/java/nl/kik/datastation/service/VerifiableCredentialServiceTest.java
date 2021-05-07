@@ -73,7 +73,7 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		MessageService messageService = new MessageService();
 
 		JOSEObject wrapped = messageService.wrap(message, messageService
-				.base64Wrapper(service.wrapAndSign(signer, (c, w) -> service.sign(centralSigner).apply(w))));
+				.base64Wrapper(service.wrapAndSign(c -> signer, (c, w) -> service.sign(centralSigner).apply(w))));
 		System.out.println(messageService.serialize(wrapped).toString());
 	}
 

@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -153,9 +154,9 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	public <T extends VerifiableBase, E extends Exception> FunctionWithException<T, JWSObject, Exception> wrapAndSign(
-			JWSSigner signer, BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) {
-		FunctionWithException<JWSObject, JWSObject, JOSEException> s = sign(signer);
-		return vc -> s.apply(wrap(vc, credentialSigner));
+			Function<T, JWSSigner> signer,
+			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) {
+		return vc -> sign(signer.apply(vc)).apply(wrap(vc, credentialSigner));
 	}
 
 	public FunctionWithException<JWSObject, JWSObject, JOSEException> sign(JWSSigner signer) {
