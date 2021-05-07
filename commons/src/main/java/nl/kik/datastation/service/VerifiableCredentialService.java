@@ -1,13 +1,11 @@
 package nl.kik.datastation.service;
 
-import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -20,19 +18,14 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.PlainHeader;
-import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
-import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.VerifiableBase;
-import nl.kik.datastation.dto.vc.VerifiableBase.VerifiableBaseBuilder;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
 import nl.kik.datastation.util.FunctionWrapper.BiFunctionWithException;
@@ -101,11 +94,14 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	private <E extends Exception> JSONObject makePresentation(VerifiablePresentation m,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
+		JWSObject credential = m.getExternalCredential();
+		if (credential == null) {
+			credential = credentialSigner.apply(m.getCredential(), wrap(m.getCredential(), credentialSigner));
+		}
 		VCBuilder builder = VCBuilder.builder() //
 				.context(CREDENTIALS_CONTEXT) //
 				.type(VERIFIABLE_PRESENTATION_TYPE) //
-				.claim(VERIFIABLE_CREDENTIAL, credentialSigner
-						.apply(m.getCredential(), wrap(m.getCredential(), credentialSigner)).serialize()) //
+				.claim(VERIFIABLE_CREDENTIAL, credential.serialize()) //
 		;
 		builder = makePresentationExtension(builder, m, credentialSigner);
 		return builder.build();
