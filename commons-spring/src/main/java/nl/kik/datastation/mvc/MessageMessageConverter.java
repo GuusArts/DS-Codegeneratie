@@ -41,7 +41,7 @@ public class MessageMessageConverter<T extends VerifiableBase> extends AbstractH
 		return Message.class.isAssignableFrom(clazz);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected Message<T> readInternal(Class<? extends Message<T>> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
@@ -53,7 +53,7 @@ public class MessageMessageConverter<T extends VerifiableBase> extends AbstractH
 			}
 		}
 		try {
-			return (Message<T>) service.unwrapMessage(s,
+			return (Message<T>) (Message) service.unwrapMessage(s,
 					o -> service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss, (c, v) -> v)));
 		} catch (RuntimeException | ParseException e) {
 			throw new HttpMessageNotReadableException("Unable to parse Message", e, inputMessage);
