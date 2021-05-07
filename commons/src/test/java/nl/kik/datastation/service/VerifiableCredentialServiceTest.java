@@ -32,7 +32,7 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 	@BeforeAll
 	void setUpKey() throws JOSEException {
 		jwk = new OctetKeyPairGenerator(Curve.Ed25519) //
-				.keyID("urk:key") //
+				.keyID("urk:userkey") //
 				.generate();
 		publicJWK = jwk.toPublicJWK();
 		signer = new Ed25519Signer(jwk);
@@ -56,12 +56,17 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 
 	@Test
 	void testWrapInMessage() throws Exception {
+		OctetKeyPair centralJwk = new OctetKeyPairGenerator(Curve.Ed25519) //
+				.keyID("urk:centralkey") //
+				.generate();
+		Ed25519Signer centralSigner = new Ed25519Signer(centralJwk);
+
 		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
 				.body(presentation) //
 				.build();
 		MessageService messageService = new MessageService();
 		JOSEObject wrapped = messageService.wrap(message,
-				messageService.base64Wrapper(service.wrapAndSign(signer, (c, w) -> service.sign(signer).apply(w))));
+				messageService.base64Wrapper(service.wrapAndSign(signer, (c, w) -> service.sign(centralSigner).apply(w))));
 		System.out.println(messageService.serialize(wrapped).toString());
 	}
 //

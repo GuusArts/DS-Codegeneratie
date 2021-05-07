@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -17,6 +18,7 @@ import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
 
 import net.minidev.json.JSONObject;
+import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
@@ -25,16 +27,20 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class VerifiableCredentialService extends AbstractTokenService {
 	protected static final String VP = "vp";
-	protected static final String VC = "vC";
+	protected static final String VC = "vc";
 	protected static final String CONTEXT = "@context";
 	protected static final String TYPE = "type";
 	protected static final String VERIFIABLE_CREDENTIAL = "verifiableCredential";
+	protected static final String CREDENTIAL_SUBJECT = "credentialSubject";
+	protected static final String PROFILE = "profile";
+	protected static final String ONTOLOGY = "ontology";
+	protected static final String QUERY = "query";
 
 	protected static final String CREDENTIALS_CONTEXT = "https://www.w3.org/2018/credentials/v1";
 	protected static final String VALIDATED_QUERY_CONTEXT = "https://www.zinl.nl/2020/credentials/validatedquery/v1";
 	protected static final String VERIFIABLE_PRESENTATION_TYPE = "VerifiablePresentation";
 	protected static final String VERIFIABLE_CREDENTIAL_TYPE = "VerifiableCredential";
-	protected static final String VALID_QUERY_CREDENTIAL_TYPE = "VerifiablePresentation";
+	protected static final String VALIDATED_QUERY_CREDENTIAL_TYPE = "VerifiablePresentation";
 
 	public <E extends Exception> JWSObject wrap(VerifiableBase m,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
@@ -107,11 +113,32 @@ public class VerifiableCredentialService extends AbstractTokenService {
 				.context(CREDENTIALS_CONTEXT) //
 				.type(VERIFIABLE_CREDENTIAL_TYPE) //
 		;
-		builder = makeCredentialExtension(builder, m);
+		if (m instanceof ValidatedQuery) {
+			builder = makeCrendential(builder, (ValidatedQuery) m);
+		} else {
+			builder = makeCredentialExtension(builder, m);
+		}
 		return builder.build();
 	}
 
+	private VCBuilder makeCrendential(VCBuilder builder, ValidatedQuery m) {
+		builder = builder //
+				.context(VALIDATED_QUERY_CONTEXT) //
+				.type(VALIDATED_QUERY_CREDENTIAL_TYPE) //
+				.claim(CREDENTIAL_SUBJECT, new JSONObject(Map.of(//
+						PROFILE, m.getProfile(), //
+						ONTOLOGY, m.getOntology(), //
+						QUERY, m.getQuery() //
+				))); //
+		builder = makeCredentialExtension(builder, m);
+		return builder;
+	}
+
 	protected VCBuilder makeCredentialExtension(VCBuilder builder, VerifiableCredential m) {
+		return builder;
+	}
+
+	protected VCBuilder makeCredentialExtension(VCBuilder builder, ValidatedQuery m) {
 		return builder;
 	}
 

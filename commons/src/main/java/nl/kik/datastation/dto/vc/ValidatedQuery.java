@@ -9,5 +9,8 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class VerifiableCredential extends VerifiableBase {
+public class ValidatedQuery extends VerifiableCredential {
+	private String profile;
+	private String ontology;
+	private String query;
 }

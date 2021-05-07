@@ -8,25 +8,28 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class AbstractVerifiableCredentialTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
-	protected VerifiableCredential credential;
+	protected ValidatedQuery credential;
 	protected VerifiablePresentation presentation;
 	protected List<VerifiableBase> messages;
 
 	@BeforeEach
 	void setUp() throws Exception {
-		credential = VerifiableCredential.builder() //
+		credential = ValidatedQuery.builder() //
 				.id("urn:credential") //
-				.keyId("urn:key") //
-				.from("did:sender") //
+				.keyId("urn:centralkey") //
+				.from("did:central") //
 				.to("did:sender") //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.profile("urn:profile") //
+				.ontology("urn:ontology") //
+				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
 				.build();
 
 		presentation = VerifiablePresentation.builder() //
 				.id("urn:presentation") //
-				.keyId("urn:key") //
+				.keyId("urn:userkey") //
 				.from("did:authority") //
 				.to("did:recipient") //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
