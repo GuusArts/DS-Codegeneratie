@@ -5,8 +5,11 @@ import java.net.URL;
 import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JOSEObjectType;
@@ -17,13 +20,16 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 
+import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.ErrorReport;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.ds.async.Request;
 import nl.kik.datastation.dto.ds.async.Response;
+import nl.kik.datastation.util.FunctionWrapper.BiConsumerWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
+@Slf4j
 public class MessageService extends AbstractTokenService {
 	public static final JOSEObjectType JWM = new JOSEObjectType("JWM");
 
@@ -192,6 +198,106 @@ public class MessageService extends AbstractTokenService {
 
 	protected <T> Message<T> fillDefaultsExtension(Message<T> m) {
 		return m;
+	}
+
+	public <T> void validateFields(Message<T> m) throws ParseException {
+		log.info("Validating fields of {}", m.getId());
+		if (StringUtils.isBlank(m.getFrom())) {
+			throw new ParseException("Required feld `from' is not given", 0);
+		}
+		if (StringUtils.isBlank(m.getTo())) {
+			throw new ParseException("Required feld `to' is not given", 0);
+		}
+		if (StringUtils.isBlank(m.getId())) {
+			throw new ParseException("Required feld `jti' is not given", 0);
+		}
+		if (StringUtils.isBlank(m.getThreadId())) {
+			throw new ParseException("Required feld `threadId' is not given", 0);
+		}
+		if (m.getExpiration() != null && m.getExpiration().isBefore(ZonedDateTime.now())) {
+			throw new ParseException("Message is no longer valid (to " + m.getExpiration() + ")", 0);
+		}
+		if (m.getBody() == null) {
+			throw new ParseException("A body must be given", 0);
+		}
+
+		if (m instanceof Request<?>) {
+			validateFields((Request<T>) m);
+		} else if (m instanceof Response<?>) {
+			validateFields((Response<T>) m);
+		} else if (m instanceof ErrorReport<?>) {
+			validateFields((ErrorReport<T>) m);
+		} else {
+			validateFieldsExtension(m);
+		}
+	}
+
+	protected <T> void validateFields(Request<T> m) throws ParseException {
+		if (m.getReplyUrl() == null) {
+			throw new ParseException("Required feld `replyUrl' is not given", 0);
+		}
+		validateFieldsExtension(m);
+	}
+
+	protected <T> void validateFields(Response<T> m) throws ParseException {
+		validateFieldsExtension(m);
+	}
+
+	protected <T> void validateFields(ErrorReport<T> m) throws ParseException {
+		validateFieldsExtension(m);
+	}
+
+	protected <T> void validateFieldsExtension(Request<T> m) throws ParseException {
+	}
+
+	protected <T> void validateFieldsExtension(Response<T> m) throws ParseException {
+	}
+
+	protected <T> void validateFieldsExtension(ErrorReport<T> m) throws ParseException {
+	}
+
+	protected <T> void validateFieldsExtension(Message<T> m) throws ParseException {
+		throw new ParseException("Received unexpected message type " + m.getClass().getCanonicalName(), 0);
+	}
+
+	public <T, E extends Exception> void validateIntegrity(Message<T> m,
+			BiConsumerWithException<Message<T>, T, E> delegate) throws ParseException, E {
+		log.info("Validating integrity of {}", m.getId());
+		delegate.accept(m, m.getBody());
+		if (m instanceof Request<?>) {
+			validateIntegrity((Request<T>) m);
+		} else if (m instanceof Response<?>) {
+			validateIntegrity((Response<T>) m);
+		} else if (m instanceof ErrorReport<?>) {
+			validateIntegrity((ErrorReport<T>) m);
+		} else {
+			validateIntegrityExtension(m);
+		}
+	}
+
+	protected <T> void validateIntegrity(Request<T> m) throws ParseException {
+		validateIntegrityExtension(m);
+	}
+
+	protected <T> void validateIntegrity(Response<T> m) throws ParseException {
+		validateIntegrityExtension(m);
+	}
+
+	protected <T> void validateIntegrity(ErrorReport<T> m) throws ParseException {
+		validateIntegrityExtension(m);
+	}
+
+	protected <T> void validateIntegrityExtension(Request<T> m) throws ParseException {
+	}
+
+	protected <T> void validateIntegrityExtension(Response<T> m) throws ParseException {
+	}
+
+	protected <T> void validateIntegrityExtension(ErrorReport<T> m) throws ParseException {
+	}
+
+	protected <T> void validateIntegrityExtension(Message<T> m) throws ParseException {
+		throw new ParseException("Received unexpected message type " + m.getClass().getCanonicalName(), 0);
 	}
 
 }

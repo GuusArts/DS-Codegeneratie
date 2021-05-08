@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -11,7 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -25,10 +27,12 @@ import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
+import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.datastation.util.FunctionWrapper.BiConsumerWithException;
 import nl.kik.datastation.util.FunctionWrapper.BiFunctionWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
@@ -153,8 +157,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		return builder;
 	}
 
-	public <T extends VerifiableBase, E extends Exception> FunctionWithException<T, JWSObject, Exception> wrapAndSign(
-			Function<T, JWSSigner> signer,
+	public <T extends VerifiableBase, E extends Exception, F extends Exception> FunctionWithException<T, JWSObject, Exception> wrapAndSign(
+			FunctionWithException<T, JWSSigner, F> signer,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) {
 		return vc -> sign(signer.apply(vc)).apply(wrap(vc, credentialSigner));
 	}
@@ -176,16 +180,15 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	public <E extends Exception> VerifiableBase unwrapVerifiable(String encoded,
-			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws E, ParseException, MalformedURLException {
 		SignedJWT object = SignedJWT.parse(encoded);
 		JWSHeader header = object.getHeader();
-		credentialValidator.apply(header.getKeyID(), object);
 		JWTClaimsSet claims = object.getJWTClaimsSet();
 		checkEquals("jti", JOSEObjectType.JWT, header.getType());
 		checkEquals("alg", JWSAlgorithm.EdDSA, header.getAlgorithm());
 
-		return unwrap(claims, credentialValidator) //
+		VerifiableBase result = unwrap(claims, credentialValidator) //
 				.id(claims.getJWTID()) //
 				.keyId(header.getKeyID()) //
 				.from(claims.getIssuer()) //
@@ -200,11 +203,12 @@ public class VerifiableCredentialService extends AbstractTokenService {
 						: claims.getNotBeforeTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
 				.build();
-
+		credentialValidator.accept(object, result);
+		return result;
 	}
 
 	private <E extends Exception> VerifiableBase.VerifiableBaseBuilder<?, ?> unwrap(JWTClaimsSet claims,
-			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
 		JSONObject vp = claims.getJSONObjectClaim(VP);
 		JSONObject vc = claims.getJSONObjectClaim(VC);
@@ -221,7 +225,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	private <E extends Exception> VerifiablePresentation.VerifiablePresentationBuilder<?, ?> unwrapPresentation(
-			JSONObject vp, BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator)
+			JSONObject vp, BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
 		Set<String> types = getTypes(vp);
 		Set<String> contexts = getContexts(vp);
@@ -245,7 +249,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredential(JSONObject vc,
-			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		Set<String> types = getTypes(vc);
 		Set<String> contexts = getContexts(vc);
 		boolean vcType = !types.remove(VERIFIABLE_CREDENTIAL_TYPE);
@@ -273,7 +277,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	private <E extends Exception> ValidatedQuery.ValidatedQueryBuilder<?, ?> unwrapValidatedQuery(JSONObject vc,
 			Set<String> types, Set<String> contexts,
-			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		if (!contexts.remove(VALIDATED_QUERY_CONTEXT)) {
 			throw new ParseException("Expecting validated query to contain context " + VALIDATED_QUERY_CONTEXT, 0);
 		}
@@ -287,7 +291,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredentialExtension(
 			JSONObject vc, Set<String> types, Set<String> contexts,
-			BiFunctionWithException<String, JWSObject, JWSObject, E> credentialValidator) throws ParseException {
+			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		throw new ParseException("Received unexected VC; types = " + types + "; contexts = " + contexts, 0);
 	}
 
@@ -343,6 +347,134 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		public VCBuilder claim(String key, Object value) {
 			this.result.put(key, value);
 			return this;
+		}
+	}
+
+	public void validateIntegrity(VerifiableBase v) throws ParseException {
+		log.info("Validating integrity of {}", v.getId());
+		if (v instanceof VerifiablePresentation) {
+			validateIntegrity((VerifiablePresentation) v);
+		} else if (v instanceof VerifiableCredential) {
+			validateIntegrity((VerifiableCredential) v);
+		} else {
+			validateIntegrityExtension(v);
+		}
+	}
+
+	protected void validateIntegrity(VerifiablePresentation v) throws ParseException {
+		if (!StringUtils.equals(v.getFrom(), v.getCredential().getTo())) {
+			throw new ParseException("`aud' of VC does not match `iss' of VP", 0);
+		}
+		validateIntegrityExtension(v);
+	}
+
+	protected void validateIntegrity(VerifiableCredential vc) throws ParseException {
+		if (vc instanceof ValidatedQuery) {
+			validateIntegrity((ValidatedQuery) vc);
+		} else {
+			validateIntegrityExtension(vc);
+		}
+	}
+
+	protected void validateIntegrity(ValidatedQuery vq) throws ParseException {
+		validateIntegrityExtension(vq);
+	}
+
+	protected void validateIntegrityExtension(ValidatedQuery v) throws ParseException {
+	}
+
+	protected void validateIntegrityExtension(VerifiablePresentation v) throws ParseException {
+	}
+
+	protected void validateIntegrityExtension(VerifiableBase v) throws ParseException {
+		throw new ParseException("Received unexpected credental type " + v.getClass().getCanonicalName(), 0);
+	}
+
+	protected void validateIntegrityExtension(VerifiableCredential v) throws ParseException {
+		throw new ParseException("Received unexpected credental type " + v.getClass().getCanonicalName(), 0);
+	}
+
+	public void validateFields(VerifiableBase v) throws ParseException {
+		log.info("Validating fields of {}", v.getId());
+		if (StringUtils.isBlank(v.getTo())) {
+			throw new ParseException("Required feld `aud' is not given", 0);
+		}
+		if (StringUtils.isBlank(v.getFrom())) {
+			throw new ParseException("Required feld `iss' is not given", 0);
+		}
+		if (StringUtils.isBlank(v.getId())) {
+			throw new ParseException("Required feld `jti' is not given", 0);
+		}
+		if (StringUtils.isBlank(v.getKeyId())) {
+			throw new ParseException("Required feld `kid' is not given", 0);
+		}
+		if (v.getValidFrom() != null && v.getValidFrom().isAfter(ZonedDateTime.now())) {
+			throw new ParseException("VC is not valid yet (from " + v.getValidFrom() + ")", 0);
+		}
+		if (v.getExpiration() != null && v.getExpiration().isBefore(ZonedDateTime.now())) {
+			throw new ParseException("VC is no longer valid (to " + v.getExpiration() + ")", 0);
+		}
+		if (v instanceof VerifiablePresentation) {
+			validateFields((VerifiablePresentation) v);
+		} else if (v instanceof VerifiableCredential) {
+			validateFields((VerifiableCredential) v);
+		} else {
+			validateFieldsExtension(v);
+		}
+	}
+
+	protected void validateFields(VerifiablePresentation vp) throws ParseException {
+		if (vp.getCredential() == null) {
+			if (vp.getExternalCredential() == null) {
+				throw new ParseException("A VC must be given", 0);
+			} else {
+				throw new ParseException("A VC must be given and parsed", 0);
+			}
+		}
+		validateFieldsExtension(vp);
+	}
+
+	protected void validateFields(VerifiableCredential vc) throws ParseException {
+		if (vc instanceof ValidatedQuery) {
+			validateFields((ValidatedQuery) vc);
+		} else {
+			validateFieldsExtension(vc);
+		}
+	}
+
+	protected void validateFields(ValidatedQuery vq) throws ParseException {
+		if (StringUtils.isBlank(vq.getQuery())) {
+			throw new ParseException("Required feld `query' is not given", 0);
+		}
+		if (StringUtils.isBlank(vq.getOntology())) {
+			throw new ParseException("Required feld `ontology' is not given", 0);
+		}
+		if (StringUtils.isBlank(vq.getProfile())) {
+			throw new ParseException("Required feld `profile' is not given", 0);
+		}
+		validateFieldsExtension(vq);
+	}
+
+	protected void validateFieldsExtension(VerifiableBase v) throws ParseException {
+		throw new ParseException("Received unexpected credental type " + v.getClass().getCanonicalName(), 0);
+	}
+
+	protected void validateFieldsExtension(VerifiableCredential vc) throws ParseException {
+		throw new ParseException("Received unexpected credental type " + vc.getClass().getCanonicalName(), 0);
+	}
+
+	protected void validateFieldsExtension(VerifiablePresentation vp) throws ParseException {
+	}
+
+	protected void validateFieldsExtension(ValidatedQuery vq) throws ParseException {
+	}
+
+	public <T extends VerifiableBase> void validateMessageIntegrity(Message<T> message, T body) throws ParseException {
+		if (!StringUtils.equals(message.getFrom(), body.getFrom())) {
+			throw new ParseException("`from' of message does not match `iss' of VP", 0);
+		}
+		if (!StringUtils.equals(message.getTo(), body.getTo())) {
+			throw new ParseException("`to' of message does not match `aud' of VP", 0);
 		}
 	}
 

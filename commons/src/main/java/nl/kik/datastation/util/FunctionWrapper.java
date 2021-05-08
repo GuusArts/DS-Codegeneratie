@@ -26,6 +26,16 @@ public class FunctionWrapper {
 		void accept(T t) throws E;
 	}
 
+	@FunctionalInterface
+	public static interface BiConsumerWithException<T, U, E extends Exception> {
+		void accept(T t, U u) throws E;
+	}
+
+	@FunctionalInterface
+	public static interface TriConsumerWithException<T, U, V, E extends Exception> {
+		void accept(T t, U u, V v) throws E;
+	}
+
 	public static <T, R, E extends Exception> Function<T, R> wrapper(FunctionWithException<T, R, E> fe) {
 		return arg -> {
 			try {

@@ -1,9 +1,7 @@
 package nl.kik.datastation.mvc;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.charset.Charset;
-import java.text.ParseException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
@@ -19,6 +17,7 @@ import com.nimbusds.jose.JWSObject;
 
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.service.KeyService;
+import nl.kik.datastation.service.ValidationService;
 import nl.kik.datastation.service.VerifiableCredentialService;
 
 public class VerifiableCredentialMessageConverter extends AbstractHttpMessageConverter<VerifiableBase> {
@@ -27,6 +26,8 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 	private VerifiableCredentialService service;
 	@Autowired
 	private KeyService keys;
+	@Autowired
+	private ValidationService validator;
 
 	public VerifiableCredentialMessageConverter() {
 		super(MediaType.ALL);
@@ -42,8 +43,8 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 			throws IOException, HttpMessageNotReadableException {
 		String s = StreamUtils.copyToString(inputMessage.getBody(), UTF8);
 		try {
-			return service.unwrapVerifiable(s, (k, o) -> o);
-		} catch (MalformedURLException | RuntimeException | ParseException e) {
+			return service.unwrapVerifiable(s, (o, v) -> validator.validate(o, v, inputMessage));
+		} catch (Exception e) {
 			throw new HttpMessageNotReadableException("Unable to parse VC", e, inputMessage);
 		}
 	}

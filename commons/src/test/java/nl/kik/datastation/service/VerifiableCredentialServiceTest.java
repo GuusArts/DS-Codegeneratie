@@ -85,7 +85,8 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 			JWSObject wrapped = service.wrap(m, (c, w) -> service.sign(centralSigner).apply(w));
 			wrapped.sign(signer);
 			String flat = wrapped.serialize();
-			VerifiableBase unwrapped = service.unwrapVerifiable(flat, (c, w) -> w);
+			VerifiableBase unwrapped = service.unwrapVerifiable(flat, (w, v) -> {
+			});
 			log.info("{}", unwrapped);
 			assertEquals(m, unwrapped);
 		}
