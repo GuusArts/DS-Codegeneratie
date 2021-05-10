@@ -1,4 +1,4 @@
-package nl.kik.datastation.dto.vc;
+package nl.kik.datastation.dto.ds.async;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,9 +9,6 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ValidatedQuery extends VerifiableCredential {
-	private String subjectId;
-	private String profile;
-	private String ontology;
-	private String query;
+public class ReturnMessage<T> extends Message<T> {
+
 }

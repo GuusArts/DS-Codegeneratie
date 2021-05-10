@@ -3,7 +3,10 @@ package nl.kik.datastation.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
+import java.time.ZonedDateTime;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +15,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.Ed25519Signer;
@@ -32,7 +34,6 @@ import nl.kik.datastation.util.FunctionWrapper;
 class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 	private VerifiableCredentialService service;
 	private OctetKeyPair jwk, centralJwk;
-//	private OctetKeyPair publicJWK;
 	private JWSSigner signer, centralSigner;
 
 	@BeforeAll
@@ -40,7 +41,6 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		jwk = new OctetKeyPairGenerator(Curve.Ed25519) //
 				.keyID("urk:userkey") //
 				.generate();
-//		publicJWK = jwk.toPublicJWK();
 		signer = new Ed25519Signer(jwk);
 
 		centralJwk = new OctetKeyPairGenerator(Curve.Ed25519) //
@@ -69,12 +69,19 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 	void testWrapInMessage() throws Exception {
 		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
 				.body(presentation) //
+				.from("did:sender") //
+				.to(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.threadId("urn:thread") //
+				.replyUrl(new URL("http://example.com/service/reply")) //
 				.build();
 		MessageService messageService = new MessageService();
 
-		JOSEObject wrapped = messageService.wrap(message, messageService
+		JWSObject wrapped = messageService.wrap(message, messageService
 				.base64Wrapper(service.wrapAndSign(c -> signer, (c, w) -> service.sign(centralSigner).apply(w))));
-		System.out.println(messageService.serialize(wrapped).toString());
+		wrapped.sign(signer);
+		System.out.println(wrapped.serialize());
 	}
 
 	@Test

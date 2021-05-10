@@ -47,6 +47,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	protected static final String PROFILE = "profile";
 	protected static final String ONTOLOGY = "ontology";
 	protected static final String QUERY = "query";
+	protected static final String ID = "id";
 
 	protected static final String CREDENTIALS_CONTEXT = "https://www.w3.org/2018/credentials/v1";
 	protected static final String VALIDATED_QUERY_CONTEXT = "https://www.zinl.nl/2020/credentials/validatedquery/v1";
@@ -143,6 +144,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 				.claim(CREDENTIAL_SUBJECT, new JSONObject(Map.of(//
 						PROFILE, m.getProfile(), //
 						ONTOLOGY, m.getOntology(), //
+						ID, m.getSubjectId(), //
 						QUERY, m.getQuery() //
 				))); //
 		builder = makeCredentialExtension(builder, m);
@@ -192,7 +194,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 				.id(claims.getJWTID()) //
 				.keyId(header.getKeyID()) //
 				.from(claims.getIssuer()) //
-				.to(claims.getAudience().stream().findFirst().orElse(null)) //
+				.to(claims.getAudience()) //
 				.expiration(claims.getExpirationTime() == null ? null
 						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
@@ -283,6 +285,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		}
 		JSONObject subject = getRequiredJSONObject(vc, CREDENTIAL_SUBJECT);
 		return ValidatedQuery.builder() //
+				.subjectId(getRequiredString(subject, ID)) //
 				.query(getRequiredString(subject, QUERY)) //
 				.profile(getRequiredString(subject, PROFILE)) //
 				.ontology(getRequiredString(subject, ONTOLOGY)) //
@@ -362,9 +365,6 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	protected void validateIntegrity(VerifiablePresentation v) throws ParseException {
-		if (!StringUtils.equals(v.getFrom(), v.getCredential().getTo())) {
-			throw new ParseException("`aud' of VC does not match `iss' of VP", 0);
-		}
 		validateIntegrityExtension(v);
 	}
 
@@ -396,7 +396,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	public void validateFields(VerifiableBase v) throws ParseException {
 		log.info("Validating fields of {}", v.getId());
-		if (StringUtils.isBlank(v.getTo())) {
+		if (StringUtils.isBlank(v.getFrom())) {
 			throw new ParseException("Required feld `aud' is not given", 0);
 		}
 		if (StringUtils.isBlank(v.getFrom())) {
@@ -470,12 +470,6 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	public <T extends VerifiableBase> void validateMessageIntegrity(Message<T> message, T body) throws ParseException {
-		if (!StringUtils.equals(message.getFrom(), body.getFrom())) {
-			throw new ParseException("`from' of message does not match `iss' of VP", 0);
-		}
-		if (!StringUtils.equals(message.getTo(), body.getTo())) {
-			throw new ParseException("`to' of message does not match `aud' of VP", 0);
-		}
 	}
 
 }

@@ -1,6 +1,7 @@
 package nl.kik.datastation.dto;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -13,6 +14,8 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode
 public abstract class Token {
 	private String id;
-	private String from, to;
-	private ZonedDateTime expiration, creation;
+	private String keyId;
+	private String from;
+	private List<String> to;
+	private ZonedDateTime validFrom, expiration, creation;
 }

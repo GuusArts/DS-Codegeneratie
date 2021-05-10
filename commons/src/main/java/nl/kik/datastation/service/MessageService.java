@@ -6,19 +6,23 @@ import java.text.ParseException;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.PlainHeader;
-import com.nimbusds.jose.PlainObject;
-import com.nimbusds.jose.util.JSONObjectUtils;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
+import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
@@ -45,24 +49,26 @@ public class MessageService extends AbstractTokenService {
 	private static final String RESPONSE = "v1/basic-message/response";
 	private static final String ERROR_REPORT = "v1/error-report";
 
-	public <T, E extends Exception> JOSEObject wrap(Message<T> m, FunctionWithException<T, JSONObject, E> bodyEncoder)
+	public <T, E extends Exception> JWSObject wrap(Message<T> m, FunctionWithException<T, JSONObject, E> bodyEncoder)
 			throws E {
 		m = fillDefaults(m);
-		PlainHeader header = new PlainHeader(JWM, null, null, null, null);
+		JWSHeader header = new JWSHeader(JWSAlgorithm.EdDSA, JWM, null, null, null, null, null, null, null, null,
+				m.getKeyId(), true, null, null);
 
+		Collection<String> recipient = CollectionUtils.emptyIfNull(m.getTo());
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //
 				.jwtID(m.getId()) //
 				.claim(FROM, m.getFrom()) //
-				.claim(TO, m.getTo()) //
+				.claim(TO, recipient.size() == 1 ? recipient.iterator().next() : recipient) //
+				.notBeforeTime(m.getValidFrom() == null ? null : Date.from(m.getValidFrom().toInstant())) //
 				.expirationTime(m.getExpiration() == null ? null : Date.from(m.getExpiration().toInstant())) //
 				.issueTime(m.getCreation() == null ? null : Date.from(m.getCreation().toInstant())) //
 				.claim(THREAD, m.getThreadId()) //
 				.claim(BODY, m.getBody() == null ? null : bodyEncoder.apply(m.getBody())) //
 		;
 		claims = wrap(claims, m);
-		Payload payload = new Payload(claims.build().toJSONObject());
 
-		return new PlainObject(header, payload);
+		return new SignedJWT(header, claims.build());
 	}
 
 	public <T, E extends Exception> FunctionWithException<Message<T>, JOSEObject, E> wrap(
@@ -80,28 +86,48 @@ public class MessageService extends AbstractTokenService {
 		return o -> preprocessor.apply(o.getAsString(MESSAGE));
 	}
 
-	public <T, E extends Exception> Message<T> unwrapMessage(String encoded,
-			FunctionWithException<JSONObject, T, E> bodyDecoder) throws ParseException, MalformedURLException, E {
-		JSONObject json = JSONObjectUtils.parse(encoded);
-		PlainHeader header = PlainHeader.parse(getRequiredJSONObject(json, PROTECTED));
-		JWTClaimsSet claims = JWTClaimsSet.parse(getRequiredJSONObject(json, PAYLOAD));
-//		Payload payload = new Payload(claims.toJSONObject());
-//		PlainObject object = new PlainObject(header, payload);
-		checkEquals("jti", JWM, header.getType());
+	public <E extends Exception> FunctionWithException<String, JSONObject, E> rawStringWrapper() {
+		return s -> new JSONObject(Map.of(MESSAGE, s));
+	}
 
-		return unwrap(claims, bodyDecoder) //
+	public <E extends Exception> FunctionWithException<JSONObject, String, E> rawStringUnwrapper() {
+		return o -> o.getAsString(MESSAGE);
+	}
+
+	public <T, E extends Exception> Message<T> unwrapMessage(String encoded,
+			BiConsumerWithException<JWSObject, Message<T>, E> credentialValidator,
+			FunctionWithException<JSONObject, T, E> bodyDecoder) throws ParseException, MalformedURLException, E {
+		SignedJWT object = SignedJWT.parse(encoded);
+		JWSHeader header = object.getHeader();
+		JWTClaimsSet claims = object.getJWTClaimsSet();
+		checkEquals("jti", JWM, header.getType());
+		checkEquals("alg", JWSAlgorithm.EdDSA, header.getAlgorithm());
+
+		List<String> recipient;
+		try {
+			recipient = claims.getStringListClaim(TO);
+		} catch (ParseException e) {
+			recipient = Collections.singletonList(claims.getStringClaim(TO));
+		}
+		Message<T> result = unwrap(claims, bodyDecoder) //
 				.id(claims.getJWTID()) //
+				.keyId(header.getKeyID()) //
 				.from(claims.getStringClaim(FROM)) //
-				.to(claims.getStringClaim(TO)) //
+				.to(recipient) //
 				.expiration(claims.getExpirationTime() == null ? null
 						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
 				.creation(claims.getIssueTime() == null ? null
 						: claims.getIssueTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
+				.validFrom(claims.getNotBeforeTime() == null ? null
+						: claims.getNotBeforeTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
+								.toZonedDateTime()) //
 				.threadId(claims.getStringClaim(THREAD)) //
 				.body(bodyDecoder.apply(claims.getJSONObjectClaim(BODY))) //
 				.build();
+		credentialValidator.accept(object, result);
+		return result;
 	}
 
 	private <T, E extends Exception> Message.MessageBuilder<T, ?, ?> unwrap(JWTClaimsSet claims,
@@ -205,7 +231,7 @@ public class MessageService extends AbstractTokenService {
 		if (StringUtils.isBlank(m.getFrom())) {
 			throw new ParseException("Required feld `from' is not given", 0);
 		}
-		if (StringUtils.isBlank(m.getTo())) {
+		if (CollectionUtils.isEmpty(m.getTo())) {
 			throw new ParseException("Required feld `to' is not given", 0);
 		}
 		if (StringUtils.isBlank(m.getId())) {
@@ -213,6 +239,9 @@ public class MessageService extends AbstractTokenService {
 		}
 		if (StringUtils.isBlank(m.getThreadId())) {
 			throw new ParseException("Required feld `threadId' is not given", 0);
+		}
+		if (m.getValidFrom() != null && m.getValidFrom().isAfter(ZonedDateTime.now())) {
+			throw new ParseException("Message is not valid yet (from " + m.getValidFrom() + ")", 0);
 		}
 		if (m.getExpiration() != null && m.getExpiration().isBefore(ZonedDateTime.now())) {
 			throw new ParseException("Message is no longer valid (to " + m.getExpiration() + ")", 0);

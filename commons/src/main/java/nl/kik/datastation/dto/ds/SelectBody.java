@@ -1,4 +1,7 @@
-package nl.kik.datastation.dto.ds.async;
+package nl.kik.datastation.dto.ds;
+
+import java.util.List;
+import java.util.Map;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @Getter
 @ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
-public class Response<T> extends ReturnMessage<T> {
+@EqualsAndHashCode
+public class SelectBody {
+	private List<Map<String, Binding>> bindings;
 }

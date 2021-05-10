@@ -1,7 +1,5 @@
 package nl.kik.datastation.dto.vc;
 
-import java.time.ZonedDateTime;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -13,6 +11,4 @@ import nl.kik.datastation.dto.Token;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class VerifiableBase extends Token {
-	private String keyId;
-	private ZonedDateTime validFrom;
 }

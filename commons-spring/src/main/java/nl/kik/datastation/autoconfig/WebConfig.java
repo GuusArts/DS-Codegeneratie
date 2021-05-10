@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import nl.kik.datastation.dto.vc.VerifiableBase;
-import nl.kik.datastation.mvc.MessageMessageConverter;
+import nl.kik.datastation.mvc.RequestMessageConverter;
 import nl.kik.datastation.mvc.VerifiableCredentialMessageConverter;
 import nl.kik.datastation.service.DefaultValidationService;
 import nl.kik.datastation.service.ValidationService;
@@ -23,10 +22,10 @@ public class WebConfig {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public <T extends VerifiableBase> MessageMessageConverter<T> messageMessageConverter() {
-		return new MessageMessageConverter<T>();
+	public RequestMessageConverter messageMessageConverter() {
+		return new RequestMessageConverter();
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean
 	public ValidationService vcValidationService() {

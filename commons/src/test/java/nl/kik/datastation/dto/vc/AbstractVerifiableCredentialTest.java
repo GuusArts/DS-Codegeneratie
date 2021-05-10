@@ -2,6 +2,7 @@ package nl.kik.datastation.dto.vc;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,8 @@ public abstract class AbstractVerifiableCredentialTest {
 				.id("urn:credential") //
 				.keyId("urn:centralkey") //
 				.from("did:central") //
-				.to("did:sender") //
+				.subjectId("ur:senderid") //
+				.to(Collections.singletonList("did:sender")) //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -30,8 +32,8 @@ public abstract class AbstractVerifiableCredentialTest {
 		presentation = VerifiablePresentation.builder() //
 				.id("urn:presentation") //
 				.keyId("urn:userkey") //
-				.from("did:authority") //
-				.to("did:recipient") //
+				.from("did:sender") //
+				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //

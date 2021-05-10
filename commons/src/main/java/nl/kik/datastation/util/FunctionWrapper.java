@@ -1,5 +1,6 @@
 package nl.kik.datastation.util;
 
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,6 +51,16 @@ public class FunctionWrapper {
 		return (a1, a2) -> {
 			try {
 				return fe.apply(a1, a2);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		};
+	}
+
+	public static <T, U, R, E extends Exception> BiConsumer<T, U> wrapper(BiConsumerWithException<T, U, E> fe) {
+		return (a1, a2) -> {
+			try {
+				fe.accept(a1, a2);
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}

@@ -1,15 +1,11 @@
 package nl.kik.datastation.service;
 
-import java.text.ParseException;
-
 import org.springframework.http.HttpInputMessage;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 
-import nl.kik.datastation.dto.vc.VerifiableBase;
+import nl.kik.datastation.dto.Token;
 
 public interface ValidationService {
-	void validate(JWSObject jws, VerifiableBase vc, HttpInputMessage message)
-			throws ParseException, JOSEException;
+	void validate(JWSObject jws, Token t, HttpInputMessage message) throws Exception;
 }

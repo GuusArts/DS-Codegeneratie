@@ -5,11 +5,9 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 
@@ -17,16 +15,6 @@ import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 
 public abstract class AbstractTokenService {
-	protected static final String PROTECTED = "protected";
-	protected static final String PAYLOAD = "payload";
-
-	public JSONObject serialize(JOSEObject o) {
-		return new JSONObject(Map.of( //
-				PROTECTED, o.getHeader().toJSONObject(), //
-				PAYLOAD, o.getPayload().toJSONObject() //
-		));
-	}
-
 	protected <T> T checkEquals(String name, T expected, T actual) throws ParseException {
 		if (!Objects.equals(expected, actual)) {
 			throw new ParseException(
@@ -61,6 +49,17 @@ public abstract class AbstractTokenService {
 			return Collections.emptyList();
 		}
 		return Arrays.asList(array.toArray((T[]) Array.newInstance(clazz, 0)));
+	}
+
+	protected <T> T getGeneric(final JSONObject o, final String key, final Class<T> clazz) throws ParseException {
+		if (o.get(key) == null) {
+			return null;
+		}
+		Object value = o.get(key);
+		if (!clazz.isAssignableFrom(value.getClass())) {
+			throw new ParseException("Unexpected type of JSON object member with key \"" + key + "\"", 0);
+		}
+		return clazz.cast(value);
 	}
 
 	protected String randomUUID() {

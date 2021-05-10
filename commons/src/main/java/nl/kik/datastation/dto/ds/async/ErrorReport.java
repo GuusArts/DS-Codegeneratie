@@ -9,5 +9,5 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class ErrorReport<T> extends Message<T> {
+public class ErrorReport<T> extends ReturnMessage<T> {
 }

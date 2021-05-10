@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import nl.kik.datastation.mvc.MessageMessageConverter;
+import nl.kik.datastation.mvc.RequestMessageConverter;
 import nl.kik.datastation.mvc.VerifiableCredentialMessageConverter;
 
 @Configuration
@@ -22,11 +22,11 @@ public class WebMvcConfig {
 		@Autowired
 		private VerifiableCredentialMessageConverter verifiableCredentialMessageConverter;
 		@Autowired
-		private MessageMessageConverter<?> messageMessageConverter;
+		private RequestMessageConverter requestMessageConverter;
 
 		@Override
 		public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-			converters.add(messageMessageConverter);
+			converters.add(requestMessageConverter);
 			converters.add(verifiableCredentialMessageConverter);
 		}
 	}
