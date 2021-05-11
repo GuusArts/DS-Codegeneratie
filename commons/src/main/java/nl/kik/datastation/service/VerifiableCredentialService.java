@@ -53,7 +53,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	protected static final String VALIDATED_QUERY_CONTEXT = "https://www.zinl.nl/2020/credentials/validatedquery/v1";
 	protected static final String VERIFIABLE_PRESENTATION_TYPE = "VerifiablePresentation";
 	protected static final String VERIFIABLE_CREDENTIAL_TYPE = "VerifiableCredential";
-	protected static final String VALIDATED_QUERY_CREDENTIAL_TYPE = "VerifiablePresentation";
+	protected static final String VALIDATED_QUERY_CREDENTIAL_TYPE = "ValidQueryCredential";
 
 	public <E extends Exception> JWSObject wrap(VerifiableBase m,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {

@@ -91,6 +91,31 @@ public class SerializationTest {
 	}
 
 	@Test
+	public void construct() throws Exception {
+		MvcResult result = mockMvc.perform(get("/construct")) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		String request = result.getResponse().getContentAsString();
+		log.info("Construct: {}", request);
+
+		result = mockMvc.perform(post("/construct").content(request)) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		assertEquals(request, result.getResponse().getContentAsString());
+
+		result = mockMvc.perform(post("/response").content(request)) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		assertEquals(request, result.getResponse().getContentAsString());
+
+		mockMvc.perform(post("/construct").content("AAAA" + request)) //
+				.andExpect(status().is(400));
+	}
+
+	@Test
 	public void ask() throws Exception {
 		MvcResult result = mockMvc.perform(get("/ask")) //
 //				.andDo(print()) //

@@ -12,6 +12,7 @@ import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.AskResult;
 import nl.kik.datastation.dto.ds.AskResult.AskResultBuilder;
 import nl.kik.datastation.dto.ds.Binding;
+import nl.kik.datastation.dto.ds.ConstructResult;
 import nl.kik.datastation.dto.ds.Header;
 import nl.kik.datastation.dto.ds.Header.HeaderBuilder;
 import nl.kik.datastation.dto.ds.RDFType;
@@ -49,11 +50,14 @@ public class ResultService extends AbstractTokenService {
 	}
 
 	protected JSONObject wrap(SPARQLResult result, JSONObject json) throws ParseException {
-		json.put(HEAD, wrap(result.getHead()));
 		if (result instanceof AskResult) {
+			json.put(HEAD, wrap(result.getHead()));
 			return wrap((AskResult) result, json);
 		} else if (result instanceof SelectResult) {
+			json.put(HEAD, wrap(result.getHead()));
 			return wrap((SelectResult) result, json);
+		} else if (result instanceof ConstructResult) {
+			return wrap((ConstructResult) result, json);
 		} else {
 			return wrapExtension(result, json);
 		}
@@ -90,6 +94,11 @@ public class ResultService extends AbstractTokenService {
 
 	protected JSONObject wrap(SelectResult result, JSONObject json) throws ParseException {
 		json.put(RESULTS, wrap(result.getResults()));
+		return wrapExtension(result, json);
+	}
+
+	protected JSONObject wrap(ConstructResult result, JSONObject json) throws ParseException {
+		json.put(RESULTS, result.getData());
 		return wrapExtension(result, json);
 	}
 
@@ -148,14 +157,29 @@ public class ResultService extends AbstractTokenService {
 		return json;
 	}
 
+	protected JSONObject wrapExtension(ConstructResult result, JSONObject json) throws ParseException {
+		return json;
+	}
+
 	public Result unwrap(JSONObject object) throws ParseException {
 		JSONObject head = JSONObjectUtils.getJSONObject(object, HEAD);
 		if (head != null) {
 			return unwrapSPARQL(object, head) //
 					.build();
 		} else {
+			JSONObject results = JSONObjectUtils.getJSONObject(object, RESULTS);
+			if (results != null) {
+				return unwrapJSONLD(object, results) //
+						.build();
+			}
 			return unwrapExtension(object);
 		}
+	}
+
+	protected ConstructResult.ConstructResultBuilder<?, ?> unwrapJSONLD(JSONObject object, JSONObject results) {
+		return ConstructResult.builder() //
+				.data(results) //
+		;
 	}
 
 	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapSPARQL(JSONObject object, JSONObject head)

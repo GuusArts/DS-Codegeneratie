@@ -9,6 +9,7 @@ import nl.kik.datastation.service.DefaultKeyService;
 import nl.kik.datastation.service.KeyService;
 import nl.kik.datastation.service.MessageService;
 import nl.kik.datastation.service.ResultService;
+import nl.kik.datastation.service.SPARQLService;
 import nl.kik.datastation.service.VerifiableCredentialService;
 
 @Configuration
@@ -41,5 +42,11 @@ public class CommonsConfig {
 	@ConditionalOnMissingBean
 	public ResultService resultService() {
 		return new ResultService();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public SPARQLService sparqLService() {
+		return new SPARQLService();
 	}
 }

@@ -2,12 +2,16 @@ package nl.kik.datastation.mvc;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.datastation.dto.ds.AskResult;
 import nl.kik.datastation.dto.ds.Binding;
+import nl.kik.datastation.dto.ds.ConstructResult;
 import nl.kik.datastation.dto.ds.Header;
 import nl.kik.datastation.dto.ds.RDFType;
 import nl.kik.datastation.dto.ds.Result;
@@ -29,12 +34,16 @@ import nl.kik.datastation.dto.ds.async.ReturnMessage;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.datastation.service.SPARQLService;
 
 @RestController
 @Slf4j
 @SpringBootApplication(scanBasePackages = "nl.kik.datastation")
 public class SerializationController {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
+
+	@Autowired
+	private SPARQLService sparql;
 
 	@GetMapping("/request")
 	public Request<VerifiablePresentation> request() throws MalformedURLException {
@@ -98,6 +107,40 @@ public class SerializationController {
 	public ReturnMessage<?> request(@RequestBody ReturnMessage<?> error) {
 		log.info("POST error {}", error);
 		return error;
+	}
+
+	@GetMapping("/construct")
+	public ReturnMessage<?> construct() throws MalformedURLException, ParseException {
+		log.info("GET construct");
+
+		Model model = ModelFactory.createDefaultModel();
+		model.add(model.createResource(), model.createProperty("http://example.com/property"), "world");
+		model.add(model.createResource("http://example.com/hello"), model.createProperty("http://example.com/property"),
+				model.createResource("http://example.com/world"));
+		model.add(model.createResource("http://example.com/girls"), model.createProperty("http://example.com/rule"),
+				model.createResource("http://example.com/world"));
+		model.add(model.createResource("http://example.com/girls"),
+				model.createProperty("http://example.com/just_wanna"),
+				model.createResource("http://example.com/have_fun"));
+
+		ConstructResult construct = sparql.wrap(model);
+
+		Response<Result> message = Response.<Result>builder() //
+				.keyId("urn:userkey") //
+				.body(construct) //
+				.from("did:sender") //
+				.to(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.build();
+
+		return message;
+	}
+
+	@PostMapping("/construct")
+	public ReturnMessage<?> construct(@RequestBody ReturnMessage<?> construct) {
+		log.info("POST construct {}", construct);
+		return construct;
 	}
 
 	@GetMapping("/select")

@@ -11,6 +11,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
@@ -50,7 +51,8 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			switch (type) {
 			case MessageService.RESPONSE: {
 				Message<Result> message = service.unwrapMessage(s,
-						(j, v) -> this.validator.validate(j, v, inputMessage), resultService::unwrap);
+						(j, v) -> this.validator.validate(j, v, inputMessage),
+						o -> resultService.unwrap(JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE)));
 				if (!Response.class.isInstance(message) || !Result.class.isInstance(message.getBody())) {
 					throw new ParseException("Message must be Response and body must be Result", 0);
 				}
@@ -83,7 +85,8 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			wrapped = service.wrap((ErrorReport<String>) (ErrorReport) t,
 					s -> new JSONObject(Map.of(MessageService.MESSAGE, s)));
 		} else if (t instanceof Response<?> && t.getBody() instanceof Result) {
-			wrapped = service.wrap((Response<Result>) (Response) t, resultService::wrap);
+			wrapped = service.wrap((Response<Result>) (Response) t,
+					s -> new JSONObject(Map.of(MessageService.MESSAGE, resultService.wrap(s))));
 		} else {
 			throw new ParseException("Received unsupported return message", 0);
 		}
