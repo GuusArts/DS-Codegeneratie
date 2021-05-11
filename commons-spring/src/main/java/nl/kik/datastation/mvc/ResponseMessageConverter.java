@@ -90,7 +90,7 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 		} else {
 			throw new ParseException("Received unsupported return message", 0);
 		}
-		wrapped.sign(keys.getSigner(wrapped.getHeader().getKeyID()));
+		wrapped.sign(keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 		return wrapped;
 	}
 

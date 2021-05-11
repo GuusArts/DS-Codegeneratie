@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSObject;
 
 import net.minidev.json.JSONObject;
@@ -41,9 +42,9 @@ public class RequestMessageConverter
 	protected FunctionWithException<VerifiablePresentation, JSONObject, Exception> getEncoder(
 			HttpOutputMessage outputMessage) {
 		BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
-				(c, w) -> vcService.sign(keys.getSigner(c.getKeyId())).apply(w);
+				(c, w) -> vcService.sign(keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())).apply(w);
 		FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
-				vcService.wrapAndSign(v -> keys.getSigner(v.getKeyId()), signer);
+				vcService.wrapAndSign(v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
 		return service.base64Wrapper(wrapper);
 	}
 
