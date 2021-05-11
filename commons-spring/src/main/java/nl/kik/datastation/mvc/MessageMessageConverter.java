@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StreamUtils;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +48,6 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 
 	protected abstract Class<T> getBodyClass();
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected M readInternal(Class<? extends M> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
@@ -59,6 +59,16 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 				s = s.substring(0, s.length() - 1);
 			}
 		}
+		return decodeMessage(s, inputMessage);
+	}
+
+	/**
+	 * @param s
+	 * @param inputMessage
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	protected M decodeMessage(String s, HttpInputMessage inputMessage) {
 		try {
 			Message<?> message = service.unwrapMessage(s, (j, v) -> this.validator.validate(j, v, inputMessage),
 					getDecoder(inputMessage));
@@ -84,13 +94,25 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 			throws IOException, HttpMessageNotWritableException {
 		log.trace("Serialize {}", t.getClass().getSimpleName());
 		try {
-			JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
-			wrapped.sign(keys.getSigner(wrapped.getHeader().getKeyID()));
+			JWSObject wrapped = encodeMessage(t, outputMessage);
 			StreamUtils.copy(wrapped.serialize(), UTF8, outputMessage.getBody());
 		} catch (Exception e) {
 			log.trace("Exception", e);
 			throw new HttpMessageNotWritableException("Unable to sign/serialize Message", e);
 		}
+	}
+
+	/**
+	 * @param t
+	 * @param outputMessage
+	 * @return
+	 * @throws Exception
+	 * @throws JOSEException
+	 */
+	protected JWSObject encodeMessage(M t, HttpOutputMessage outputMessage) throws Exception, JOSEException {
+		JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
+		wrapped.sign(keys.getSigner(wrapped.getHeader().getKeyID()));
+		return wrapped;
 	}
 
 	/**

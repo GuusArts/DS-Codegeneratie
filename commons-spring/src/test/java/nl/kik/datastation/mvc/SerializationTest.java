@@ -55,6 +55,12 @@ public class SerializationTest {
 				.andReturn();
 		assertEquals(request, result.getResponse().getContentAsString());
 
+		result = mockMvc.perform(post("/response").content(request)) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		assertEquals(request, result.getResponse().getContentAsString());
+
 		mockMvc.perform(post("/error").content("AAAA" + request)) //
 				.andExpect(status().is(400));
 	}
@@ -74,6 +80,12 @@ public class SerializationTest {
 				.andReturn();
 		assertEquals(request, result.getResponse().getContentAsString());
 
+		result = mockMvc.perform(post("/response").content(request)) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		assertEquals(request, result.getResponse().getContentAsString());
+
 		mockMvc.perform(post("/select").content("AAAA" + request)) //
 				.andExpect(status().is(400));
 	}
@@ -88,6 +100,12 @@ public class SerializationTest {
 		log.info("Ask: {}", request);
 
 		result = mockMvc.perform(post("/ask").content(request)) //
+//				.andDo(print()) //
+				.andExpect(status().isOk()) //
+				.andReturn();
+		assertEquals(request, result.getResponse().getContentAsString());
+
+		result = mockMvc.perform(post("/response").content(request)) //
 //				.andDo(print()) //
 				.andExpect(status().isOk()) //
 				.andReturn();

@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import nl.kik.datastation.mvc.ErrorReportMessageConverter;
 import nl.kik.datastation.mvc.RequestMessageConverter;
 import nl.kik.datastation.mvc.ResponseMessageConverter;
 import nl.kik.datastation.mvc.VerifiableCredentialMessageConverter;
@@ -32,12 +31,6 @@ public class WebConfig {
 	@ConditionalOnMissingBean
 	public ResponseMessageConverter responseMessageConverter() {
 		return new ResponseMessageConverter();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ErrorReportMessageConverter errorReportMessageConverter() {
-		return new ErrorReportMessageConverter();
 	}
 
 	@Bean

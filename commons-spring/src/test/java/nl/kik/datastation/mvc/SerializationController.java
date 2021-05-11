@@ -95,7 +95,7 @@ public class SerializationController {
 	}
 
 	@PostMapping("/error")
-	public ReturnMessage<?> request(@RequestBody ErrorReport<String> error) {
+	public ReturnMessage<?> request(@RequestBody ReturnMessage<?> error) {
 		log.info("POST error {}", error);
 		return error;
 	}
@@ -136,7 +136,7 @@ public class SerializationController {
 	}
 
 	@PostMapping("/select")
-	public ReturnMessage<?> select(@RequestBody Response<Result> select) {
+	public ReturnMessage<?> select(@RequestBody ReturnMessage<?> select) {
 		log.info("POST select {}", select);
 		return select;
 	}
@@ -163,9 +163,15 @@ public class SerializationController {
 	}
 
 	@PostMapping("/ask")
-	public ReturnMessage<?> ask(@RequestBody Response<Result> ask) {
+	public ReturnMessage<?> ask(@RequestBody ReturnMessage<?> ask) {
 		log.info("POST ask {}", ask);
 		return ask;
+	}
+
+	@PostMapping("/response")
+	public ReturnMessage<?> response(@RequestBody ReturnMessage<?> response) {
+		log.info("POST response {}", response);
+		return response;
 	}
 
 	@GetMapping("/vp")
