@@ -24,7 +24,7 @@ public class DefaultValidationService implements ValidationService {
 
 	@Override
 	public void validate(JWSObject jws, Token t, HttpInputMessage headers) throws Exception {
-		log.info("Validating {} (from {} received as {})", t, jws, headers);
+		log.trace("Validating {} (from {} received as {})", t, jws, headers);
 		if (t instanceof Message<?>) {
 			validate(jws, (Message<?>) t, headers);
 		} else if (t instanceof VerifiableBase) {
@@ -54,7 +54,7 @@ public class DefaultValidationService implements ValidationService {
 	}
 
 	protected void validateSignature(JWSVerifier verifier, JWSObject jws) throws Exception {
-		log.info("Validating signature using {}", jws.getHeader().getKeyID());
+		log.trace("Validating signature using {}", jws.getHeader().getKeyID());
 		if (verifier == null) {
 			throw new ParseException("Key " + jws.getHeader().getKeyID() + " could not be found for validation", 0);
 		}

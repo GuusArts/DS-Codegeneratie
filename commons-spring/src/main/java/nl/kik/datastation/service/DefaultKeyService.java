@@ -21,7 +21,6 @@ public class DefaultKeyService implements KeyService {
 				.keyID("urk:userkey") //
 				.generate();
 		signer = new Ed25519Signer(jwk);
-
 	}
 
 	public JWSSigner getSigner(String keyId) {

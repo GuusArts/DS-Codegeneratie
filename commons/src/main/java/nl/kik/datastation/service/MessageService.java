@@ -37,17 +37,17 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 public class MessageService extends AbstractTokenService {
 	public static final JOSEObjectType JWM = new JOSEObjectType("JWM");
 
-	private static final String FROM = "from";
-	private static final String TO = "to";
-	private static final String THREAD = "thread_id";
-	private static final String BODY = "body";
-	private static final String TYPE = "type";
-	private static final String REPLY_URL = "reply_url";
-	private static final String MESSAGE = "message";
+	public static final String FROM = "from";
+	public static final String TO = "to";
+	public static final String THREAD = "thread_id";
+	public static final String BODY = "body";
+	public static final String TYPE = "type";
+	public static final String REPLY_URL = "reply_url";
+	public static final String MESSAGE = "message";
 
-	private static final String REQUEST = "v1/basic-message/request";
-	private static final String RESPONSE = "v1/basic-message/response";
-	private static final String ERROR_REPORT = "v1/error-report";
+	public static final String REQUEST = "v1/basic-message/request";
+	public static final String RESPONSE = "v1/basic-message/response";
+	public static final String ERROR_REPORT = "v1/error-report";
 
 	public <T, E extends Exception> JWSObject wrap(Message<T> m, FunctionWithException<T, JSONObject, E> bodyEncoder)
 			throws E {
@@ -227,7 +227,7 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	public <T> void validateFields(Message<T> m) throws ParseException {
-		log.info("Validating fields of {}", m.getId());
+		log.trace("Validating fields of {}", m.getId());
 		if (StringUtils.isBlank(m.getFrom())) {
 			throw new ParseException("Required feld `from' is not given", 0);
 		}
@@ -236,6 +236,9 @@ public class MessageService extends AbstractTokenService {
 		}
 		if (StringUtils.isBlank(m.getId())) {
 			throw new ParseException("Required feld `jti' is not given", 0);
+		}
+		if (StringUtils.isBlank(m.getKeyId())) {
+			throw new ParseException("Required feld `kid' is not given", 0);
 		}
 		if (StringUtils.isBlank(m.getThreadId())) {
 			throw new ParseException("Required feld `threadId' is not given", 0);
@@ -291,7 +294,7 @@ public class MessageService extends AbstractTokenService {
 
 	public <T, E extends Exception> void validateIntegrity(Message<T> m,
 			BiConsumerWithException<Message<T>, T, E> delegate) throws ParseException, E {
-		log.info("Validating integrity of {}", m.getId());
+		log.trace("Validating integrity of {}", m.getId());
 		delegate.accept(m, m.getBody());
 		if (m instanceof Request<?>) {
 			validateIntegrity((Request<T>) m);

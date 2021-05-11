@@ -144,7 +144,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 				.claim(CREDENTIAL_SUBJECT, new JSONObject(Map.of(//
 						PROFILE, m.getProfile(), //
 						ONTOLOGY, m.getOntology(), //
-						ID, m.getSubjectId(), //
+						ID, m.getSubjectId() == null ? randomUUID() : m.getSubjectId(), //
 						QUERY, m.getQuery() //
 				))); //
 		builder = makeCredentialExtension(builder, m);
@@ -354,7 +354,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	public void validateIntegrity(VerifiableBase v) throws ParseException {
-		log.info("Validating integrity of {}", v.getId());
+		log.trace("Validating integrity of {}", v.getId());
 		if (v instanceof VerifiablePresentation) {
 			validateIntegrity((VerifiablePresentation) v);
 		} else if (v instanceof VerifiableCredential) {
@@ -395,7 +395,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	public void validateFields(VerifiableBase v) throws ParseException {
-		log.info("Validating fields of {}", v.getId());
+		log.trace("Validating fields of {}", v.getId());
 		if (StringUtils.isBlank(v.getFrom())) {
 			throw new ParseException("Required feld `aud' is not given", 0);
 		}
