@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.nimbusds.jose.JOSEException;
@@ -63,8 +64,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //
 				.jwtID(m.getId()) //
-				.issuer(m.getFrom()) //
-				.audience(m.getTo()) //
+				.issuer(m.getIssuer()) //
+				.audience(m.getAudience()) //
 				.notBeforeTime(m.getValidFrom() == null ? null : Date.from(m.getValidFrom().toInstant())) //
 				.expirationTime(m.getExpiration() == null ? null : Date.from(m.getExpiration().toInstant())) //
 				.issueTime(m.getCreation() == null ? null : Date.from(m.getCreation().toInstant())) //
@@ -193,8 +194,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		VerifiableBase result = unwrap(claims, credentialValidator) //
 				.id(claims.getJWTID()) //
 				.keyId(header.getKeyID()) //
-				.from(claims.getIssuer()) //
-				.to(claims.getAudience()) //
+				.issuer(claims.getIssuer()) //
+				.audience(CollectionUtils.isEmpty(claims.getAudience()) ? null : claims.getAudience()) //
 				.expiration(claims.getExpirationTime() == null ? null
 						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
@@ -396,10 +397,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	public void validateFields(VerifiableBase v) throws ParseException {
 		log.trace("Validating fields of {}", v.getId());
-		if (StringUtils.isBlank(v.getFrom())) {
-			throw new ParseException("Required feld `aud' is not given", 0);
-		}
-		if (StringUtils.isBlank(v.getFrom())) {
+		if (StringUtils.isBlank(v.getIssuer())) {
 			throw new ParseException("Required feld `iss' is not given", 0);
 		}
 		if (StringUtils.isBlank(v.getId())) {

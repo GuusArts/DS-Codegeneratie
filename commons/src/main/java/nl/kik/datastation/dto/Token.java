@@ -13,9 +13,9 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @EqualsAndHashCode
 public abstract class Token {
+	private String issuer;
+	private List<String> audience;
 	private String id;
 	private String keyId;
-	private String from;
-	private List<String> to;
 	private ZonedDateTime validFrom, expiration, creation;
 }

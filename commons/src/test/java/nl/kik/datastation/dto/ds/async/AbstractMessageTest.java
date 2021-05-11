@@ -19,6 +19,7 @@ public abstract class AbstractMessageTest {
 	void setUp() throws Exception {
 		request = Request.<String>builder() //
 				.id("urn:request") //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -30,6 +31,7 @@ public abstract class AbstractMessageTest {
 				.build();
 		response = Response.<String>builder() //
 				.id("urn:response") //
+				.issuer("did:recipient") //
 				.to(Collections.singletonList("did:sender")) //
 				.from("did:recipient") //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -40,6 +42,7 @@ public abstract class AbstractMessageTest {
 				.build();
 		error = ErrorReport.<String>builder() //
 				.id("urn:error") //
+				.issuer("did:recipient") //
 				.to(Collections.singletonList("did:sender")) //
 				.from("did:recipient") //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //

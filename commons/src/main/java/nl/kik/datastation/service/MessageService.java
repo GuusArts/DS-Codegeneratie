@@ -58,6 +58,8 @@ public class MessageService extends AbstractTokenService {
 		Collection<String> recipient = CollectionUtils.emptyIfNull(m.getTo());
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //
 				.jwtID(m.getId()) //
+				.issuer(m.getIssuer()) //
+				.audience(m.getAudience()) //
 				.claim(FROM, m.getFrom()) //
 				.claim(TO, recipient.size() == 1 ? recipient.iterator().next() : recipient) //
 				.notBeforeTime(m.getValidFrom() == null ? null : Date.from(m.getValidFrom().toInstant())) //
@@ -113,7 +115,9 @@ public class MessageService extends AbstractTokenService {
 				.id(claims.getJWTID()) //
 				.keyId(header.getKeyID()) //
 				.from(claims.getStringClaim(FROM)) //
-				.to(recipient) //
+				.to(CollectionUtils.isEmpty(recipient) ? null : recipient) //
+				.issuer(claims.getIssuer()) //
+				.audience(CollectionUtils.isEmpty(claims.getAudience()) ? null : claims.getAudience()) //
 				.expiration(claims.getExpirationTime() == null ? null
 						: claims.getExpirationTime().toInstant().atZone(ZoneOffset.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
@@ -228,6 +232,9 @@ public class MessageService extends AbstractTokenService {
 
 	public <T> void validateFields(Message<T> m) throws ParseException {
 		log.trace("Validating fields of {}", m.getId());
+		if (StringUtils.isBlank(m.getIssuer())) {
+			throw new ParseException("Required feld `iss' is not given", 0);
+		}
 		if (StringUtils.isBlank(m.getFrom())) {
 			throw new ParseException("Required feld `from' is not given", 0);
 		}

@@ -50,8 +50,8 @@ public class SerializationController {
 		log.info("GET request");
 		ValidatedQuery credential = ValidatedQuery.builder() //
 				.keyId("urn:centralkey") //
-				.from("did:central") //
-				.to(Collections.singletonList("did:sender")) //
+				.issuer("did:central") //
+				.audience(Collections.singletonList("did:sender")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.profile("urn:profile") //
@@ -61,8 +61,8 @@ public class SerializationController {
 
 		VerifiablePresentation presentation = VerifiablePresentation.builder() //
 				.keyId("urn:userkey") //
-				.from("did:sender") //
-				.to(Collections.singletonList("did:recipient")) //
+				.issuer("did:sender") //
+				.audience(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.credential(credential) //
@@ -71,6 +71,7 @@ public class SerializationController {
 		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
 				.keyId("urn:userkey") //
 				.body(presentation) //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.replyUrl(new URL("http://example.com/datastation")) //
 				.to(Collections.singletonList("did:recipient")) //
@@ -94,6 +95,7 @@ public class SerializationController {
 		ErrorReport<String> message = ErrorReport.<String>builder() //
 				.keyId("urn:userkey") //
 				.body("Something went wrong") //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -128,6 +130,7 @@ public class SerializationController {
 		Response<Result> message = Response.<Result>builder() //
 				.keyId("urn:userkey") //
 				.body(construct) //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -169,6 +172,7 @@ public class SerializationController {
 		Response<Result> message = Response.<Result>builder() //
 				.keyId("urn:userkey") //
 				.body(select) //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -196,6 +200,7 @@ public class SerializationController {
 		Response<Result> message = Response.<Result>builder() //
 				.keyId("urn:userkey") //
 				.body(ask) //
+				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -223,8 +228,8 @@ public class SerializationController {
 
 		ValidatedQuery credential = ValidatedQuery.builder() //
 				.keyId("urn:centralkey") //
-				.from("did:central") //
-				.to(Collections.singletonList("did:sender")) //
+				.issuer("did:central") //
+				.audience(Collections.singletonList("did:sender")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.profile("urn:profile") //
@@ -234,8 +239,8 @@ public class SerializationController {
 
 		VerifiablePresentation presentation = VerifiablePresentation.builder() //
 				.keyId("urn:userkey") //
-				.from("did:sender") //
-				.to(Collections.singletonList("did:recipient")) //
+				.issuer("did:sender") //
+				.audience(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.credential(credential) //
@@ -256,8 +261,8 @@ public class SerializationController {
 
 		ValidatedQuery credential = ValidatedQuery.builder() //
 				.keyId("urn:centralkey") //
-				.from("did:central") //
-				.to(Collections.singletonList("did:sender")) //
+				.issuer("did:central") //
+				.audience(Collections.singletonList("did:sender")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.profile("urn:profile") //

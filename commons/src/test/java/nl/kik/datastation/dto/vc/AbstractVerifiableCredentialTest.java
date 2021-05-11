@@ -18,9 +18,9 @@ public abstract class AbstractVerifiableCredentialTest {
 		credential = ValidatedQuery.builder() //
 				.id("urn:credential") //
 				.keyId("urn:centralkey") //
-				.from("did:central") //
+				.issuer("did:central") //
 				.subjectId("ur:senderid") //
-				.to(Collections.singletonList("did:sender")) //
+				.audience(Collections.singletonList("did:sender")) //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
@@ -32,8 +32,8 @@ public abstract class AbstractVerifiableCredentialTest {
 		presentation = VerifiablePresentation.builder() //
 				.id("urn:presentation") //
 				.keyId("urn:userkey") //
-				.from("did:sender") //
-				.to(Collections.singletonList("did:recipient")) //
+				.issuer("did:sender") //
+				.audience(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //

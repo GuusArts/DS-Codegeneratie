@@ -34,7 +34,7 @@ public class DefaultValidationService implements ValidationService {
 		}
 	}
 
-	private void validateExtension(JWSObject jws, Token t, HttpInputMessage headers) throws Exception {
+	protected void validateExtension(JWSObject jws, Token t, HttpInputMessage headers) throws Exception {
 		throw new ParseException("Received object of unexpected type " + t.getClass().getCanonicalName(), 0);
 	}
 

@@ -1,5 +1,7 @@
 package nl.kik.datastation.dto.ds.async;
 
+import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -11,6 +13,8 @@ import nl.kik.datastation.dto.Token;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Message<T> extends Token {
+	private String from;
+	private List<String> to;
 	private String threadId;
 	private T body;
 }
