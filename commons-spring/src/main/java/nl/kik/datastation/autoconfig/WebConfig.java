@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import nl.kik.datastation.mvc.RequestMessageConverter;
 import nl.kik.datastation.mvc.ResponseMessageConverter;
 import nl.kik.datastation.mvc.VerifiableCredentialMessageConverter;
-import nl.kik.datastation.service.DefaultValidationService;
-import nl.kik.datastation.service.ValidationService;
 
 @Configuration
 @ConditionalOnWebApplication(type = Type.SERVLET)
@@ -31,11 +29,5 @@ public class WebConfig {
 	@ConditionalOnMissingBean
 	public ResponseMessageConverter responseMessageConverter() {
 		return new ResponseMessageConverter();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ValidationService vcValidationService() {
-		return new DefaultValidationService();
 	}
 }

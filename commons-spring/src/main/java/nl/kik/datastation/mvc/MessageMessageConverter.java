@@ -70,8 +70,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	@SuppressWarnings("unchecked")
 	protected M decodeMessage(String s, HttpInputMessage inputMessage) {
 		try {
-			Message<?> message = service.unwrapMessage(s, (j, v) -> this.validator.validate(j, v, inputMessage),
-					getDecoder(inputMessage));
+			Message<?> message = service.unwrapMessage(s, this.validator::validate, getDecoder(inputMessage));
 			if (!getMessageClass().isInstance(message) || !getBodyClass().isInstance(message.getBody())) {
 				throw new ParseException("Message must be " + getMessageClass().getSimpleName() + " and body must be "
 						+ getBodyClass().getSimpleName(), 0);

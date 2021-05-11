@@ -50,8 +50,7 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			String type = StringUtils.trimToEmpty(claims.getStringClaim(MessageService.TYPE));
 			switch (type) {
 			case MessageService.RESPONSE: {
-				Message<Result> message = service.unwrapMessage(s,
-						(j, v) -> this.validator.validate(j, v, inputMessage),
+				Message<Result> message = service.unwrapMessage(s, this.validator::validate,
 						o -> resultService.unwrap(JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE)));
 				if (!Response.class.isInstance(message) || !Result.class.isInstance(message.getBody())) {
 					throw new ParseException("Message must be Response and body must be Result", 0);
@@ -59,8 +58,7 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 				return (Response) message;
 			}
 			case MessageService.ERROR_REPORT: {
-				Message<String> message = service.unwrapMessage(s,
-						(j, v) -> this.validator.validate(j, v, inputMessage),
+				Message<String> message = service.unwrapMessage(s, this.validator::validate,
 						o -> o.getAsString(MessageService.MESSAGE));
 				if (!ErrorReport.class.isInstance(message) || !String.class.isInstance(message.getBody())) {
 					throw new ParseException("Message must be ErrorReport and body must be String", 0);

@@ -6,10 +6,12 @@ import org.springframework.context.annotation.Configuration;
 
 import nl.kik.datastation.service.CatalogService;
 import nl.kik.datastation.service.DefaultKeyService;
+import nl.kik.datastation.service.DefaultValidationService;
 import nl.kik.datastation.service.KeyService;
 import nl.kik.datastation.service.MessageService;
 import nl.kik.datastation.service.ResultService;
 import nl.kik.datastation.service.SPARQLService;
+import nl.kik.datastation.service.ValidationService;
 import nl.kik.datastation.service.VerifiableCredentialService;
 
 @Configuration
@@ -36,6 +38,12 @@ public class CommonsConfig {
 	@ConditionalOnMissingBean
 	public KeyService keyService() {
 		return new DefaultKeyService();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ValidationService vcValidationService() {
+		return new DefaultValidationService();
 	}
 
 	@Bean

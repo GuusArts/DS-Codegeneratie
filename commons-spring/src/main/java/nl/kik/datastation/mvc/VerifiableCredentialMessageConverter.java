@@ -43,7 +43,7 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 			throws IOException, HttpMessageNotReadableException {
 		String s = StreamUtils.copyToString(inputMessage.getBody(), UTF8);
 		try {
-			return service.unwrapVerifiable(s, (o, v) -> validator.validate(o, v, inputMessage));
+			return service.unwrapVerifiable(s, validator::validate);
 		} catch (Exception e) {
 			throw new HttpMessageNotReadableException("Unable to parse VC", e, inputMessage);
 		}

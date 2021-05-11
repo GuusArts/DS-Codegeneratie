@@ -34,15 +34,15 @@ public class RequestMessageConverter
 
 	@Override
 	protected FunctionWithException<JSONObject, VerifiableBase, Exception> getDecoder(HttpInputMessage inputMessage) {
-		return service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss,
-				(JWSObject j, VerifiableBase v) -> this.validator.validate(j, v, inputMessage)));
+		return service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss, this.validator::validate));
 	}
 
 	@Override
 	protected FunctionWithException<VerifiablePresentation, JSONObject, Exception> getEncoder(
 			HttpOutputMessage outputMessage) {
 		BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
-				(c, w) -> vcService.sign(keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())).apply(w);
+				(c, w) -> vcService.sign(keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()))
+						.apply(w);
 		FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
 				vcService.wrapAndSign(v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
 		return service.base64Wrapper(wrapper);
