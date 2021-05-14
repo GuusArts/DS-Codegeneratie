@@ -24,14 +24,18 @@ public class DefaultValidationService<T> implements ValidationService {
 
 	@Override
 	public void validate(JWSObject jws, Token t) throws Exception {
+		validate(jws, t, null);
+	}
+
+	protected void validate(JWSObject jws, Token t, T aux) throws Exception {
 		JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
 		log.trace("Validating {} (from {} received as {})", t, jws);
 		if (t instanceof Message<?>) {
-			validate(jws, (Message<?>) t, claims, null);
+			validate(jws, (Message<?>) t, claims, aux);
 		} else if (t instanceof VerifiableBase) {
-			validate(jws, (VerifiableBase) t, claims, null);
+			validate(jws, (VerifiableBase) t, claims, aux);
 		} else {
-			validateExtension(jws, t, claims, null);
+			validateExtension(jws, t, claims, aux);
 		}
 	}
 
