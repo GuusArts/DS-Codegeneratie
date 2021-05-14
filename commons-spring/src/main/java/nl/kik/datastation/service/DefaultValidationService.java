@@ -14,7 +14,7 @@ import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 
 @Slf4j
-public class DefaultValidationService implements ValidationService {
+public class DefaultValidationService<T> implements ValidationService {
 	@Autowired
 	protected KeyService keys;
 	@Autowired
@@ -27,27 +27,27 @@ public class DefaultValidationService implements ValidationService {
 		JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
 		log.trace("Validating {} (from {} received as {})", t, jws);
 		if (t instanceof Message<?>) {
-			validate(jws, (Message<?>) t, claims);
+			validate(jws, (Message<?>) t, claims, null);
 		} else if (t instanceof VerifiableBase) {
-			validate(jws, (VerifiableBase) t, claims);
+			validate(jws, (VerifiableBase) t, claims, null);
 		} else {
-			validateExtension(jws, t, claims);
+			validateExtension(jws, t, claims, null);
 		}
 	}
 
-	protected void validateExtension(JWSObject jws, Token t, JWTClaimsSet claims) throws Exception {
+	protected void validateExtension(JWSObject jws, Token t, JWTClaimsSet claims, T aux) throws Exception {
 		throw new ParseException("Received object of unexpected type " + t.getClass().getCanonicalName(), 0);
 	}
 
-	protected <T> void validate(JWSObject jws, Message<T> t, JWTClaimsSet claims) throws Exception {
+	protected <U> void validate(JWSObject jws, Message<U> t, JWTClaimsSet claims, T aux) throws Exception {
 		validateSignature(
 				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
 				claims);
 		messageService.validateFields(t);
-		messageService.validateIntegrity(t, (m, b) -> validationDelegate(m, b));
+		messageService.validateIntegrity(t, (m, b) -> validationDelegate(m, b, aux));
 	}
 
-	protected void validate(JWSObject jws, VerifiableBase t, JWTClaimsSet claims) throws Exception {
+	protected void validate(JWSObject jws, VerifiableBase t, JWTClaimsSet claims, T aux) throws Exception {
 		validateSignature(
 				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
 				claims);
@@ -55,7 +55,7 @@ public class DefaultValidationService implements ValidationService {
 		vcService.validateIntegrity(t);
 	}
 
-	protected <T> void validationDelegate(Message<T> m, T body) throws Exception {
+	protected <U> void validationDelegate(Message<U> m, U body, T aux) throws Exception {
 	}
 
 	protected void validateSignature(JWSVerifier verifier, JWSObject jws, JWTClaimsSet claims) throws Exception {
