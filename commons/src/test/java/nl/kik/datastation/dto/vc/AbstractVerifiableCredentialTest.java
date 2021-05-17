@@ -37,7 +37,7 @@ public abstract class AbstractVerifiableCredentialTest {
 				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.credential(credential) //
+				.credential(Collections.singletonList(credential)) //
 				.build();
 
 		messages = List.of(credential, presentation);

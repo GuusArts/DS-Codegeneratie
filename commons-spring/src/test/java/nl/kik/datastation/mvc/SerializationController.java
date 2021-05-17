@@ -65,7 +65,7 @@ public class SerializationController {
 				.audience(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.credential(credential) //
+				.credential(Collections.singletonList(credential)) //
 				.build();
 
 		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
@@ -127,9 +127,9 @@ public class SerializationController {
 
 		ConstructResult construct = sparql.wrap(model);
 
-		Response<Result> message = Response.<Result>builder() //
+		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
-				.body(construct) //
+				.body(Map.of("urn:construct", construct)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
@@ -169,9 +169,9 @@ public class SerializationController {
 						.build())//
 				.build();
 
-		Response<Result> message = Response.<Result>builder() //
+		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
-				.body(select) //
+				.body(Map.of("urn:select", select)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
@@ -197,9 +197,9 @@ public class SerializationController {
 				.value(true) //
 				.build();
 
-		Response<Result> message = Response.<Result>builder() //
+		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
-				.body(ask) //
+				.body(Map.of("urn:ask", ask)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
@@ -243,7 +243,7 @@ public class SerializationController {
 				.audience(Collections.singletonList("did:recipient")) //
 				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.credential(credential) //
+				.credential(Collections.singletonList(credential)) //
 				.build();
 
 		return presentation;

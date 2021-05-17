@@ -50,17 +50,20 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			String type = StringUtils.trimToEmpty(claims.getStringClaim(MessageService.TYPE));
 			switch (type) {
 			case MessageService.RESPONSE: {
-				Message<Result> message = service.unwrapMessage(s, this.validator::validate,
-						o -> resultService.unwrap(JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE)));
-				if (!Response.class.isInstance(message) || !Result.class.isInstance(message.getBody())) {
-					throw new ParseException("Message must be Response and body must be Result", 0);
+				Message<Map<String, Result>> message = service
+						.unwrapMessage(s, this.validator::validate,
+								o -> resultService.<Result, Exception>unwrapResultSet(
+										JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE),
+										resultService::unwrap));
+				if (!Response.class.isInstance(message)) {
+					throw new ParseException("Message must be Response and body must be result set of Result", 0);
 				}
 				return (Response) message;
 			}
 			case MessageService.ERROR_REPORT: {
 				Message<String> message = service.unwrapMessage(s, this.validator::validate,
 						o -> o.getAsString(MessageService.MESSAGE));
-				if (!ErrorReport.class.isInstance(message) || !String.class.isInstance(message.getBody())) {
+				if (!ErrorReport.class.isInstance(message)) {
 					throw new ParseException("Message must be ErrorReport and body must be String", 0);
 				}
 				return (ErrorReport) message;
@@ -82,9 +85,11 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 		if (t instanceof ErrorReport<?> && t.getBody() instanceof String) {
 			wrapped = service.wrap((ErrorReport<String>) (ErrorReport) t,
 					s -> new JSONObject(Map.of(MessageService.MESSAGE, s)));
-		} else if (t instanceof Response<?> && t.getBody() instanceof Result) {
-			wrapped = service.wrap((Response<Result>) (Response) t,
-					s -> new JSONObject(Map.of(MessageService.MESSAGE, resultService.wrap(s))));
+		} else if (t instanceof Response<?> && t.getBody() instanceof Map
+				&& ((Map<?, ?>) t.getBody()).keySet().stream().allMatch(String.class::isInstance)
+				&& ((Map<?, ?>) t.getBody()).values().stream().allMatch(Result.class::isInstance)) {
+			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t,
+					s -> new JSONObject(Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s,  resultService::wrap))));
 		} else {
 			throw new ParseException("Received unsupported return message", 0);
 		}

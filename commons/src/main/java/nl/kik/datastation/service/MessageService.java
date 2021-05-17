@@ -27,9 +27,12 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.ErrorReport;
+import nl.kik.datastation.dto.ds.async.ErrorReport.ErrorReportBuilder;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.ds.async.Request;
+import nl.kik.datastation.dto.ds.async.Request.RequestBuilder;
 import nl.kik.datastation.dto.ds.async.Response;
+import nl.kik.datastation.dto.ds.async.Response.ResponseBuilder;
 import nl.kik.datastation.util.FunctionWrapper.BiConsumerWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
@@ -161,21 +164,42 @@ public class MessageService extends AbstractTokenService {
 
 	private <T, E extends Exception> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(JWTClaimsSet claims,
 			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
-		return ErrorReport.<T>builder() //
+		return makeErrorReport() //
 		;
+	}
+
+	/**
+	 * @return
+	 */
+	protected <T> ErrorReportBuilder<T, ?, ?> makeErrorReport() {
+		return ErrorReport.<T>builder();
 	}
 
 	private <T, E extends Exception> Response.ResponseBuilder<T, ?, ?> unwrapResponse(JWTClaimsSet claims,
 			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
-		return Response.<T>builder() //
+		return makeResponse() //
 		;
+	}
+
+	/**
+	 * @return
+	 */
+	protected <T> ResponseBuilder<T, ?, ?> makeResponse() {
+		return Response.<T>builder();
 	}
 
 	private <T, E extends Exception> Request.RequestBuilder<T, ?, ?> unwrapRequest(JWTClaimsSet claims,
 			FunctionWithException<JSONObject, T, E> bodyDecoder) throws MalformedURLException, ParseException {
-		return Request.<T>builder() //
+		return this.<T>makeRequest() //
 				.replyUrl(new URL(getRequiredString(claims, REPLY_URL))) //
 		;
+	}
+
+	/**
+	 * @return
+	 */
+	protected <T> RequestBuilder<T, ?, ?> makeRequest() {
+		return Request.<T>builder();
 	}
 
 	private Builder wrap(Builder claims, Message<?> m) {

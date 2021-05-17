@@ -1,5 +1,7 @@
 package nl.kik.datastation.dto.vc;
 
+import java.util.List;
+
 import com.nimbusds.jose.JWSObject;
 
 import lombok.EqualsAndHashCode;
@@ -12,6 +14,6 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class VerifiablePresentation extends VerifiableBase {
-	private VerifiableCredential credential;
-	private JWSObject externalCredential;
+	private List<VerifiableCredential> credential;
+	private List<JWSObject> externalCredential;
 }

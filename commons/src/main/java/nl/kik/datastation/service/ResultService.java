@@ -23,8 +23,12 @@ import nl.kik.datastation.dto.ds.SelectBody;
 import nl.kik.datastation.dto.ds.SelectResult;
 import nl.kik.datastation.dto.ds.SelectResult.SelectResultBuilder;
 import nl.kik.datastation.util.FunctionWrapper;
+import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class ResultService extends AbstractTokenService {
+	private static final String RESULT = "result";
+	private static final String ID = "id";
+	private static final String RESULTSET = "resultset";
 	private static final String XML_LANG = "xml:lang";
 	private static final String DATATYPE = "datatype";
 	private static final String VALUE = "value";
@@ -214,6 +218,7 @@ public class ResultService extends AbstractTokenService {
 
 	protected AskResult.AskResultBuilder<?, ?> unwrapAsk(JSONObject object, Boolean value) throws ParseException {
 		AskResultBuilder<?, ?> result = AskResult.builder() //
+
 				.value(value) //
 		;
 		return unwrapExtension(result);
@@ -288,5 +293,41 @@ public class ResultService extends AbstractTokenService {
 
 	protected Result unwrapExtension(JSONObject object) throws ParseException {
 		throw new ParseException("Received unknown Result object", 0);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T, E extends Exception> Map<String, T> unwrapResultSet(JSONObject message,
+			FunctionWithException<JSONObject, T, E> mapper) throws E, ParseException {
+		try {
+			return getList(message, RESULTSET, JSONObject.class).stream() //
+					.collect(Collectors.toMap(FunctionWrapper.wrapper((JSONObject o) -> getRequiredString(o, ID)),
+							FunctionWrapper.wrapper((JSONObject o) -> mapper.apply(getRequiredJSONObject(o, RESULT)))));
+		} catch (RuntimeException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof ParseException) {
+				throw (ParseException) cause;
+			}
+			throw (E) cause;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <E extends Exception> JSONObject wrapResultSet(Map<String, Result> s,
+			FunctionWithException<Result, JSONObject, E> mapper) throws E, ParseException {
+		try {
+			return new JSONObject(Map.of(RESULTSET, s.entrySet().stream() //
+					.map(FunctionWrapper.wrapper((Map.Entry<String, Result> e) -> new JSONObject(Map.of(//
+							ID, e.getKey(), //
+							RESULT, mapper.apply(e.getValue()) //
+					)))) //
+					.collect(Collectors.toList()) //
+			));
+		} catch (RuntimeException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof ParseException) {
+				throw (ParseException) cause;
+			}
+			throw (E) cause;
+		}
 	}
 }

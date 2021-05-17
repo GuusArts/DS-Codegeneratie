@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
@@ -30,9 +32,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
+import nl.kik.datastation.dto.vc.ValidatedQuery.ValidatedQueryBuilder;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.datastation.dto.vc.VerifiablePresentation.VerifiablePresentationBuilder;
+import nl.kik.datastation.util.FunctionWrapper;
 import nl.kik.datastation.util.FunctionWrapper.BiConsumerWithException;
 import nl.kik.datastation.util.FunctionWrapper.BiFunctionWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
@@ -99,16 +104,25 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		;
 	}
 
+	@SuppressWarnings("unchecked")
 	private <E extends Exception> JSONObject makePresentation(VerifiablePresentation m,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
-		JWSObject credential = m.getExternalCredential();
-		if (credential == null) {
-			credential = credentialSigner.apply(m.getCredential(), wrap(m.getCredential(), credentialSigner));
+		List<JWSObject> credential = m.getExternalCredential();
+		if (CollectionUtils.isEmpty(credential)) {
+			try {
+				credential = CollectionUtils.emptyIfNull(m.getCredential()).stream() //
+						.map(FunctionWrapper.wrapper(
+								(VerifiableCredential vc) -> credentialSigner.apply(vc, wrap(vc, credentialSigner)))) //
+						.collect(Collectors.toList());
+			} catch (RuntimeException e) {
+				throw (E) e.getCause();
+			}
 		}
 		VCBuilder builder = VCBuilder.builder() //
 				.context(CREDENTIALS_CONTEXT) //
 				.type(VERIFIABLE_PRESENTATION_TYPE) //
-				.claim(VERIFIABLE_CREDENTIAL, credential.serialize()) //
+				.claim(VERIFIABLE_CREDENTIAL,
+						credential.stream().map(JWSObject::serialize).collect(Collectors.toList()))//
 		;
 		builder = makePresentationExtension(builder, m, credentialSigner);
 		return builder.build();
@@ -227,6 +241,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		throw new IllegalArgumentException("It should not be possible to reach this code");
 	}
 
+	@SuppressWarnings("unchecked")
 	private <E extends Exception> VerifiablePresentation.VerifiablePresentationBuilder<?, ?> unwrapPresentation(
 			JSONObject vp, BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
@@ -238,10 +253,32 @@ public class VerifiableCredentialService extends AbstractTokenService {
 			throw new ParseException("Expecting VC to contain type " + VERIFIABLE_PRESENTATION_TYPE + " and context "
 					+ CREDENTIALS_CONTEXT, 0);
 		}
-		return VerifiablePresentation.builder() //
-				.credential(
-						requireType(unwrapVerifiable(getRequiredString(vp, VERIFIABLE_CREDENTIAL), credentialValidator),
-								VerifiableCredential.class));
+		try {
+			return makePresentation() //
+					.credential(CollectionUtils.emptyIfNull(JSONObjectUtils.getStringList(vp, VERIFIABLE_CREDENTIAL))
+							.stream() //
+							.map(FunctionWrapper.wrapper((String s) -> unwrapVerifiable(s, credentialValidator))) //
+							.map(FunctionWrapper
+									.wrapper((VerifiableBase vc) -> requireType(vc, VerifiableCredential.class))) //
+							.collect(Collectors.toList())) //
+			;
+		} catch (RuntimeException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof ParseException) {
+				throw (ParseException) cause;
+			}
+			if (cause instanceof MalformedURLException) {
+				throw (MalformedURLException) cause;
+			}
+			throw (E) cause;
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	protected VerifiablePresentationBuilder<?, ?> makePresentation() {
+		return VerifiablePresentation.builder();
 	}
 
 	protected <T> T requireType(Object o, Class<T> clazz) throws ParseException, MalformedURLException {
@@ -285,12 +322,19 @@ public class VerifiableCredentialService extends AbstractTokenService {
 			throw new ParseException("Expecting validated query to contain context " + VALIDATED_QUERY_CONTEXT, 0);
 		}
 		JSONObject subject = getRequiredJSONObject(vc, CREDENTIAL_SUBJECT);
-		return ValidatedQuery.builder() //
+		return makeValidatedQuery() //
 				.subjectId(getRequiredString(subject, ID)) //
 				.query(getRequiredString(subject, QUERY)) //
 				.profile(getRequiredString(subject, PROFILE)) //
 				.ontology(getRequiredString(subject, ONTOLOGY)) //
 		;
+	}
+
+	/**
+	 * @return
+	 */
+	protected ValidatedQueryBuilder<?, ?> makeValidatedQuery() {
+		return ValidatedQuery.builder();
 	}
 
 	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredentialExtension(
