@@ -3,7 +3,6 @@ package nl.kik.datastation.mvc;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -22,15 +21,16 @@ import nl.kik.datastation.service.VerifiableCredentialService;
 
 public class VerifiableCredentialMessageConverter extends AbstractHttpMessageConverter<VerifiableBase> {
 	private static final Charset UTF8 = Charset.forName("UTF-8");
-	@Autowired
 	private VerifiableCredentialService service;
-	@Autowired
 	private KeyService keys;
-	@Autowired
 	private ValidationService validator;
 
-	public VerifiableCredentialMessageConverter() {
+	public VerifiableCredentialMessageConverter(VerifiableCredentialService service, KeyService keys,
+			ValidationService validator) {
 		super(MediaType.ALL);
+		this.service = service;
+		this.keys = keys;
+		this.validator = validator;
 	}
 
 	@Override

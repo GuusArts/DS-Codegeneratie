@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -22,14 +21,21 @@ import nl.kik.datastation.dto.ds.async.ErrorReport;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.ds.async.Response;
 import nl.kik.datastation.dto.ds.async.ReturnMessage;
+import nl.kik.datastation.service.KeyService;
 import nl.kik.datastation.service.MessageService;
 import nl.kik.datastation.service.ResultService;
+import nl.kik.datastation.service.ValidationService;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 @Slf4j
 public class ResponseMessageConverter extends MessageMessageConverter<Object, ReturnMessage<Object>> {
-	@Autowired
 	private ResultService resultService;
+
+	public ResponseMessageConverter(MessageService service, ResultService resultService, KeyService keys,
+			ValidationService validator) {
+		super(service, keys, validator);
+		this.resultService = resultService;
+	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
@@ -88,8 +94,8 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 		} else if (t instanceof Response<?> && t.getBody() instanceof Map
 				&& ((Map<?, ?>) t.getBody()).keySet().stream().allMatch(String.class::isInstance)
 				&& ((Map<?, ?>) t.getBody()).values().stream().allMatch(Result.class::isInstance)) {
-			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t,
-					s -> new JSONObject(Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s,  resultService::wrap))));
+			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t, s -> new JSONObject(
+					Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s, resultService::wrap))));
 		} else {
 			throw new ParseException("Received unsupported return message", 0);
 		}

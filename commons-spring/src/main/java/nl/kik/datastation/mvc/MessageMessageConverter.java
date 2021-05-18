@@ -5,7 +5,6 @@ import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -28,15 +27,15 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 @Slf4j
 public abstract class MessageMessageConverter<T, M extends Message<T>> extends AbstractHttpMessageConverter<M> {
 	protected static final Charset UTF8 = Charset.forName("UTF-8");
-	@Autowired
 	protected MessageService service;
-	@Autowired
 	protected KeyService keys;
-	@Autowired
 	protected ValidationService validator;
 
-	public MessageMessageConverter() {
+	public MessageMessageConverter(MessageService service, KeyService keys, ValidationService validator) {
 		super(MediaType.ALL);
+		this.service = service;
+		this.keys = keys;
+		this.validator = validator;
 	}
 
 	@Override

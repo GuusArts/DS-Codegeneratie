@@ -1,6 +1,5 @@
 package nl.kik.datastation.mvc;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 
@@ -12,13 +11,20 @@ import nl.kik.datastation.dto.ds.async.Request;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
 import nl.kik.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.datastation.service.KeyService;
+import nl.kik.datastation.service.MessageService;
+import nl.kik.datastation.service.ValidationService;
 import nl.kik.datastation.service.VerifiableCredentialService;
 import nl.kik.datastation.util.FunctionWrapper.BiFunctionWithException;
 import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class RequestMessageConverter
 		extends MessageMessageConverter<VerifiablePresentation, Request<VerifiablePresentation>> {
-	@Autowired
+	public RequestMessageConverter(MessageService service, VerifiableCredentialService vcService, KeyService keys, ValidationService validator) {
+		super(service, keys, validator);
+		this.vcService = vcService;
+	}
+
 	private VerifiableCredentialService vcService;
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

@@ -43,7 +43,7 @@ public class CommonsConfig {
 	@Bean
 	@ConditionalOnMissingBean
 	public ValidationService vcValidationService() {
-		return new DefaultValidationService();
+		return new DefaultValidationService<Object>();
 	}
 
 	@Bean
