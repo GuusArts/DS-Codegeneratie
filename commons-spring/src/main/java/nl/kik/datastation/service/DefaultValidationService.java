@@ -5,6 +5,7 @@ import java.text.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 
@@ -70,5 +71,14 @@ public class DefaultValidationService<T> implements ValidationService {
 		if (!jws.verify(verifier)) {
 			throw new ParseException("Signature did not match", 0);
 		}
+	}
+
+	@Override
+	public JWSObject sign(JWSObject object, JWSSigner signer) throws Exception {
+		if (signer == null) {
+			throw new ParseException("Trying to sign object without a key", 0);
+		}
+		object.sign(signer);
+		return object;
 	}
 }

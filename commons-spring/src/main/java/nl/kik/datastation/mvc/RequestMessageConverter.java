@@ -20,7 +20,8 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class RequestMessageConverter
 		extends MessageMessageConverter<VerifiablePresentation, Request<VerifiablePresentation>> {
-	public RequestMessageConverter(MessageService service, VerifiableCredentialService vcService, KeyService keys, ValidationService validator) {
+	public RequestMessageConverter(MessageService service, VerifiableCredentialService vcService, KeyService keys,
+			ValidationService validator) {
 		super(service, keys, validator);
 		this.vcService = vcService;
 	}
@@ -47,10 +48,10 @@ public class RequestMessageConverter
 	protected FunctionWithException<VerifiablePresentation, JSONObject, Exception> getEncoder(
 			HttpOutputMessage outputMessage) {
 		BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
-				(c, w) -> vcService.sign(keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()))
-						.apply(w);
+				(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()));
 		FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
-				vcService.wrapAndSign(v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
+				vcService.wrapAndSign(validator::sign,
+						v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
 		return service.base64Wrapper(wrapper);
 	}
 

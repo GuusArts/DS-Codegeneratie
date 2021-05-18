@@ -11,7 +11,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StreamUtils;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 
 import nl.kik.datastation.dto.vc.VerifiableBase;
@@ -53,11 +52,11 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 	protected void writeInternal(VerifiableBase t, HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 		try {
-			JWSObject o = service.wrap(t, (c, w) -> service
-					.sign(keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())).apply(w));
-			o.sign(keys.getSigner(o.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
+			JWSObject o = service.wrap(t, (c, w) -> validator.sign(w,
+					keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())));
+			validator.sign(o, keys.getSigner(o.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 			StreamUtils.copy(o.serialize(), Charset.forName("UTF-8"), outputMessage.getBody());
-		} catch (JOSEException | IllegalArgumentException e) {
+		} catch (Exception e) {
 			throw new HttpMessageNotWritableException("Unable to sign/serialize VC", e);
 		}
 	}

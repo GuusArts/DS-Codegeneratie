@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -174,17 +173,11 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		return builder;
 	}
 
-	public <T extends VerifiableBase, E extends Exception, F extends Exception> FunctionWithException<T, JWSObject, Exception> wrapAndSign(
-			FunctionWithException<T, JWSSigner, F> signer,
+	public <T extends VerifiableBase, E extends Exception, F extends Exception, G extends Exception> FunctionWithException<T, JWSObject, Exception> wrapAndSign(
+			BiFunctionWithException<JWSObject, JWSSigner, JWSObject, G> signer,
+			FunctionWithException<T, JWSSigner, F> key,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) {
-		return vc -> sign(signer.apply(vc)).apply(wrap(vc, credentialSigner));
-	}
-
-	public FunctionWithException<JWSObject, JWSObject, JOSEException> sign(JWSSigner signer) {
-		return vc -> {
-			vc.sign(signer);
-			return vc;
-		};
+		return vc -> signer.apply(wrap(vc, credentialSigner), key.apply(vc));
 	}
 
 	@SuppressWarnings("unchecked")

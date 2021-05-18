@@ -109,8 +109,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 */
 	protected JWSObject encodeMessage(M t, HttpOutputMessage outputMessage) throws Exception, JOSEException {
 		JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
-		wrapped.sign(keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
-		return wrapped;
+		return validator.sign(wrapped, keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 	}
 
 	/**

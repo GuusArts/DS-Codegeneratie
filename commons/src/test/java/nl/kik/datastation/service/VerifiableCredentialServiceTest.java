@@ -54,10 +54,19 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		service = new VerifiableCredentialService();
 	}
 
+	public JWSObject sign(JWSObject o, JWSSigner s) {
+		try {
+			o.sign(s);
+			return o;
+		} catch (JOSEException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Test
 	void testSave() {
 		messages.forEach(FunctionWrapper.wrapper(m -> {
-			JWSObject wrapped = service.wrap(m, (c, w) -> service.sign(centralSigner).apply(w));
+			JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
 			wrapped.sign(signer);
 			System.out.println("Header: " + wrapped.getHeader().toJSONObject());
 			System.out.println("Payload: " + wrapped.getPayload().toJSONObject());
@@ -79,7 +88,7 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		MessageService messageService = new MessageService();
 
 		JWSObject wrapped = messageService.wrap(message, messageService
-				.base64Wrapper(service.wrapAndSign(c -> signer, (c, w) -> service.sign(centralSigner).apply(w))));
+				.base64Wrapper(service.wrapAndSign(this::sign, c -> signer, (c, w) -> sign(w, centralSigner))));
 		wrapped.sign(signer);
 		System.out.println(wrapped.serialize());
 	}
@@ -89,7 +98,7 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		for (VerifiableBase m : messages) {
 			log.info("Comparing");
 			log.info("{}", m);
-			JWSObject wrapped = service.wrap(m, (c, w) -> service.sign(centralSigner).apply(w));
+			JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
 			wrapped.sign(signer);
 			String flat = wrapped.serialize();
 			VerifiableBase unwrapped = service.unwrapVerifiable(flat, (w, v) -> {
