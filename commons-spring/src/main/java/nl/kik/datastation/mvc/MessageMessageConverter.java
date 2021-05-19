@@ -47,6 +47,14 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 
 	protected abstract Class<T> getBodyClass();
 
+	public M decode(String s) {
+		return decodeMessage(s, null);
+	}
+
+	public String encode(M message) throws JOSEException, Exception {
+		return encodeMessage(message, null).serialize();
+	}
+
 	@Override
 	protected M readInternal(Class<? extends M> clazz, HttpInputMessage inputMessage)
 			throws IOException, HttpMessageNotReadableException {
