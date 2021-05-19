@@ -9,12 +9,15 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 
 public class DefaultKeyService implements KeyService {
 	private OctetKeyPair jwk;
-	private Ed25519Signer signer;
+	protected JWK publicJwk;
+	private JWSSigner signer;
+	private JWSVerifier verifier;
 
 	@PostConstruct
 	public void init() throws JOSEException {
@@ -22,6 +25,9 @@ public class DefaultKeyService implements KeyService {
 				.keyID("urk:userkey") //
 				.generate();
 		signer = new Ed25519Signer(jwk);
+		OctetKeyPair publicKey = jwk.toPublicJWK();
+		verifier = new Ed25519Verifier(publicKey);
+		publicJwk = publicKey;
 	}
 
 	@Override
@@ -31,7 +37,7 @@ public class DefaultKeyService implements KeyService {
 
 	@Override
 	public JWSVerifier getVerifier(JWSAlgorithm jwsAlgorithm, String issuer, String keyId) throws JOSEException {
-		return new Ed25519Verifier(jwk.toPublicJWK());
+		return verifier;
 	}
 
 }
