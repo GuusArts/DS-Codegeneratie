@@ -38,4 +38,5 @@ public class WebConfig {
 			KeyService keys, ValidationService validator) {
 		return new ResponseMessageConverter(service, resultService, keys, validator);
 	}
+	
 }

@@ -3,16 +3,21 @@ package nl.kik.datastation.autoconfig;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import nl.kik.datastation.mvc.RequestMessageConverter;
 import nl.kik.datastation.mvc.ResponseMessageConverter;
 import nl.kik.datastation.mvc.VerifiableCredentialMessageConverter;
+import nl.kik.datastation.service.RemoteDatastationService;
 
 @Configuration
 @ConditionalOnWebApplication(type = Type.SERVLET)
@@ -34,4 +39,13 @@ public class WebMvcConfig {
 			converters.add(verifiableCredentialMessageConverter);
 		}
 	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnBean(RestTemplate.class)
+	public RemoteDatastationService remoteDatastationService(RestTemplate rest,
+			ResponseMessageConverter responseConverter, RequestMessageConverter requestConverter) {
+		return new RemoteDatastationService(rest, responseConverter, requestConverter);
+	}
+
 }
