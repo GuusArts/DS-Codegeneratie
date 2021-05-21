@@ -23,7 +23,6 @@ import org.apache.jena.riot.RDFFormat;
 
 import com.nimbusds.jose.util.JSONObjectUtils;
 
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.AskResult;
 import nl.kik.datastation.dto.ds.Binding;
 import nl.kik.datastation.dto.ds.ConstructResult;
@@ -109,7 +108,7 @@ public class SPARQLService {
 				.build();
 	}
 
-	protected JSONObject parse(Model model) throws ParseException {
+	protected Map<String, Object> parse(Model model) throws ParseException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		RDFDataMgr.write(outputStream, model, RDFFormat.JSONLD_COMPACT_FLAT);
 		return JSONObjectUtils.parse(outputStream.toString());

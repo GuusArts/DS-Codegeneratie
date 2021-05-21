@@ -15,7 +15,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.Result;
 import nl.kik.datastation.dto.ds.async.ErrorReport;
 import nl.kik.datastation.dto.ds.async.Message;
@@ -68,7 +67,7 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			}
 			case MessageService.ERROR_REPORT: {
 				Message<String> message = service.unwrapMessage(s, this.validator::validate,
-						o -> o.getAsString(MessageService.MESSAGE));
+						o -> JSONObjectUtils.getString(o, MessageService.MESSAGE));
 				if (!ErrorReport.class.isInstance(message)) {
 					throw new ParseException("Message must be ErrorReport and body must be String", 0);
 				}
@@ -89,13 +88,12 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			throws Exception, JOSEException {
 		JWSObject wrapped;
 		if (t instanceof ErrorReport<?> && t.getBody() instanceof String) {
-			wrapped = service.wrap((ErrorReport<String>) (ErrorReport) t,
-					s -> new JSONObject(Map.of(MessageService.MESSAGE, s)));
+			wrapped = service.wrap((ErrorReport<String>) (ErrorReport) t, s -> Map.of(MessageService.MESSAGE, s));
 		} else if (t instanceof Response<?> && t.getBody() instanceof Map
 				&& ((Map<?, ?>) t.getBody()).keySet().stream().allMatch(String.class::isInstance)
 				&& ((Map<?, ?>) t.getBody()).values().stream().allMatch(Result.class::isInstance)) {
-			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t, s -> new JSONObject(
-					Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s, resultService::wrap))));
+			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t,
+					s -> Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s, resultService::wrap)));
 		} else {
 			throw new ParseException("Received unsupported return message", 0);
 		}
@@ -104,12 +102,13 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 	}
 
 	@Override
-	protected FunctionWithException<JSONObject, ?, Exception> getDecoder(HttpInputMessage inputMessage) {
+	protected FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(HttpInputMessage inputMessage) {
 		return null;
 	}
 
 	@Override
-	protected FunctionWithException<Object, JSONObject, Exception> getEncoder(HttpOutputMessage outputMessage) {
+	protected FunctionWithException<Object, Map<String, Object>, Exception> getEncoder(
+			HttpOutputMessage outputMessage) {
 		return null;
 	}
 

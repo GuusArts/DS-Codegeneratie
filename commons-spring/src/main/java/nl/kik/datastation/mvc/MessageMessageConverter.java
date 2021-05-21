@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.Map;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -17,7 +18,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.service.KeyService;
 import nl.kik.datastation.service.MessageService;
@@ -93,7 +93,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 * @param inputMessage
 	 * @return
 	 */
-	protected abstract FunctionWithException<JSONObject, ?, Exception> getDecoder(HttpInputMessage inputMessage);
+	protected abstract FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(HttpInputMessage inputMessage);
 
 	@Override
 	protected void writeInternal(M t, HttpOutputMessage outputMessage)
@@ -124,6 +124,6 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 * @param outputMessage
 	 * @return
 	 */
-	protected abstract FunctionWithException<T, JSONObject, Exception> getEncoder(HttpOutputMessage outputMessage);
+	protected abstract FunctionWithException<T, Map<String, Object>, Exception> getEncoder(HttpOutputMessage outputMessage);
 
 }

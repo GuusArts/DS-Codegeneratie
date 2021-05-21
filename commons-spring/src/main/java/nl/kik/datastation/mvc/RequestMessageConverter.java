@@ -1,12 +1,13 @@
 package nl.kik.datastation.mvc;
 
+import java.util.Map;
+
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSObject;
 
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.Request;
 import nl.kik.datastation.dto.vc.VerifiableBase;
 import nl.kik.datastation.dto.vc.VerifiableCredential;
@@ -40,12 +41,12 @@ public class RequestMessageConverter
 	}
 
 	@Override
-	protected FunctionWithException<JSONObject, VerifiableBase, Exception> getDecoder(HttpInputMessage inputMessage) {
+	protected FunctionWithException<Map<String, Object>, VerifiableBase, Exception> getDecoder(HttpInputMessage inputMessage) {
 		return service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss, this.validator::validate));
 	}
 
 	@Override
-	protected FunctionWithException<VerifiablePresentation, JSONObject, Exception> getEncoder(
+	protected FunctionWithException<VerifiablePresentation, Map<String, Object>, Exception> getEncoder(
 			HttpOutputMessage outputMessage) {
 		BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
 				(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()));

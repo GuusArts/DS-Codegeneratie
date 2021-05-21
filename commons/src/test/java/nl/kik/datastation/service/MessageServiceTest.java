@@ -18,9 +18,9 @@ import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
+import com.nimbusds.jose.util.JSONObjectUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.AbstractMessageTest;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.util.FunctionWrapper;
@@ -49,7 +49,7 @@ class MessageServiceTest extends AbstractMessageTest {
 	@Test
 	void testSave() {
 		messages.forEach(FunctionWrapper.wrapper(m -> {
-			JWSObject wrapped = service.wrap(m, s -> new JSONObject(Map.of("plain", s)));
+			JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
 			wrapped.sign(signer);
 			System.out.println("Header: " + wrapped.getHeader().toJSONObject());
 			System.out.println("Payload: " + wrapped.getPayload().toJSONObject());
@@ -60,11 +60,11 @@ class MessageServiceTest extends AbstractMessageTest {
 	@Test
 	void testLoad() throws ParseException, MalformedURLException, JOSEException {
 		for (Message<String> m : messages) {
-			JWSObject wrapped = service.wrap(m, s -> new JSONObject(Map.of("plain", s)));
+			JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
 			wrapped.sign(signer);
 			String serialized = wrapped.serialize();
 			Message<String> unwrapped = service.unwrapMessage(serialized, (j, o) -> {
-			}, o -> o.getAsString("plain"));
+			}, o -> JSONObjectUtils.getString(o, "plain"));
 			log.trace("Comparing");
 			log.trace("{}", m);
 			log.trace("{}", unwrapped);

@@ -5,19 +5,18 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.kik-v.datastation</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.3.4-SNAPSHOT</version>
+	<version>0.4.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>KIK-V Datastation</name>
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
-		<spring.boot.version>2.4.4</spring.boot.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-		<spring.boot.version>2.4.5</spring.boot.version>
-		<junit.version>5.7.1</junit.version>
+		<spring.boot.version>2.5.0</spring.boot.version>
+		<junit.version>5.7.2</junit.version>
 		<jena.version>4.0.0</jena.version>
 	</properties>
 

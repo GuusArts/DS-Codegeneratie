@@ -1,18 +1,15 @@
 package nl.kik.datastation.service;
 
-import java.lang.reflect.Array;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 
-import net.minidev.json.JSONArray;
-import net.minidev.json.JSONObject;
 
 public abstract class AbstractTokenService {
 	protected <T> T checkEquals(String name, T expected, T actual) throws ParseException {
@@ -30,7 +27,7 @@ public abstract class AbstractTokenService {
 		return value;
 	}
 
-	protected JSONObject getRequiredJSONObject(JSONObject json, String key) throws ParseException {
+	protected Map<String, Object> getRequiredJSONObject(Map<String, Object> json, String key) throws ParseException {
 		return checkNonNull(key, JSONObjectUtils.getJSONObject(json, key));
 	}
 
@@ -38,20 +35,23 @@ public abstract class AbstractTokenService {
 		return checkNonNull(key, claims.getStringClaim(key));
 	}
 
-	protected String getRequiredString(JSONObject json, String key) throws ParseException {
+	protected String getRequiredString(Map<String, Object> json, String key) throws ParseException {
 		return checkNonNull(key, JSONObjectUtils.getString(json, key));
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> List<T> getList(JSONObject o, String key, Class<T> clazz) throws ParseException {
-		JSONArray array = JSONObjectUtils.getJSONArray(o, key);
+	protected <T> List<T> getList(Map<String, Object> o, String key, Class<T> clazz) throws ParseException {
+		List<Object> array = JSONObjectUtils.getJSONArray(o, key);
 		if (array == null) {
 			return Collections.emptyList();
 		}
-		return Arrays.asList(array.toArray((T[]) Array.newInstance(clazz, 0)));
+		if (!array.stream().allMatch(clazz::isInstance)) {
+			throw new ParseException("Not all objects have type " + clazz, 0);
+		}
+		return (List<T>) array;
 	}
 
-	protected <T> T getGeneric(final JSONObject o, final String key, final Class<T> clazz) throws ParseException {
+	protected <T> T getGeneric(final Map<String, Object> o, final String key, final Class<T> clazz) throws ParseException {
 		if (o.get(key) == null) {
 			return null;
 		}

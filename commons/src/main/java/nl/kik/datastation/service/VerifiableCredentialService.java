@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,6 @@ import com.nimbusds.jwt.JWTClaimsSet.Builder;
 import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import nl.kik.datastation.dto.ds.async.Message;
 import nl.kik.datastation.dto.vc.ValidatedQuery;
 import nl.kik.datastation.dto.vc.ValidatedQuery.ValidatedQueryBuilder;
@@ -104,7 +104,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <E extends Exception> JSONObject makePresentation(VerifiablePresentation m,
+	private <E extends Exception> Map<String, Object> makePresentation(VerifiablePresentation m,
 			BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
 		List<JWSObject> credential = m.getExternalCredential();
 		if (CollectionUtils.isEmpty(credential)) {
@@ -138,7 +138,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		;
 	}
 
-	private JSONObject makeCredential(VerifiableCredential m) {
+	private Map<String, Object> makeCredential(VerifiableCredential m) {
 		VCBuilder builder = VCBuilder.builder() //
 				.context(CREDENTIALS_CONTEXT) //
 				.type(VERIFIABLE_CREDENTIAL_TYPE) //
@@ -155,12 +155,12 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		builder = builder //
 				.context(VALIDATED_QUERY_CONTEXT) //
 				.type(VALIDATED_QUERY_CREDENTIAL_TYPE) //
-				.claim(CREDENTIAL_SUBJECT, new JSONObject(Map.of(//
+				.claim(CREDENTIAL_SUBJECT, Map.of(//
 						PROFILE, m.getProfile(), //
 						ONTOLOGY, m.getOntology(), //
 						ID, m.getSubjectId() == null ? randomUUID() : m.getSubjectId(), //
 						QUERY, m.getQuery() //
-				))); //
+				)); //
 		builder = makeCredentialExtension(builder, m);
 		return builder;
 	}
@@ -220,8 +220,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	private <E extends Exception> VerifiableBase.VerifiableBaseBuilder<?, ?> unwrap(JWTClaimsSet claims,
 			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
-		JSONObject vp = claims.getJSONObjectClaim(VP);
-		JSONObject vc = claims.getJSONObjectClaim(VC);
+		Map<String, Object> vp = claims.getJSONObjectClaim(VP);
+		Map<String, Object> vc = claims.getJSONObjectClaim(VC);
 		if (!(vp == null ^ vc == null)) {
 			throw new ParseException("Exactly one of vc or vp must be given", 0);
 		}
@@ -236,7 +236,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	@SuppressWarnings("unchecked")
 	private <E extends Exception> VerifiablePresentation.VerifiablePresentationBuilder<?, ?> unwrapPresentation(
-			JSONObject vp, BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
+			Map<String, Object> vp, BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
 		Set<String> types = getTypes(vp);
 		Set<String> contexts = getContexts(vp);
@@ -281,7 +281,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		return clazz.cast(o);
 	}
 
-	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredential(JSONObject vc,
+	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredential(Map<String, Object> vc,
 			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		Set<String> types = getTypes(vc);
 		Set<String> contexts = getContexts(vc);
@@ -308,13 +308,13 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		;
 	}
 
-	private <E extends Exception> ValidatedQuery.ValidatedQueryBuilder<?, ?> unwrapValidatedQuery(JSONObject vc,
+	private <E extends Exception> ValidatedQuery.ValidatedQueryBuilder<?, ?> unwrapValidatedQuery(Map<String, Object> vc,
 			Set<String> types, Set<String> contexts,
 			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		if (!contexts.remove(VALIDATED_QUERY_CONTEXT)) {
 			throw new ParseException("Expecting validated query to contain context " + VALIDATED_QUERY_CONTEXT, 0);
 		}
-		JSONObject subject = getRequiredJSONObject(vc, CREDENTIAL_SUBJECT);
+		Map<String, Object> subject = getRequiredJSONObject(vc, CREDENTIAL_SUBJECT);
 		return makeValidatedQuery() //
 				.subjectId(getRequiredString(subject, ID)) //
 				.query(getRequiredString(subject, QUERY)) //
@@ -331,21 +331,21 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredentialExtension(
-			JSONObject vc, Set<String> types, Set<String> contexts,
+			Map<String, Object> vc, Set<String> types, Set<String> contexts,
 			BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		throw new ParseException("Received unexected VC; types = " + types + "; contexts = " + contexts, 0);
 	}
 
-	private Set<String> getTypes(JSONObject o) throws ParseException {
+	private Set<String> getTypes(Map<String, Object> o) throws ParseException {
 		return new HashSet<String>(getList(o, TYPE, String.class));
 	}
 
-	private Set<String> getContexts(JSONObject o) throws ParseException {
+	private Set<String> getContexts(Map<String, Object> o) throws ParseException {
 		return new HashSet<String>(getList(o, CONTEXT, String.class));
 	}
 
 	public static class VCBuilder {
-		private JSONObject result;
+		private Map<String, Object> result;
 		private List<String> context;
 		private List<String> type;
 
@@ -354,14 +354,14 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		}
 
 		private VCBuilder() {
-			result = new JSONObject();
+			result = new HashMap<>();
 			context = new ArrayList<>();
 			type = new ArrayList<>();
 			result.put(CONTEXT, context);
 			result.put(TYPE, type);
 		}
 
-		public JSONObject build() {
+		public Map<String, Object> build() {
 			return result;
 		}
 

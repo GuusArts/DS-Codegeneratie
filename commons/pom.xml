@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>nl.kik-v.datastation</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.3.4-SNAPSHOT</version>
+		<version>0.4.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>com.google.crypto.tink</groupId>
 			<artifactId>tink</artifactId>
-			<version>1.5.0</version>
+			<version>1.6.0</version>
 		</dependency>
 
 
