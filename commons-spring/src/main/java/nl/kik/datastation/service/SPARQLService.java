@@ -53,9 +53,13 @@ public class SPARQLService {
 
 	protected List<Map<String, Binding>> wrapBindings(ResultSet result) {
 		List<Map<String, Binding>> r = new ArrayList<>();
-		result.forEachRemaining(FunctionWrapper.wrapper((QuerySolution s) -> {
-			r.add(wrapSolution(s));
-		}));
+		while (result.hasNext()) { 
+			try {
+				r.add(wrapSolution(result.next()));
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+		}
 		return r;
 	}
 
@@ -86,7 +90,7 @@ public class SPARQLService {
 		} else if (rdfNode.isURIResource()) {
 			Resource resource = rdfNode.asResource();
 			return Binding.builder() //
-					.type(RDFType.bnode) //
+					.type(RDFType.uri) //
 					.value(resource.getURI()) //
 					.build();
 		} else {
