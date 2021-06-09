@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.kik-v.commons</groupId>
 	<artifactId>ds-spring</artifactId>
-	<name>KIK-V Datastaion Components Spring</name>
+	<name>KIK-V Datastation Components Spring</name>
 
 	<parent>
 		<groupId>nl.kik-v.commons</groupId>
