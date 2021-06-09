@@ -4,8 +4,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.kik-v.commons</groupId>
-	<artifactId>commons-spring</artifactId>
-	<name>KIK-V Common Components Spring</name>
+	<artifactId>ds-spring</artifactId>
+	<name>KIK-V Datastaion Components Spring</name>
 
 	<parent>
 		<groupId>nl.kik-v.commons</groupId>
@@ -16,7 +16,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>nl.kik-v.commons</groupId>
-			<artifactId>commons</artifactId>
+			<artifactId>commons-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>nl.kik-v.commons</groupId>
+			<artifactId>ds</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -24,11 +28,6 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Spring integration -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -38,22 +37,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-autoconfigure</artifactId>
-		</dependency>
-
-		<!-- Jena RDF -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-core</artifactId>
-			<version>${jena.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>jena-arq</artifactId>
-			<version>${jena.version}</version>
 		</dependency>
 
 		<!-- Test -->

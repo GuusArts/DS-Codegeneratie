@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+nl.kik.commons.datastation.autoconfig.CommonsConfig,\
+nl.kik.commons.datastation.autoconfig.WebConfig,\
+nl.kik.commons.datastation.autoconfig.WebMvcConfig
