@@ -28,63 +28,52 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 @Slf4j
 public class ResponseMessageConverter extends MessageMessageConverter<Object, ReturnMessage<Object>> {
-	private ResultService resultService;
+	private final ResultService resultService;
 
-	public ResponseMessageConverter(MessageService service, ResultService resultService, KeyService keys,
-			ValidationService validator) {
+	public ResponseMessageConverter(final MessageService service, final ResultService resultService,
+			final KeyService keys, final ValidationService validator) {
 		super(service, keys, validator);
 		this.resultService = resultService;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected Class<ReturnMessage<Object>> getMessageClass() {
-		return (Class) ReturnMessage.class;
-	}
-
-	@Override
-	protected Class<Object> getBodyClass() {
-		return Object.class;
-	}
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected ReturnMessage<Object> decodeMessage(String s, HttpInputMessage inputMessage) {
+	protected ReturnMessage<Object> decodeMessage(final String s, final HttpInputMessage inputMessage) {
 		try {
-			SignedJWT object = SignedJWT.parse(s);
-			JWTClaimsSet claims = object.getJWTClaimsSet();
-			String type = StringUtils.trimToEmpty(claims.getStringClaim(MessageService.TYPE));
+			final SignedJWT object = SignedJWT.parse(s);
+			final JWTClaimsSet claims = object.getJWTClaimsSet();
+			final String type = StringUtils.trimToEmpty(claims.getStringClaim(MessageService.TYPE));
 			switch (type) {
 			case MessageService.RESPONSE: {
-				Message<Map<String, Result>> message = service
-						.unwrapMessage(s, this.validator::validate,
+				final Message<Map<String, Result>> message = service
+						.unwrapMessage(s, validator::validate,
 								o -> resultService.<Result, Exception>unwrapResultSet(
 										JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE),
 										resultService::unwrap));
-				if (!Response.class.isInstance(message)) {
+				if (!Response.class.isInstance(message))
 					throw new ParseException("Message must be Response and body must be result set of Result", 0);
-				}
 				return (Response) message;
 			}
 			case MessageService.ERROR_REPORT: {
-				Message<String> message = service.unwrapMessage(s, this.validator::validate,
+				final Message<String> message = service.unwrapMessage(s, validator::validate,
 						o -> JSONObjectUtils.getString(o, MessageService.MESSAGE));
-				if (!ErrorReport.class.isInstance(message)) {
+				if (!ErrorReport.class.isInstance(message))
 					throw new ParseException("Message must be ErrorReport and body must be String", 0);
-				}
 				return (ErrorReport) message;
 			}
 			default:
 				throw new ParseException("Message of type " + type + " not supported for return messages", 0);
 			}
 
-		} catch (Exception e) {
-			log.trace("Exception", e);
+		} catch (final Exception e) {
+			ResponseMessageConverter.log.trace("Exception", e);
 			throw new HttpMessageNotReadableException("Unable to parse Message", e, inputMessage);
 		}
 	}
 
+	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected JWSObject encodeMessage(ReturnMessage<Object> t, HttpOutputMessage outputMessage)
+	protected JWSObject encodeMessage(final ReturnMessage<Object> t, final HttpOutputMessage outputMessage)
 			throws Exception, JOSEException {
 		JWSObject wrapped;
 		if (t instanceof ErrorReport<?> && t.getBody() instanceof String) {
@@ -94,22 +83,32 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 				&& ((Map<?, ?>) t.getBody()).values().stream().allMatch(Result.class::isInstance)) {
 			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t,
 					s -> Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s, resultService::wrap)));
-		} else {
+		} else
 			throw new ParseException("Received unsupported return message", 0);
-		}
 		validator.sign(wrapped, keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 		return wrapped;
 	}
 
 	@Override
-	protected FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(HttpInputMessage inputMessage) {
+	protected Class<Object> getBodyClass() {
+		return Object.class;
+	}
+
+	@Override
+	protected FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(final HttpInputMessage inputMessage) {
 		return null;
 	}
 
 	@Override
 	protected FunctionWithException<Object, Map<String, Object>, Exception> getEncoder(
-			HttpOutputMessage outputMessage) {
+			final HttpOutputMessage outputMessage) {
 		return null;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	protected Class<ReturnMessage<Object>> getMessageClass() {
+		return (Class) ReturnMessage.class;
 	}
 
 }

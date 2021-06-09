@@ -21,9 +21,12 @@ public abstract class AbstractVerifiableCredentialTest {
 				.issuer("did:central") //
 				.subjectId("ur:senderid") //
 				.audience(Collections.singletonList("did:sender")) //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
+				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
 				.profile("urn:profile") //
 				.ontology("urn:ontology") //
 				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
@@ -34,9 +37,12 @@ public abstract class AbstractVerifiableCredentialTest {
 				.keyId("urn:userkey") //
 				.issuer("did:sender") //
 				.audience(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
+				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
 				.credential(Collections.singletonList(credential)) //
 				.build();
 

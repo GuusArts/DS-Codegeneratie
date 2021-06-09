@@ -45,77 +45,41 @@ public class SerializationController {
 	@Autowired
 	private SPARQLService sparql;
 
-	@GetMapping("/request")
-	public Request<VerifiablePresentation> request() throws MalformedURLException {
-		log.info("GET request");
-		ValidatedQuery credential = ValidatedQuery.builder() //
-				.keyId("urn:centralkey") //
-				.issuer("did:central") //
-				.audience(Collections.singletonList("did:sender")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.profile("urn:profile") //
-				.ontology("urn:ontology") //
-				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
+	@GetMapping("/ask")
+	public ReturnMessage<?> ask() throws MalformedURLException {
+		SerializationController.log.info("GET ask");
+
+		final AskResult ask = AskResult.builder() //
+				.head(Header.builder().build()) //
+				.value(true) //
 				.build();
 
-		VerifiablePresentation presentation = VerifiablePresentation.builder() //
+		final Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
-				.issuer("did:sender") //
-				.audience(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.credential(Collections.singletonList(credential)) //
-				.build();
-
-		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
-				.keyId("urn:userkey") //
-				.body(presentation) //
+				.body(Map.of("urn:ask", ask)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
-				.replyUrl(new URL("http://example.com/datastation")) //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.build();
 
 		return message;
 	}
 
-	@PostMapping("/request")
-	public Request<VerifiablePresentation> request(@RequestBody Request<VerifiablePresentation> request) {
-		log.info("POST request {}", request);
-		return request;
-	}
-
-	@GetMapping("/error")
-	public ReturnMessage<?> error() {
-		log.info("GET error");
-
-		ErrorReport<String> message = ErrorReport.<String>builder() //
-				.keyId("urn:userkey") //
-				.body("Something went wrong") //
-				.issuer("did:sender") //
-				.from("did:sender") //
-				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.build();
-
-		return message;
-	}
-
-	@PostMapping("/error")
-	public ReturnMessage<?> request(@RequestBody ReturnMessage<?> error) {
-		log.info("POST error {}", error);
-		return error;
+	@PostMapping("/ask")
+	public ReturnMessage<?> ask(@RequestBody final ReturnMessage<?> ask) {
+		SerializationController.log.info("POST ask {}", ask);
+		return ask;
 	}
 
 	@GetMapping("/construct")
 	public ReturnMessage<?> construct() throws MalformedURLException, ParseException {
-		log.info("GET construct");
+		SerializationController.log.info("GET construct");
 
-		Model model = ModelFactory.createDefaultModel();
+		final Model model = ModelFactory.createDefaultModel();
 		model.add(model.createResource(), model.createProperty("http://example.com/property"), "world");
 		model.add(model.createResource("http://example.com/hello"), model.createProperty("http://example.com/property"),
 				model.createResource("http://example.com/world"));
@@ -125,32 +89,114 @@ public class SerializationController {
 				model.createProperty("http://example.com/just_wanna"),
 				model.createResource("http://example.com/have_fun"));
 
-		ConstructResult construct = sparql.wrap(model);
+		final ConstructResult construct = sparql.wrap(model);
 
-		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
+		final Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
 				.body(Map.of("urn:construct", construct)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.build();
 
 		return message;
 	}
 
 	@PostMapping("/construct")
-	public ReturnMessage<?> construct(@RequestBody ReturnMessage<?> construct) {
-		log.info("POST construct {}", construct);
+	public ReturnMessage<?> construct(@RequestBody final ReturnMessage<?> construct) {
+		SerializationController.log.info("POST construct {}", construct);
 		return construct;
+	}
+
+	@GetMapping("/error")
+	public ReturnMessage<?> error() {
+		SerializationController.log.info("GET error");
+
+		final ErrorReport<String> message = ErrorReport.<String>builder() //
+				.keyId("urn:userkey") //
+				.body("Something went wrong") //
+				.issuer("did:sender") //
+				.from("did:sender") //
+				.to(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.build();
+
+		return message;
+	}
+
+	@GetMapping("/request")
+	public Request<VerifiablePresentation> request() throws MalformedURLException {
+		SerializationController.log.info("GET request");
+		final ValidatedQuery credential = ValidatedQuery.builder() //
+				.keyId("urn:centralkey") //
+				.issuer("did:central") //
+				.audience(Collections.singletonList("did:sender")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.profile("urn:profile") //
+				.ontology("urn:ontology") //
+				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
+				.build();
+
+		final VerifiablePresentation presentation = VerifiablePresentation.builder() //
+				.keyId("urn:userkey") //
+				.issuer("did:sender") //
+				.audience(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.credential(Collections.singletonList(credential)) //
+				.build();
+
+		final Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
+				.keyId("urn:userkey") //
+				.body(presentation) //
+				.issuer("did:sender") //
+				.from("did:sender") //
+				.replyUrl(new URL("http://example.com/datastation")) //
+				.to(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.build();
+
+		return message;
+	}
+
+	@PostMapping("/request")
+	public Request<VerifiablePresentation> request(@RequestBody final Request<VerifiablePresentation> request) {
+		SerializationController.log.info("POST request {}", request);
+		return request;
+	}
+
+	@PostMapping("/error")
+	public ReturnMessage<?> request(@RequestBody final ReturnMessage<?> error) {
+		SerializationController.log.info("POST error {}", error);
+		return error;
+	}
+
+	@PostMapping("/response")
+	public ReturnMessage<?> response(@RequestBody final ReturnMessage<?> response) {
+		SerializationController.log.info("POST response {}", response);
+		return response;
 	}
 
 	@GetMapping("/select")
 	public ReturnMessage<?> select() throws MalformedURLException {
-		log.info("GET select");
+		SerializationController.log.info("GET select");
 
-		SelectResult select = SelectResult.builder() //
+		final SelectResult select = SelectResult.builder() //
 				.head(Header.builder() //
 						.link(List.of(new URL("http://example.com"))) //
 						.vars(List.of("a", "b")) //
@@ -169,102 +215,39 @@ public class SerializationController {
 						.build())//
 				.build();
 
-		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
+		final Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
 				.keyId("urn:userkey") //
 				.body(Map.of("urn:select", select)) //
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.build();
 
 		return message;
 	}
 
 	@PostMapping("/select")
-	public ReturnMessage<?> select(@RequestBody ReturnMessage<?> select) {
-		log.info("POST select {}", select);
+	public ReturnMessage<?> select(@RequestBody final ReturnMessage<?> select) {
+		SerializationController.log.info("POST select {}", select);
 		return select;
-	}
-
-	@GetMapping("/ask")
-	public ReturnMessage<?> ask() throws MalformedURLException {
-		log.info("GET ask");
-
-		AskResult ask = AskResult.builder() //
-				.head(Header.builder().build()) //
-				.value(true) //
-				.build();
-
-		Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
-				.keyId("urn:userkey") //
-				.body(Map.of("urn:ask", ask)) //
-				.issuer("did:sender") //
-				.from("did:sender") //
-				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.build();
-
-		return message;
-	}
-
-	@PostMapping("/ask")
-	public ReturnMessage<?> ask(@RequestBody ReturnMessage<?> ask) {
-		log.info("POST ask {}", ask);
-		return ask;
-	}
-
-	@PostMapping("/response")
-	public ReturnMessage<?> response(@RequestBody ReturnMessage<?> response) {
-		log.info("POST response {}", response);
-		return response;
-	}
-
-	@GetMapping("/vp")
-	public VerifiablePresentation vp() throws MalformedURLException {
-		log.info("GET vp");
-
-		ValidatedQuery credential = ValidatedQuery.builder() //
-				.keyId("urn:centralkey") //
-				.issuer("did:central") //
-				.audience(Collections.singletonList("did:sender")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.profile("urn:profile") //
-				.ontology("urn:ontology") //
-				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
-				.build();
-
-		VerifiablePresentation presentation = VerifiablePresentation.builder() //
-				.keyId("urn:userkey") //
-				.issuer("did:sender") //
-				.audience(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.credential(Collections.singletonList(credential)) //
-				.build();
-
-		return presentation;
-	}
-
-	@PostMapping("/vp")
-	public VerifiablePresentation vp(@RequestBody VerifiablePresentation vp) {
-		log.info("POST vp {}", vp);
-		return vp;
 	}
 
 	@GetMapping("/vc")
 	public VerifiableCredential vc() throws MalformedURLException {
-		log.info("GET vc");
+		SerializationController.log.info("GET vc");
 
-		ValidatedQuery credential = ValidatedQuery.builder() //
+		final ValidatedQuery credential = ValidatedQuery.builder() //
 				.keyId("urn:centralkey") //
 				.issuer("did:central") //
 				.audience(Collections.singletonList("did:sender")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.profile("urn:profile") //
 				.ontology("urn:ontology") //
 				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
@@ -273,10 +256,47 @@ public class SerializationController {
 		return credential;
 	}
 
+	@GetMapping("/vp")
+	public VerifiablePresentation vp() throws MalformedURLException {
+		SerializationController.log.info("GET vp");
+
+		final ValidatedQuery credential = ValidatedQuery.builder() //
+				.keyId("urn:centralkey") //
+				.issuer("did:central") //
+				.audience(Collections.singletonList("did:sender")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.profile("urn:profile") //
+				.ontology("urn:ontology") //
+				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
+				.build();
+
+		final VerifiablePresentation presentation = VerifiablePresentation.builder() //
+				.keyId("urn:userkey") //
+				.issuer("did:sender") //
+				.audience(Collections.singletonList("did:recipient")) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.credential(Collections.singletonList(credential)) //
+				.build();
+
+		return presentation;
+	}
+
 	@PostMapping("/vc")
-	public VerifiableCredential vp(@RequestBody VerifiableCredential vc) {
-		log.info("POST vc {}", vc);
+	public VerifiableCredential vp(@RequestBody final VerifiableCredential vc) {
+		SerializationController.log.info("POST vc {}", vc);
 		return vc;
+	}
+
+	@PostMapping("/vp")
+	public VerifiablePresentation vp(@RequestBody final VerifiablePresentation vp) {
+		SerializationController.log.info("POST vp {}", vp);
+		return vp;
 	}
 
 }

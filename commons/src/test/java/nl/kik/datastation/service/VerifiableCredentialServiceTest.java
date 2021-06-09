@@ -1,13 +1,12 @@
 package nl.kik.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,19 +53,34 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		service = new VerifiableCredentialService();
 	}
 
-	public JWSObject sign(JWSObject o, JWSSigner s) {
+	public JWSObject sign(final JWSObject o, final JWSSigner s) {
 		try {
 			o.sign(s);
 			return o;
-		} catch (JOSEException e) {
+		} catch (final JOSEException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	@Test
+	void testLoad() throws ParseException, MalformedURLException, JOSEException {
+		for (final VerifiableBase m : messages) {
+			VerifiableCredentialServiceTest.log.info("Comparing");
+			VerifiableCredentialServiceTest.log.info("{}", m);
+			final JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
+			wrapped.sign(signer);
+			final String flat = wrapped.serialize();
+			final VerifiableBase unwrapped = service.unwrapVerifiable(flat, (w, v) -> {
+			});
+			VerifiableCredentialServiceTest.log.info("{}", unwrapped);
+			Assertions.assertEquals(m, unwrapped);
 		}
 	}
 
 	@Test
 	void testSave() {
 		messages.forEach(FunctionWrapper.wrapper(m -> {
-			JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
+			final JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
 			wrapped.sign(signer);
 			System.out.println("Header: " + wrapped.getHeader().toJSONObject());
 			System.out.println("Payload: " + wrapped.getPayload().toJSONObject());
@@ -76,36 +90,23 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 
 	@Test
 	void testWrapInMessage() throws Exception {
-		Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
+		final Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
 				.body(presentation) //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
+						.toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.replyUrl(new URL("http://example.com/service/reply")) //
 				.build();
-		MessageService messageService = new MessageService();
+		final MessageService messageService = new MessageService();
 
-		JWSObject wrapped = messageService.wrap(message, messageService
+		final JWSObject wrapped = messageService.wrap(message, messageService
 				.base64Wrapper(service.wrapAndSign(this::sign, c -> signer, (c, w) -> sign(w, centralSigner))));
 		wrapped.sign(signer);
 		System.out.println(wrapped.serialize());
-	}
-
-	@Test
-	void testLoad() throws ParseException, MalformedURLException, JOSEException {
-		for (VerifiableBase m : messages) {
-			log.info("Comparing");
-			log.info("{}", m);
-			JWSObject wrapped = service.wrap(m, (c, w) -> sign(w, centralSigner));
-			wrapped.sign(signer);
-			String flat = wrapped.serialize();
-			VerifiableBase unwrapped = service.unwrapVerifiable(flat, (w, v) -> {
-			});
-			log.info("{}", unwrapped);
-			assertEquals(m, unwrapped);
-		}
 	}
 
 }

@@ -21,5 +21,5 @@ public class DataService extends Resource {
 	URL endpointURL;
 	Set<RDFObject> endpointDescription;
 	Set<Dataset> servesDataset;
-	
+
 }

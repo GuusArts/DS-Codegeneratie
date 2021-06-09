@@ -31,42 +31,16 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	protected KeyService keys;
 	protected ValidationService validator;
 
-	public MessageMessageConverter(MessageService service, KeyService keys, ValidationService validator) {
+	public MessageMessageConverter(final MessageService service, final KeyService keys,
+			final ValidationService validator) {
 		super(MediaType.ALL);
 		this.service = service;
 		this.keys = keys;
 		this.validator = validator;
 	}
 
-	@Override
-	protected boolean supports(Class<?> clazz) {
-		return getMessageClass().isAssignableFrom(clazz);
-	}
-
-	protected abstract Class<M> getMessageClass();
-
-	protected abstract Class<T> getBodyClass();
-
-	public M decode(String s) {
+	public M decode(final String s) {
 		return decodeMessage(s, null);
-	}
-
-	public String encode(M message) throws JOSEException, Exception {
-		return encodeMessage(message, null).serialize();
-	}
-
-	@Override
-	protected M readInternal(Class<? extends M> clazz, HttpInputMessage inputMessage)
-			throws IOException, HttpMessageNotReadableException {
-		log.trace("Deserialize {}", clazz.getSimpleName());
-		String s = StreamUtils.copyToString(inputMessage.getBody(), UTF8);
-		if (MediaType.APPLICATION_FORM_URLENCODED.equalsTypeAndSubtype(inputMessage.getHeaders().getContentType())) {
-			s = URLDecoder.decode(s, UTF8);
-			if (s.length() > 0 && s.charAt(s.length() - 1) == '=') {
-				s = s.substring(0, s.length() - 1);
-			}
-		}
-		return decodeMessage(s, inputMessage);
 	}
 
 	/**
@@ -75,37 +49,21 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	protected M decodeMessage(String s, HttpInputMessage inputMessage) {
+	protected M decodeMessage(final String s, final HttpInputMessage inputMessage) {
 		try {
-			Message<?> message = service.unwrapMessage(s, this.validator::validate, getDecoder(inputMessage));
-			if (!getMessageClass().isInstance(message) || !getBodyClass().isInstance(message.getBody())) {
+			final Message<?> message = service.unwrapMessage(s, this.validator::validate, getDecoder(inputMessage));
+			if (!getMessageClass().isInstance(message) || !getBodyClass().isInstance(message.getBody()))
 				throw new ParseException("Message must be " + getMessageClass().getSimpleName() + " and body must be "
 						+ getBodyClass().getSimpleName(), 0);
-			}
 			return (M) message;
-		} catch (Exception e) {
-			log.trace("Exception", e);
+		} catch (final Exception e) {
+			MessageMessageConverter.log.trace("Exception", e);
 			throw new HttpMessageNotReadableException("Unable to parse Message", e, inputMessage);
 		}
 	}
 
-	/**
-	 * @param inputMessage
-	 * @return
-	 */
-	protected abstract FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(HttpInputMessage inputMessage);
-
-	@Override
-	protected void writeInternal(M t, HttpOutputMessage outputMessage)
-			throws IOException, HttpMessageNotWritableException {
-		log.trace("Serialize {}", t.getClass().getSimpleName());
-		try {
-			JWSObject wrapped = encodeMessage(t, outputMessage);
-			StreamUtils.copy(wrapped.serialize(), UTF8, outputMessage.getBody());
-		} catch (Exception e) {
-			log.trace("Exception", e);
-			throw new HttpMessageNotWritableException("Unable to sign/serialize Message", e);
-		}
+	public String encode(final M message) throws JOSEException, Exception {
+		return encodeMessage(message, null).serialize();
 	}
 
 	/**
@@ -115,15 +73,60 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 * @throws Exception
 	 * @throws JOSEException
 	 */
-	protected JWSObject encodeMessage(M t, HttpOutputMessage outputMessage) throws Exception, JOSEException {
-		JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
+	protected JWSObject encodeMessage(final M t, final HttpOutputMessage outputMessage)
+			throws Exception, JOSEException {
+		final JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
 		return validator.sign(wrapped, keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 	}
+
+	protected abstract Class<T> getBodyClass();
+
+	/**
+	 * @param inputMessage
+	 * @return
+	 */
+	protected abstract FunctionWithException<Map<String, Object>, ?, Exception> getDecoder(
+			HttpInputMessage inputMessage);
 
 	/**
 	 * @param outputMessage
 	 * @return
 	 */
-	protected abstract FunctionWithException<T, Map<String, Object>, Exception> getEncoder(HttpOutputMessage outputMessage);
+	protected abstract FunctionWithException<T, Map<String, Object>, Exception> getEncoder(
+			HttpOutputMessage outputMessage);
+
+	protected abstract Class<M> getMessageClass();
+
+	@Override
+	protected M readInternal(final Class<? extends M> clazz, final HttpInputMessage inputMessage)
+			throws IOException, HttpMessageNotReadableException {
+		MessageMessageConverter.log.trace("Deserialize {}", clazz.getSimpleName());
+		String s = StreamUtils.copyToString(inputMessage.getBody(), MessageMessageConverter.UTF8);
+		if (MediaType.APPLICATION_FORM_URLENCODED.equalsTypeAndSubtype(inputMessage.getHeaders().getContentType())) {
+			s = URLDecoder.decode(s, MessageMessageConverter.UTF8);
+			if (s.length() > 0 && s.charAt(s.length() - 1) == '=') {
+				s = s.substring(0, s.length() - 1);
+			}
+		}
+		return decodeMessage(s, inputMessage);
+	}
+
+	@Override
+	protected boolean supports(final Class<?> clazz) {
+		return getMessageClass().isAssignableFrom(clazz);
+	}
+
+	@Override
+	protected void writeInternal(final M t, final HttpOutputMessage outputMessage)
+			throws IOException, HttpMessageNotWritableException {
+		MessageMessageConverter.log.trace("Serialize {}", t.getClass().getSimpleName());
+		try {
+			final JWSObject wrapped = encodeMessage(t, outputMessage);
+			StreamUtils.copy(wrapped.serialize(), MessageMessageConverter.UTF8, outputMessage.getBody());
+		} catch (final Exception e) {
+			MessageMessageConverter.log.trace("Exception", e);
+			throw new HttpMessageNotWritableException("Unable to sign/serialize Message", e);
+		}
+	}
 
 }

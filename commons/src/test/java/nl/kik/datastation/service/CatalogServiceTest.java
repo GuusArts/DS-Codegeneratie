@@ -1,9 +1,5 @@
 package nl.kik.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
@@ -11,6 +7,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,42 +26,42 @@ class CatalogServiceTest extends AbstractDCATTest {
 
 	@Test
 	void testGetDatasets() {
-		Collection<Dataset> datasets = service.getDatasets(catalog, Constants.STANDARD_VERIFIED_SPARQL);
-		assertEquals(1, datasets.size());
-		assertEquals(dataset, datasets.iterator().next());
+		final Collection<Dataset> datasets = service.getDatasets(catalog, Constants.STANDARD_VERIFIED_SPARQL);
+		Assertions.assertEquals(1, datasets.size());
+		Assertions.assertEquals(dataset, datasets.iterator().next());
 	}
 
 	@Test
 	void testGetDatasetsNone() throws MalformedURLException {
-		Collection<Dataset> datasets = service.getDatasets(catalog, new URL("http://example.org/non/existant"));
-		assertTrue(datasets.isEmpty());
-	}
-
-	@Test
-	void testGetEndpoints() {
-		Collection<DataService> endpoints = service.getEndpoints(dataset, Constants.STANDARD_VERIFIED_SPARQL);
-		assertEquals(1, endpoints.size());
-		assertEquals(dataservice, endpoints.iterator().next());
-
-		endpoints = service.getEndpoints(dataset, Constants.STANDARD_SPARQL);
-		assertEquals(2, endpoints.size());
-		assertEquals(Set.of(sparqlservice, sparqlservice2), new HashSet<>(endpoints));
-
-		endpoints = service.getEndpoints(dataset, Constants.STANDARD_RDF);
-		assertTrue(endpoints.isEmpty());
+		final Collection<Dataset> datasets = service.getDatasets(catalog, new URL("http://example.org/non/existant"));
+		Assertions.assertTrue(datasets.isEmpty());
 	}
 
 	@Test
 	void testGetEndpoint() {
 		Optional<DataService> endpoints = service.getEndpoint(dataset, Constants.STANDARD_VERIFIED_SPARQL);
-		assertTrue(endpoints.isPresent());
-		assertEquals(dataservice, endpoints.get());
+		Assertions.assertTrue(endpoints.isPresent());
+		Assertions.assertEquals(dataservice, endpoints.get());
 
 		endpoints = service.getEndpoint(dataset, Constants.STANDARD_SPARQL);
-		assertTrue(endpoints.isPresent());
-		assertTrue(Set.of(sparqlservice, sparqlservice2).contains(endpoints.get()));
+		Assertions.assertTrue(endpoints.isPresent());
+		Assertions.assertTrue(Set.of(sparqlservice, sparqlservice2).contains(endpoints.get()));
 
 		endpoints = service.getEndpoint(dataset, Constants.STANDARD_RDF);
-		assertFalse(endpoints.isPresent());
+		Assertions.assertFalse(endpoints.isPresent());
+	}
+
+	@Test
+	void testGetEndpoints() {
+		Collection<DataService> endpoints = service.getEndpoints(dataset, Constants.STANDARD_VERIFIED_SPARQL);
+		Assertions.assertEquals(1, endpoints.size());
+		Assertions.assertEquals(dataservice, endpoints.iterator().next());
+
+		endpoints = service.getEndpoints(dataset, Constants.STANDARD_SPARQL);
+		Assertions.assertEquals(2, endpoints.size());
+		Assertions.assertEquals(Set.of(sparqlservice, sparqlservice2), new HashSet<>(endpoints));
+
+		endpoints = service.getEndpoints(dataset, Constants.STANDARD_RDF);
+		Assertions.assertTrue(endpoints.isEmpty());
 	}
 }

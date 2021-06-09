@@ -1,11 +1,10 @@
 package nl.kik.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,29 +46,29 @@ class MessageServiceTest extends AbstractMessageTest {
 	}
 
 	@Test
+	void testLoad() throws ParseException, MalformedURLException, JOSEException {
+		for (final Message<String> m : messages) {
+			final JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
+			wrapped.sign(signer);
+			final String serialized = wrapped.serialize();
+			final Message<String> unwrapped = service.unwrapMessage(serialized, (j, o) -> {
+			}, o -> JSONObjectUtils.getString(o, "plain"));
+			MessageServiceTest.log.trace("Comparing");
+			MessageServiceTest.log.trace("{}", m);
+			MessageServiceTest.log.trace("{}", unwrapped);
+			Assertions.assertEquals(m, unwrapped);
+		}
+	}
+
+	@Test
 	void testSave() {
 		messages.forEach(FunctionWrapper.wrapper(m -> {
-			JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
+			final JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
 			wrapped.sign(signer);
 			System.out.println("Header: " + wrapped.getHeader().toJSONObject());
 			System.out.println("Payload: " + wrapped.getPayload().toJSONObject());
 			System.out.println("Base64: " + wrapped.serialize());
 		}));
-	}
-
-	@Test
-	void testLoad() throws ParseException, MalformedURLException, JOSEException {
-		for (Message<String> m : messages) {
-			JWSObject wrapped = service.wrap(m, s -> Map.of("plain", s));
-			wrapped.sign(signer);
-			String serialized = wrapped.serialize();
-			Message<String> unwrapped = service.unwrapMessage(serialized, (j, o) -> {
-			}, o -> JSONObjectUtils.getString(o, "plain"));
-			log.trace("Comparing");
-			log.trace("{}", m);
-			log.trace("{}", unwrapped);
-			assertEquals(m, unwrapped);
-		}
 	}
 
 }

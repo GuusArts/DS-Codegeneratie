@@ -16,12 +16,12 @@ public class CatalogService {
 	/**
 	 * Return all datasets that provide a dataservice conforming to the provided
 	 * semantics
-	 * 
+	 *
 	 * @param catalog
 	 * @param provides
 	 * @return
 	 */
-	public Collection<Dataset> getDatasets(Catalog catalog, URL provides) {
+	public Collection<Dataset> getDatasets(final Catalog catalog, final URL provides) {
 		Objects.requireNonNull(catalog, "catalog must be given");
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(catalog.getDataset(), Collections.<Dataset>emptySet()).stream() //
@@ -38,13 +38,25 @@ public class CatalogService {
 	}
 
 	/**
-	 * Return the endpoint(s) providing the given semantics.
-	 * 
+	 * Return the endpoint providing the given semantics. If there are multiple
+	 * (e.g., due to load balancing/failover), return any
+	 *
 	 * @param dataset
 	 * @param provices
 	 * @return
 	 */
-	public Collection<DataService> getEndpoints(Dataset dataset, URL provides) {
+	public Optional<DataService> getEndpoint(final Dataset dataset, final URL provides) {
+		return getEndpoints(dataset, provides).stream().findAny();
+	}
+
+	/**
+	 * Return the endpoint(s) providing the given semantics.
+	 *
+	 * @param dataset
+	 * @param provices
+	 * @return
+	 */
+	public Collection<DataService> getEndpoints(final Dataset dataset, final URL provides) {
 		Objects.requireNonNull(dataset, "dataset must be given");
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet()).stream() //
@@ -54,18 +66,6 @@ public class CatalogService {
 						.filter(dataservice -> provides.equals(dataservice.getConformsTo())) //
 				) //
 				.collect(Collectors.toList());
-	}
-
-	/**
-	 * Return the endpoint providing the given semantics. If there are multiple
-	 * (e.g., due to load balancing/failover), return any
-	 * 
-	 * @param dataset
-	 * @param provices
-	 * @return
-	 */
-	public Optional<DataService> getEndpoint(Dataset dataset, URL provides) {
-		return getEndpoints(dataset, provides).stream().findAny();
 	}
 
 }

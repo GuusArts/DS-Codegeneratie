@@ -59,15 +59,15 @@ public class DCATService extends AbstractRDFService {
 		private static final Model m = ModelFactory.createDefaultModel();
 
 		public static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
-		public static final Resource FOAF_NAMESPACE = m.createResource(FOAF_NS);
+		public static final Resource FOAF_NAMESPACE = Vocabulary.m.createResource(Vocabulary.FOAF_NS);
 
-		public static final Resource Agent = m.createResource(FOAF_NS + "Agent");
-		public static final Resource Group = m.createResource(FOAF_NS + "Group");
-		public static final Resource Organization = m.createResource(FOAF_NS + "Organization");
-		public static final Resource Person = m.createResource(FOAF_NS + "Person");
+		public static final Resource Agent = Vocabulary.m.createResource(Vocabulary.FOAF_NS + "Agent");
+		public static final Resource Group = Vocabulary.m.createResource(Vocabulary.FOAF_NS + "Group");
+		public static final Resource Organization = Vocabulary.m.createResource(Vocabulary.FOAF_NS + "Organization");
+		public static final Resource Person = Vocabulary.m.createResource(Vocabulary.FOAF_NS + "Person");
 
-		public static final Property member = m.createProperty(FOAF_NS + "member");
-		public static final Property name = m.createProperty(FOAF_NS + "name");
+		public static final Property member = Vocabulary.m.createProperty(Vocabulary.FOAF_NS + "member");
+		public static final Property name = Vocabulary.m.createProperty(Vocabulary.FOAF_NS + "name");
 
 	}
 
@@ -97,20 +97,328 @@ public class DCATService extends AbstractRDFService {
 			Kind.Location, VCARD4.Location, //
 			Kind.Organization, VCARD4.Organization //
 	);
-	private static Map<Resource, Kind> reverseKinds = reverse(kinds);
+	private static Map<Resource, Kind> reverseKinds = RDFService.reverse(DCATService.kinds);
 
 	@Override
-	protected void saveDetails(Graph<? extends Model> g, Resource resource, RDFObject object) {
-		if (object instanceof DCATObject) {
-			saveDetails(g, resource, (DCATObject) object);
-		} else if (object instanceof FOAFObject) {
-			saveDetails(g, resource, (FOAFObject) object);
-		} else {
-			throw new IllegalArgumentException("Cannot save RDF objects of type " + object.getClass().getSimpleName());
+	protected void deleteDetails(final Graph<? extends Model> g, final Resource resource, final RDFObject object,
+			final boolean purge) {
+
+	}
+
+	private <B extends AgentBuilder<?, ?>> B getAgent(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getFOAFObject(graph, properties, resource, builder) //
+		;
+	}
+
+	public Collection<? extends Catalog> getAllCatalogs(final Graph<? extends Model> graph) {
+		return search(graph, null, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog, Statement::getSubject) //
+				.map(r -> Pair.of(r, getProperties(graph, r))) //
+				.map(p -> getObject(graph, p.getRight(), p.getLeft())) //
+				.filter(Catalog.class::isInstance) //
+				.map(Catalog.class::cast) //
+				.collect(Collectors.toList());
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends CatalogBuilder<?, ?>> B getCatalog(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDataset(graph, properties, resource, builder) //
+				.themeTaxonomy(
+						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.themeTaxonomy, RDFObject.class)) //
+				.hasPart(getSet(graph, properties, DCTerms.hasPart, nl.kik.datastation.dto.dcat.Resource.class)) //
+				.dataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.dataset, Dataset.class)) //
+				.service(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.service, DataService.class)) //
+				.catalog(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.catalog, Catalog.class)) //
+				.record(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.record, CatalogRecord.class)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends CatalogRecordBuilder<?, ?>> B getCatalogRecord(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDCATObject(graph, properties, resource, builder) //
+				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
+				.description(getString(properties, DCTerms.description)) //
+				.title(getString(properties, DCTerms.title)) //
+				.issued(getDateTime(properties, DCTerms.issued)) //
+				.modified(getDateTime(properties, DCTerms.modified)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends DataServiceBuilder<?, ?>> B getDataService(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getResource(graph, properties, resource, builder) //
+				.endpointURL(getURL(properties, org.apache.jena.vocabulary.DCAT.endpointURL)) //
+				.endpointDescription(
+						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.endpointDescription, RDFObject.class)) //
+				.servesDataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.servesDataset, Dataset.class)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends DatasetBuilder<?, ?>> B getDataset(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getResource(graph, properties, resource, builder) //
+				.distribution(
+						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.distribution, Distribution.class)) //
+				.accrualPeriodicity(getURL(properties, DCTerms.accrualPeriodicity)) //
+				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
+				.temporal(getObject(graph, properties, DCTerms.temporal, PeriodOfTime.class)) //
+				.spatialResolutionInMeters(
+						getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
+		;
+	}
+
+	private <B extends DCATObjectBuilder<?, ?>> B getDCATObject(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getRDFObject(graph, properties, resource, builder) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <U extends DCATObject> U getDCATObject(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
+		if (Catalog.class.isAssignableFrom(t))
+			return (U) getCatalog(graph, properties, resource, Catalog.builder()).build();
+		if (Dataset.class.isAssignableFrom(t))
+			return (U) getDataset(graph, properties, resource, Dataset.builder()).build();
+		else if (DataService.class.isAssignableFrom(t))
+			return (U) getDataService(graph, properties, resource, DataService.builder()).build();
+		else if (nl.kik.datastation.dto.dcat.Resource.class.isAssignableFrom(t))
+			return (U) getResource(graph, properties, resource, nl.kik.datastation.dto.dcat.Resource.builder()).build();
+		else if (CatalogRecord.class.isAssignableFrom(t))
+			return (U) getCatalogRecord(graph, properties, resource, CatalogRecord.builder()).build();
+		else if (Distribution.class.isAssignableFrom(t))
+			return (U) getDistribution(graph, properties, resource, Distribution.builder()).build();
+		else if (PeriodOfTime.class.isAssignableFrom(t))
+			return (U) getPeriodOfTime(graph, properties, resource, PeriodOfTime.builder()).build();
+		else if (Relationship.class.isAssignableFrom(t))
+			return (U) getRelationship(graph, properties, resource, Relationship.builder()).build();
+		else if (Role.class.isAssignableFrom(t))
+			return (U) getRole(graph, properties, resource, Role.builder()).build();
+		throw new IllegalArgumentException("Cannot load DCAT objects of type " + t.getSimpleName());
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends DistributionBuilder<?, ?>> B getDistribution(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDCATObject(graph, properties, resource, builder) //
+				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
+				.description(getString(properties, DCTerms.description)) //
+				.title(getString(properties, DCTerms.title)) //
+				.issued(getDateTime(properties, DCTerms.issued)) //
+				.modified(getDateTime(properties, DCTerms.modified)) //
+				.accessURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.accessURL)) //
+				.accessService(
+						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.accessService, DataService.class)) //
+				.downloadURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.downloadURL)) //
+				.byteSize(getDouble(properties, org.apache.jena.vocabulary.DCAT.byteSize)) //
+				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
+				.spatialResolutionInMeters(
+						getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
+		;
+	}
+
+	private <B extends FOAFObjectBuilder<?, ?>> B getFOAFObject(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getRDFObject(graph, properties, resource, builder) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <U extends FOAFObject> U getFOAFObject(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
+		if (Group.class.isAssignableFrom(t))
+			return (U) getGroup(graph, properties, resource, Group.builder()).build();
+		if (Organization.class.isAssignableFrom(t))
+			return (U) getOrganization(graph, properties, resource, Organization.builder()).build();
+		else if (Person.class.isAssignableFrom(t))
+			return (U) getPerson(graph, properties, resource, Person.builder()).build();
+		throw new IllegalArgumentException("Cannot load FOAF objects of type " + t.getSimpleName());
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends GroupBuilder<?, ?>> B getGroup(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getAgent(graph, properties, resource, builder) //
+				.member(getSet(graph, properties, Vocabulary.member, Agent.class)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected <U extends RDFObject> U getObject(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
+		if (DCATObject.class.isAssignableFrom(t))
+			return (U) getDCATObject(graph, properties, resource, (Class<DCATObject>) t);
+		if (FOAFObject.class.isAssignableFrom(t))
+			return (U) getFOAFObject(graph, properties, resource, (Class<FOAFObject>) t);
+		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
+	}
+
+	@Override
+	protected Map<Resource, Class<? extends RDFObject>> getObjectTypes() {
+		return DCATService.objectTypes;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends OrganizationBuilder<?, ?>> B getOrganization(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getAgent(graph, properties, resource, builder) //
+				.name(getString(properties, Vocabulary.name)) //
+				.type(getURL(properties, DCTerms.type)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends PeriodOfTimeBuilder<?, ?>> B getPeriodOfTime(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDCATObject(graph, properties, resource, builder) //
+				.startDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.startDate)) //
+				.endDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.endDate)) //
+		;
+	}
+
+	private <B extends PersonBuilder<?, ?>> B getPerson(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getAgent(graph, properties, resource, builder) //
+		;
+	}
+
+	@Override
+	protected @NotNull String getPrefix() {
+		return DCATService.DCAT;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends RelationshipBuilder<?, ?>> B getRelationship(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDCATObject(graph, properties, resource, builder) //
+				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
+				.hadRole(getObject(graph, properties, org.apache.jena.vocabulary.DCAT.hadRole, Role.class)) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <B extends ResourceBuilder<?, ?>> B getResource(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return (B) getDCATObject(graph, properties, resource, builder) //
+				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
+				.contactPoint(
+						getEnum(properties, org.apache.jena.vocabulary.DCAT.contactPoint, DCATService.reverseKinds)) //
+				.creator(getObject(graph, properties, DCTerms.creator, Agent.class)) //
+				.description(getString(properties, DCTerms.description)) //
+				.title(getString(properties, DCTerms.title)) //
+				.issued(getDateTime(properties, DCTerms.issued)) //
+				.modified(getDateTime(properties, DCTerms.modified)) //
+				.publisher(getObject(graph, properties, DCTerms.publisher, Agent.class)) //
+				.identifier(getString(properties, DCTerms.identifier)) //
+				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
+				.qualifiedRelation(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.qualifiedRelation,
+						Relationship.class)) //
+				.keyword(getStringSet(properties, org.apache.jena.vocabulary.DCAT.keyword)) //
+				.license(getURL(properties, DCTerms.license)) //
+				.isReferencedBy(getSet(graph, properties, DCTerms.isReferencedBy, RDFObject.class)) //
+		;
+	}
+
+	private <B extends RoleBuilder<?, ?>> B getRole(final Graph<? extends Model> graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getDCATObject(graph, properties, resource, builder) //
+		;
+	}
+
+	protected void saveAgent(final Graph<? extends Model> g, final Resource resource, final Agent object) {
+		g.beginWrite();
+		try {
+			saveFOAFObject(g, resource, object);
+			g.getModel().add(resource, RDF.type, Vocabulary.Agent);
+			addProperty(g, resource, Vocabulary.name, object.getName());
+			addURL(g, resource, DCTerms.type, object.getType());
+			g.commit();
+		} finally {
+			g.end();
 		}
 	}
 
-	protected void saveDetails(Graph<? extends Model> g, Resource resource, DCATObject object) {
+	protected void saveCatalog(final Graph<? extends Model> g, final Resource resource, final Catalog object) {
+		g.beginWrite();
+		try {
+			saveDataset(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog);
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.themeTaxonomy, object.getThemeTaxonomy());// This will
+																											// fail with
+																											// the
+																											// default
+			// implementation; must be
+			// handled in a subclass if used
+			addAll(g, resource, DCTerms.hasPart, object.getHasPart());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.dataset, object.getDataset());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.service, object.getService());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.catalog, object.getCatalog());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.record, object.getRecord());
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveCatalogRecord(final Graph<? extends Model> g, final Resource resource,
+			final CatalogRecord object) {
+		g.beginWrite();
+		try {
+			saveDCATObject(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.CatalogRecord);
+			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			addProperty(g, resource, DCTerms.description, object.getDescription());
+			addProperty(g, resource, DCTerms.title, object.getTitle());
+			addProperty(g, resource, DCTerms.issued, object.getIssued());
+			addProperty(g, resource, DCTerms.modified, object.getModified());
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveDataService(final Graph<? extends Model> g, final Resource resource, final DataService object) {
+		g.beginWrite();
+		try {
+			saveResource(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.DataService);
+			addURL(g, resource, org.apache.jena.vocabulary.DCAT.endpointURL, object.getEndpointURL());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.endpointDescription, object.getEndpointDescription());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.servesDataset, object.getServesDataset());
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveDataset(final Graph<? extends Model> g, final Resource resource, final Dataset object) {
+		g.beginWrite();
+		try {
+			saveResource(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Dataset);
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.distribution, object.getDistribution());
+			addURL(g, resource, DCTerms.accrualPeriodicity, object.getAccrualPeriodicity());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
+					object.getSpatialResolutionInMeters());
+			addObject(g, resource, DCTerms.temporal, object.getTemporal());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
+					object.getTemporalResolution());
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveDCATObject(final Graph<? extends Model> g, final Resource resource, final DCATObject object) {
+		saveRDFObject(g, resource, object);
+	}
+
+	protected void saveDetails(final Graph<? extends Model> g, final Resource resource, final DCATObject object) {
 		if (object instanceof Catalog) {
 			saveCatalog(g, resource, (Catalog) object);
 		} else if (object instanceof Dataset) {
@@ -129,73 +437,135 @@ public class DCATService extends AbstractRDFService {
 			saveRelationship(g, resource, (Relationship) object);
 		} else if (object instanceof Role) {
 			saveRole(g, resource, (Role) object);
-		} else {
+		} else
 			throw new IllegalArgumentException("Cannot save DCAT objects of type " + object.getClass().getSimpleName());
+	}
+
+	protected void saveDetails(final Graph<? extends Model> g, final Resource resource, final FOAFObject object) {
+		if (object instanceof Group) {
+			saveGroup(g, resource, (Group) object);
+		} else if (object instanceof Organization) {
+			saveOrganization(g, resource, (Organization) object);
+		} else if (object instanceof Person) {
+			savePerson(g, resource, (Person) object);
+//		} else if (object instanceof Agent) { Abstract class, skip
+//			saveAgent(g, resource, (Agent) object);
+		} else
+			throw new IllegalArgumentException("Cannot save FOAF objects of type " + object.getClass().getSimpleName());
+	}
+
+	@Override
+	protected void saveDetails(final Graph<? extends Model> g, final Resource resource, final RDFObject object) {
+		if (object instanceof DCATObject) {
+			saveDetails(g, resource, (DCATObject) object);
+		} else if (object instanceof FOAFObject) {
+			saveDetails(g, resource, (FOAFObject) object);
+		} else
+			throw new IllegalArgumentException("Cannot save RDF objects of type " + object.getClass().getSimpleName());
+	}
+
+	protected void saveDistribution(final Graph<? extends Model> g, final Resource resource,
+			final Distribution object) {
+		g.beginWrite();
+		try {
+			saveDCATObject(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Distribution);
+			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			addProperty(g, resource, DCTerms.description, object.getDescription());
+			addProperty(g, resource, DCTerms.title, object.getTitle());
+			addProperty(g, resource, DCTerms.issued, object.getIssued());
+			addProperty(g, resource, DCTerms.modified, object.getModified());
+			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.accessURL, object.getAccessURL());
+			addAll(g, resource, org.apache.jena.vocabulary.DCAT.accessService, object.getAccessService());
+			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.downloadURL, object.getDownloadURL());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.byteSize, object.getByteSize());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
+					object.getSpatialResolutionInMeters());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
+					object.getTemporalResolution());
+			g.commit();
+		} finally {
+			g.end();
 		}
 	}
 
-	protected void saveDCATObject(Graph<? extends Model> g, Resource resource, DCATObject object) {
+	protected void saveFOAFObject(final Graph<? extends Model> g, final Resource resource, final FOAFObject object) {
 		saveRDFObject(g, resource, object);
 	}
 
-	protected void saveCatalog(Graph<? extends Model> g, Resource resource, Catalog object) {
+	protected void saveGroup(final Graph<? extends Model> g, final Resource resource, final Group object) {
 		g.beginWrite();
 		try {
-			saveDataset(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog);
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.themeTaxonomy, object.getThemeTaxonomy());// This will fail with the default
-																						// implementation; must be
-																						// handled in a subclass if used
-			addAll(g, resource, DCTerms.hasPart, object.getHasPart());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.dataset, object.getDataset());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.service, object.getService());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.catalog, object.getCatalog());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.record, object.getRecord());
+			saveAgent(g, resource, object);
+			g.getModel().add(resource, RDF.type, Vocabulary.Group);
+			addAll(g, resource, Vocabulary.member, object.getMember());
 			g.commit();
 		} finally {
 			g.end();
 		}
 	}
 
-	protected void saveDataset(Graph<? extends Model> g, Resource resource, Dataset object) {
+	protected void saveOrganization(final Graph<? extends Model> g, final Resource resource,
+			final Organization object) {
 		g.beginWrite();
 		try {
-			saveResource(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Dataset);
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.distribution, object.getDistribution());
-			addURL(g, resource, DCTerms.accrualPeriodicity, object.getAccrualPeriodicity());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters, object.getSpatialResolutionInMeters());
-			addObject(g, resource, DCTerms.temporal, object.getTemporal());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
+			saveAgent(g, resource, object);
+			g.getModel().add(resource, RDF.type, Vocabulary.Organization);
 			g.commit();
 		} finally {
 			g.end();
 		}
 	}
 
-	protected void saveDataService(Graph<? extends Model> g, Resource resource, DataService object) {
+	protected void savePeriodOfTime(final Graph<? extends Model> g, final Resource resource,
+			final PeriodOfTime object) {
 		g.beginWrite();
 		try {
-			saveResource(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.DataService);
-			addURL(g, resource, org.apache.jena.vocabulary.DCAT.endpointURL, object.getEndpointURL());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.endpointDescription, object.getEndpointDescription());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.servesDataset, object.getServesDataset());
+			saveDCATObject(g, resource, object);
+			g.getModel().add(resource, RDF.type, DCTerms.PeriodOfTime);
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.startDate, object.getStartDate());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.endDate, object.getEndDate());
 			g.commit();
 		} finally {
 			g.end();
 		}
 	}
 
-	protected void saveResource(Graph<? extends Model> g, Resource resource,
-			nl.kik.datastation.dto.dcat.Resource object) {
+	protected void savePerson(final Graph<? extends Model> g, final Resource resource, final Person object) {
+		g.beginWrite();
+		try {
+			saveAgent(g, resource, object);
+			g.getModel().add(resource, RDF.type, Vocabulary.Person);
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveRelationship(final Graph<? extends Model> g, final Resource resource,
+			final Relationship object) {
+		g.beginWrite();
+		try {
+			saveDCATObject(g, resource, object);
+			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Relationship);
+			addAll(g, resource, DCTerms.relation, object.getRelation());
+			addObject(g, resource, org.apache.jena.vocabulary.DCAT.hadRole, object.getHadRole());
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
+
+	protected void saveResource(final Graph<? extends Model> g, final Resource resource,
+			final nl.kik.datastation.dto.dcat.Resource object) {
 		g.beginWrite();
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Resource);
 			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
 			if (object.getContactPoint() != null) {
-				g.getModel().add(resource, org.apache.jena.vocabulary.DCAT.contactPoint, kinds.get(object.getContactPoint()));
+				g.getModel().add(resource, org.apache.jena.vocabulary.DCAT.contactPoint,
+						DCATService.kinds.get(object.getContactPoint()));
 			}
 			addObject(g, resource, DCTerms.creator, object.getCreator());
 			addProperty(g, resource, DCTerms.description, object.getDescription());
@@ -215,71 +585,7 @@ public class DCATService extends AbstractRDFService {
 		}
 	}
 
-	protected void saveCatalogRecord(Graph<? extends Model> g, Resource resource, CatalogRecord object) {
-		g.beginWrite();
-		try {
-			saveDCATObject(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.CatalogRecord);
-			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
-			addProperty(g, resource, DCTerms.description, object.getDescription());
-			addProperty(g, resource, DCTerms.title, object.getTitle());
-			addProperty(g, resource, DCTerms.issued, object.getIssued());
-			addProperty(g, resource, DCTerms.modified, object.getModified());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void saveDistribution(Graph<? extends Model> g, Resource resource, Distribution object) {
-		g.beginWrite();
-		try {
-			saveDCATObject(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Distribution);
-			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
-			addProperty(g, resource, DCTerms.description, object.getDescription());
-			addProperty(g, resource, DCTerms.title, object.getTitle());
-			addProperty(g, resource, DCTerms.issued, object.getIssued());
-			addProperty(g, resource, DCTerms.modified, object.getModified());
-			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.accessURL, object.getAccessURL());
-			addAll(g, resource, org.apache.jena.vocabulary.DCAT.accessService, object.getAccessService());
-			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.downloadURL, object.getDownloadURL());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.byteSize, object.getByteSize());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters, object.getSpatialResolutionInMeters());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void savePeriodOfTime(Graph<? extends Model> g, Resource resource, PeriodOfTime object) {
-		g.beginWrite();
-		try {
-			saveDCATObject(g, resource, object);
-			g.getModel().add(resource, RDF.type, DCTerms.PeriodOfTime);
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.startDate, object.getStartDate());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.endDate, object.getEndDate());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void saveRelationship(Graph<? extends Model> g, Resource resource, Relationship object) {
-		g.beginWrite();
-		try {
-			saveDCATObject(g, resource, object);
-			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Relationship);
-			addAll(g, resource, DCTerms.relation, object.getRelation());
-			addObject(g, resource, org.apache.jena.vocabulary.DCAT.hadRole, object.getHadRole());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void saveRole(Graph<? extends Model> g, Resource resource, Role object) {
+	protected void saveRole(final Graph<? extends Model> g, final Resource resource, final Role object) {
 		g.beginWrite();
 		try {
 			saveDCATObject(g, resource, object);
@@ -288,296 +594,6 @@ public class DCATService extends AbstractRDFService {
 		} finally {
 			g.end();
 		}
-	}
-
-	protected void saveDetails(Graph<? extends Model> g, Resource resource, FOAFObject object) {
-		if (object instanceof Group) {
-			saveGroup(g, resource, (Group) object);
-		} else if (object instanceof Organization) {
-			saveOrganization(g, resource, (Organization) object);
-		} else if (object instanceof Person) {
-			savePerson(g, resource, (Person) object);
-//		} else if (object instanceof Agent) { Abstract class, skip
-//			saveAgent(g, resource, (Agent) object);
-		} else {
-			throw new IllegalArgumentException("Cannot save FOAF objects of type " + object.getClass().getSimpleName());
-		}
-	}
-
-	protected void saveFOAFObject(Graph<? extends Model> g, Resource resource, FOAFObject object) {
-		saveRDFObject(g, resource, object);
-	}
-
-	protected void saveAgent(Graph<? extends Model> g, Resource resource, Agent object) {
-		g.beginWrite();
-		try {
-			saveFOAFObject(g, resource, object);
-			g.getModel().add(resource, RDF.type, Vocabulary.Agent);
-			addProperty(g, resource, Vocabulary.name, object.getName());
-			addURL(g, resource, DCTerms.type, object.getType());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void saveGroup(Graph<? extends Model> g, Resource resource, Group object) {
-		g.beginWrite();
-		try {
-			saveAgent(g, resource, object);
-			g.getModel().add(resource, RDF.type, Vocabulary.Group);
-			addAll(g, resource, Vocabulary.member, object.getMember());
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void saveOrganization(Graph<? extends Model> g, Resource resource, Organization object) {
-		g.beginWrite();
-		try {
-			saveAgent(g, resource, object);
-			g.getModel().add(resource, RDF.type, Vocabulary.Organization);
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	protected void savePerson(Graph<? extends Model> g, Resource resource, Person object) {
-		g.beginWrite();
-		try {
-			saveAgent(g, resource, object);
-			g.getModel().add(resource, RDF.type, Vocabulary.Person);
-			g.commit();
-		} finally {
-			g.end();
-		}
-	}
-
-	@Override
-	protected void deleteDetails(Graph<? extends Model> g, Resource resource, RDFObject object, boolean purge) {
-
-	}
-
-	@Override
-	protected @NotNull String getPrefix() {
-		return DCAT;
-	}
-
-	@Override
-	protected Map<Resource, Class<? extends RDFObject>> getObjectTypes() {
-		return objectTypes;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected <U extends RDFObject> U getObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, Class<U> t) {
-		if (DCATObject.class.isAssignableFrom(t)) {
-			return (U) getDCATObject(graph, properties, resource, (Class<DCATObject>) t);
-		} else if (FOAFObject.class.isAssignableFrom(t)) {
-			return (U) getFOAFObject(graph, properties, resource, (Class<FOAFObject>) t);
-		}
-		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <U extends DCATObject> U getDCATObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, Class<U> t) {
-		if (Catalog.class.isAssignableFrom(t)) {
-			return (U) getCatalog(graph, properties, resource, Catalog.builder()).build();
-		} else if (Dataset.class.isAssignableFrom(t)) {
-			return (U) getDataset(graph, properties, resource, Dataset.builder()).build();
-		} else if (DataService.class.isAssignableFrom(t)) {
-			return (U) getDataService(graph, properties, resource, DataService.builder()).build();
-		} else if (nl.kik.datastation.dto.dcat.Resource.class.isAssignableFrom(t)) {
-			return (U) getResource(graph, properties, resource, nl.kik.datastation.dto.dcat.Resource.builder()).build();
-		} else if (CatalogRecord.class.isAssignableFrom(t)) {
-			return (U) getCatalogRecord(graph, properties, resource, CatalogRecord.builder()).build();
-		} else if (Distribution.class.isAssignableFrom(t)) {
-			return (U) getDistribution(graph, properties, resource, Distribution.builder()).build();
-		} else if (PeriodOfTime.class.isAssignableFrom(t)) {
-			return (U) getPeriodOfTime(graph, properties, resource, PeriodOfTime.builder()).build();
-		} else if (Relationship.class.isAssignableFrom(t)) {
-			return (U) getRelationship(graph, properties, resource, Relationship.builder()).build();
-		} else if (Role.class.isAssignableFrom(t)) {
-			return (U) getRole(graph, properties, resource, Role.builder()).build();
-		}
-		throw new IllegalArgumentException("Cannot load DCAT objects of type " + t.getSimpleName());
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends CatalogBuilder<?, ?>> B getCatalog(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDataset(graph, properties, resource, builder) //
-				.themeTaxonomy(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.themeTaxonomy, RDFObject.class)) //
-				.hasPart(getSet(graph, properties, DCTerms.hasPart, nl.kik.datastation.dto.dcat.Resource.class)) //
-				.dataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.dataset, Dataset.class)) //
-				.service(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.service, DataService.class)) //
-				.catalog(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.catalog, Catalog.class)) //
-				.record(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.record, CatalogRecord.class)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends DatasetBuilder<?, ?>> B getDataset(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getResource(graph, properties, resource, builder) //
-				.distribution(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.distribution, Distribution.class)) //
-				.accrualPeriodicity(getURL(properties, DCTerms.accrualPeriodicity)) //
-				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
-				.temporal(getObject(graph, properties, DCTerms.temporal, PeriodOfTime.class)) //
-				.spatialResolutionInMeters(getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends DataServiceBuilder<?, ?>> B getDataService(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getResource(graph, properties, resource, builder) //
-				.endpointURL(getURL(properties, org.apache.jena.vocabulary.DCAT.endpointURL)) //
-				.endpointDescription(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.endpointDescription, RDFObject.class)) //
-				.servesDataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.servesDataset, Dataset.class)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends ResourceBuilder<?, ?>> B getResource(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
-				.contactPoint(getEnum(properties, org.apache.jena.vocabulary.DCAT.contactPoint, reverseKinds)) //
-				.creator(getObject(graph, properties, DCTerms.creator, Agent.class)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
-				.publisher(getObject(graph, properties, DCTerms.publisher, Agent.class)) //
-				.identifier(getString(properties, DCTerms.identifier)) //
-				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
-				.qualifiedRelation(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.qualifiedRelation, Relationship.class)) //
-				.keyword(getStringSet(properties, org.apache.jena.vocabulary.DCAT.keyword)) //
-				.license(getURL(properties, DCTerms.license)) //
-				.isReferencedBy(getSet(graph, properties, DCTerms.isReferencedBy, RDFObject.class)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends CatalogRecordBuilder<?, ?>> B getCatalogRecord(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends DistributionBuilder<?, ?>> B getDistribution(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
-				.accessURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.accessURL)) //
-				.accessService(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.accessService, DataService.class)) //
-				.downloadURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.downloadURL)) //
-				.byteSize(getDouble(properties, org.apache.jena.vocabulary.DCAT.byteSize)) //
-				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
-				.spatialResolutionInMeters(getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends PeriodOfTimeBuilder<?, ?>> B getPeriodOfTime(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDCATObject(graph, properties, resource, builder) //
-				.startDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.startDate)) //
-				.endDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.endDate)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends RelationshipBuilder<?, ?>> B getRelationship(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getDCATObject(graph, properties, resource, builder) //
-				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
-				.hadRole(getObject(graph, properties, org.apache.jena.vocabulary.DCAT.hadRole, Role.class)) //
-		;
-	}
-
-	private <B extends RoleBuilder<?, ?>> B getRole(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return getDCATObject(graph, properties, resource, builder) //
-		;
-	}
-
-	private <B extends DCATObjectBuilder<?, ?>> B getDCATObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return getRDFObject(graph, properties, resource, builder) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <U extends FOAFObject> U getFOAFObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, Class<U> t) {
-		if (Group.class.isAssignableFrom(t)) {
-			return (U) getGroup(graph, properties, resource, Group.builder()).build();
-		} else if (Organization.class.isAssignableFrom(t)) {
-			return (U) getOrganization(graph, properties, resource, Organization.builder()).build();
-		} else if (Person.class.isAssignableFrom(t)) {
-			return (U) getPerson(graph, properties, resource, Person.builder()).build();
-		}
-		throw new IllegalArgumentException("Cannot load FOAF objects of type " + t.getSimpleName());
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends GroupBuilder<?, ?>> B getGroup(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getAgent(graph, properties, resource, builder) //
-				.member(getSet(graph, properties, Vocabulary.member, Agent.class)) //
-		;
-	}
-
-	@SuppressWarnings("unchecked")
-	private <B extends OrganizationBuilder<?, ?>> B getOrganization(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return (B) getAgent(graph, properties, resource, builder) //
-				.name(getString(properties, Vocabulary.name)) //
-				.type(getURL(properties, DCTerms.type)) //
-		;
-	}
-
-	private <B extends PersonBuilder<?, ?>> B getPerson(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return getAgent(graph, properties, resource, builder) //
-		;
-	}
-
-	private <B extends AgentBuilder<?, ?>> B getAgent(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return getFOAFObject(graph, properties, resource, builder) //
-		;
-	}
-
-	private <B extends FOAFObjectBuilder<?, ?>> B getFOAFObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		return getRDFObject(graph, properties, resource, builder) //
-		;
-	}
-
-	public Collection<? extends Catalog> getAllCatalogs(Graph<? extends Model> graph) {
-		return search(graph, null, RDF.type, Vocabulary.Catalog, Statement::getSubject) //
-				.map(r -> Pair.of(r, getProperties(graph, r))) //
-				.map(p -> getObject(graph, p.getRight(), p.getLeft())) //
-				.filter(Catalog.class::isInstance) //
-				.map(Catalog.class::cast) //
-				.collect(Collectors.toList());
 	}
 
 }

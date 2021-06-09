@@ -20,23 +20,23 @@ import nl.kik.datastation.service.VerifiableCredentialService;
 public class WebConfig {
 	@Bean
 	@ConditionalOnMissingBean
-	public VerifiableCredentialMessageConverter verifiableCredentialMessageConverter(
-			VerifiableCredentialService service, KeyService keys, ValidationService validator) {
-		return new VerifiableCredentialMessageConverter(service, keys, validator);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public RequestMessageConverter requestMessageConverter(MessageService service,
-			VerifiableCredentialService vcService, KeyService keys, ValidationService validator) {
+	public RequestMessageConverter requestMessageConverter(final MessageService service,
+			final VerifiableCredentialService vcService, final KeyService keys, final ValidationService validator) {
 		return new RequestMessageConverter(service, vcService, keys, validator);
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ResponseMessageConverter responseMessageConverter(MessageService service, ResultService resultService,
-			KeyService keys, ValidationService validator) {
+	public ResponseMessageConverter responseMessageConverter(final MessageService service,
+			final ResultService resultService, final KeyService keys, final ValidationService validator) {
 		return new ResponseMessageConverter(service, resultService, keys, validator);
 	}
-	
+
+	@Bean
+	@ConditionalOnMissingBean
+	public VerifiableCredentialMessageConverter verifiableCredentialMessageConverter(
+			final VerifiableCredentialService service, final KeyService keys, final ValidationService validator) {
+		return new VerifiableCredentialMessageConverter(service, keys, validator);
+	}
+
 }

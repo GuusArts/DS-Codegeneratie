@@ -20,12 +20,12 @@ import nl.kik.datastation.service.VerifiableCredentialService;
 
 public class VerifiableCredentialMessageConverter extends AbstractHttpMessageConverter<VerifiableBase> {
 	private static final Charset UTF8 = Charset.forName("UTF-8");
-	private VerifiableCredentialService service;
-	private KeyService keys;
-	private ValidationService validator;
+	private final VerifiableCredentialService service;
+	private final KeyService keys;
+	private final ValidationService validator;
 
-	public VerifiableCredentialMessageConverter(VerifiableCredentialService service, KeyService keys,
-			ValidationService validator) {
+	public VerifiableCredentialMessageConverter(final VerifiableCredentialService service, final KeyService keys,
+			final ValidationService validator) {
 		super(MediaType.ALL);
 		this.service = service;
 		this.keys = keys;
@@ -33,30 +33,30 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 	}
 
 	@Override
-	protected boolean supports(Class<?> clazz) {
-		return VerifiableBase.class.isAssignableFrom(clazz);
-	}
-
-	@Override
-	protected VerifiableBase readInternal(Class<? extends VerifiableBase> clazz, HttpInputMessage inputMessage)
-			throws IOException, HttpMessageNotReadableException {
-		String s = StreamUtils.copyToString(inputMessage.getBody(), UTF8);
+	protected VerifiableBase readInternal(final Class<? extends VerifiableBase> clazz,
+			final HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+		final String s = StreamUtils.copyToString(inputMessage.getBody(), VerifiableCredentialMessageConverter.UTF8);
 		try {
 			return service.unwrapVerifiable(s, validator::validate);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new HttpMessageNotReadableException("Unable to parse VC", e, inputMessage);
 		}
 	}
 
 	@Override
-	protected void writeInternal(VerifiableBase t, HttpOutputMessage outputMessage)
+	protected boolean supports(final Class<?> clazz) {
+		return VerifiableBase.class.isAssignableFrom(clazz);
+	}
+
+	@Override
+	protected void writeInternal(final VerifiableBase t, final HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 		try {
-			JWSObject o = service.wrap(t, (c, w) -> validator.sign(w,
+			final JWSObject o = service.wrap(t, (c, w) -> validator.sign(w,
 					keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())));
 			validator.sign(o, keys.getSigner(o.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 			StreamUtils.copy(o.serialize(), Charset.forName("UTF-8"), outputMessage.getBody());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new HttpMessageNotWritableException("Unable to sign/serialize VC", e);
 		}
 	}

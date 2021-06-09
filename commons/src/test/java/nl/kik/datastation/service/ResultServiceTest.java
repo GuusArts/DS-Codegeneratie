@@ -1,11 +1,10 @@
 package nl.kik.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.util.Map;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,24 +29,24 @@ class ResultServiceTest extends AbstractResultTest {
 	}
 
 	@Test
-	void testSave() {
-		messages.forEach(FunctionWrapper.wrapper(m -> {
-			Map<String, Object> wrapped = service.wrap(m);
-			System.out.println(wrapped);
-		}));
+	void testLoad() throws ParseException, MalformedURLException, JOSEException {
+		for (final Result m : messages) {
+			final Map<String, Object> wrapped = service.wrap(m);
+			final String serialized = JSONObjectUtils.toJSONString(wrapped);
+			final Result unwrapped = service.unwrap(JSONObjectUtils.parse(serialized));
+			ResultServiceTest.log.trace("Comparing");
+			ResultServiceTest.log.trace("{}", m);
+			ResultServiceTest.log.trace("{}", unwrapped);
+			Assertions.assertEquals(m, unwrapped);
+		}
 	}
 
 	@Test
-	void testLoad() throws ParseException, MalformedURLException, JOSEException {
-		for (Result m : messages) {
-			Map<String, Object> wrapped = service.wrap(m);
-			String serialized = JSONObjectUtils.toJSONString(wrapped);
-			Result unwrapped = service.unwrap(JSONObjectUtils.parse(serialized));
-			log.trace("Comparing");
-			log.trace("{}", m);
-			log.trace("{}", unwrapped);
-			assertEquals(m, unwrapped);
-		}
+	void testSave() {
+		messages.forEach(FunctionWrapper.wrapper(m -> {
+			final Map<String, Object> wrapped = service.wrap(m);
+			System.out.println(wrapped);
+		}));
 	}
 
 }

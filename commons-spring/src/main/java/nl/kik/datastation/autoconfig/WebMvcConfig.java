@@ -33,7 +33,7 @@ public class WebMvcConfig {
 		private ResponseMessageConverter responseMessageConverter;
 
 		@Override
-		public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+		public void extendMessageConverters(final List<HttpMessageConverter<?>> converters) {
 			converters.add(requestMessageConverter);
 			converters.add(responseMessageConverter);
 			converters.add(verifiableCredentialMessageConverter);
@@ -43,8 +43,8 @@ public class WebMvcConfig {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnBean(RestTemplate.class)
-	public RemoteDatastationService remoteDatastationService(RestTemplate rest,
-			ResponseMessageConverter responseConverter, RequestMessageConverter requestConverter) {
+	public RemoteDatastationService remoteDatastationService(final RestTemplate rest,
+			final ResponseMessageConverter responseConverter, final RequestMessageConverter requestConverter) {
 		return new RemoteDatastationService(rest, responseConverter, requestConverter);
 	}
 

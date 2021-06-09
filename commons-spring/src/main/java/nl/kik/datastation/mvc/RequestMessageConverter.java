@@ -21,18 +21,12 @@ import nl.kik.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class RequestMessageConverter
 		extends MessageMessageConverter<VerifiablePresentation, Request<VerifiablePresentation>> {
-	public RequestMessageConverter(MessageService service, VerifiableCredentialService vcService, KeyService keys,
-			ValidationService validator) {
+	private final VerifiableCredentialService vcService;
+
+	public RequestMessageConverter(final MessageService service, final VerifiableCredentialService vcService,
+			final KeyService keys, final ValidationService validator) {
 		super(service, keys, validator);
 		this.vcService = vcService;
-	}
-
-	private VerifiableCredentialService vcService;
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	protected Class<Request<VerifiablePresentation>> getMessageClass() {
-		return (Class) Request.class;
 	}
 
 	@Override
@@ -41,19 +35,26 @@ public class RequestMessageConverter
 	}
 
 	@Override
-	protected FunctionWithException<Map<String, Object>, VerifiableBase, Exception> getDecoder(HttpInputMessage inputMessage) {
-		return service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss, this.validator::validate));
+	protected FunctionWithException<Map<String, Object>, VerifiableBase, Exception> getDecoder(
+			final HttpInputMessage inputMessage) {
+		return service.base64Unwrapper(ss -> vcService.unwrapVerifiable(ss, validator::validate));
 	}
 
 	@Override
 	protected FunctionWithException<VerifiablePresentation, Map<String, Object>, Exception> getEncoder(
-			HttpOutputMessage outputMessage) {
-		BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
+			final HttpOutputMessage outputMessage) {
+		final BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
 				(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()));
-		FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
+		final FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
 				vcService.wrapAndSign(validator::sign,
 						v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
 		return service.base64Wrapper(wrapper);
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	protected Class<Request<VerifiablePresentation>> getMessageClass() {
+		return (Class) Request.class;
 	}
 
 }

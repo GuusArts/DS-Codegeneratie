@@ -30,17 +30,48 @@ import nl.kik.datastation.dto.ds.Header;
 import nl.kik.datastation.dto.ds.RDFType;
 import nl.kik.datastation.dto.ds.SelectBody;
 import nl.kik.datastation.dto.ds.SelectResult;
-import nl.kik.datastation.util.FunctionWrapper;
 
 public class SPARQLService {
-	public AskResult wrap(boolean result) {
+	protected Map<String, Object> parse(final Model model) throws ParseException {
+		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		RDFDataMgr.write(outputStream, model, RDFFormat.JSONLD_COMPACT_FLAT);
+		return JSONObjectUtils.parse(outputStream.toString());
+	}
+
+	public Model unwrap(final ConstructResult result) {
+		return unwrap(result, ModelFactory::createDefaultModel);
+	}
+
+	public Model unwrap(final ConstructResult result, final Supplier<Model> modelSupplier) {
+		final String serialized = result.getData().toString();
+		final ByteArrayInputStream inputStream = new ByteArrayInputStream(serialized.getBytes());
+		final Model model = modelSupplier.get();
+		RDFDataMgr.read(model, inputStream, Lang.JSONLD);
+		return model;
+	}
+
+	public AskResult wrap(final boolean result) {
 		return AskResult.builder() //
 				.head(Header.builder().build()) //
 				.value(result) //
 				.build();
 	}
 
-	public SelectResult wrap(ResultSet result) {
+	/**
+	 * This serialization takes place in memory and is very unlikely to scale to
+	 * large graphs. Then again, serializing a large model to JSON will never fly.
+	 *
+	 * @param model
+	 * @return
+	 * @throws ParseException
+	 */
+	public ConstructResult wrap(final Model model) throws ParseException {
+		return ConstructResult.builder() //
+				.data(parse(model)) //
+				.build();
+	}
+
+	public SelectResult wrap(final ResultSet result) {
 		return SelectResult.builder() //
 				.head(Header.builder() //
 						.vars(result.getResultVars()) //
@@ -51,83 +82,51 @@ public class SPARQLService {
 				.build();
 	}
 
-	protected List<Map<String, Binding>> wrapBindings(ResultSet result) {
-		List<Map<String, Binding>> r = new ArrayList<>();
-		while (result.hasNext()) { 
-			try {
-				r.add(wrapSolution(result.next()));
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
-		}
-		return r;
-	}
-
-	protected Map<String, Binding> wrapSolution(QuerySolution s) throws ParseException {
-		Map<String, Binding> r = new HashMap<>();
-		for (Iterator<String> it = s.varNames(); it.hasNext();) {
-			String name = it.next();
-			r.put(name, wrapBinding(s.get(name)));
-		}
-		return r;
-	}
-
-	protected Binding wrapBinding(RDFNode rdfNode) throws ParseException {
+	protected Binding wrapBinding(final RDFNode rdfNode) throws ParseException {
 		if (rdfNode.isLiteral()) {
-			Literal literal = rdfNode.asLiteral();
+			final Literal literal = rdfNode.asLiteral();
 			return Binding.builder() //
 					.type(RDFType.literal) //
 					.value(literal.getLexicalForm()) //
 					.datatype(literal.getDatatypeURI()) //
 					.language(literal.getLanguage()) //
 					.build();
-		} else if (rdfNode.isAnon()) {
-			Resource resource = rdfNode.asResource();
+		}
+		if (rdfNode.isAnon()) {
+			final Resource resource = rdfNode.asResource();
 			return Binding.builder() //
 					.type(RDFType.bnode) //
 					.value(resource.getId().getLabelString()) //
 					.build();
 		} else if (rdfNode.isURIResource()) {
-			Resource resource = rdfNode.asResource();
+			final Resource resource = rdfNode.asResource();
 			return Binding.builder() //
 					.type(RDFType.uri) //
 					.value(resource.getURI()) //
 					.build();
-		} else {
+		} else
 			throw new ParseException("Received unexpected node " + rdfNode, 0);
+	}
+
+	protected List<Map<String, Binding>> wrapBindings(final ResultSet result) {
+		final List<Map<String, Binding>> r = new ArrayList<>();
+		while (result.hasNext()) {
+			try {
+				r.add(wrapSolution(result.next()));
+			} catch (final ParseException e) {
+				throw new RuntimeException(e);
+			}
 		}
+		return r;
 	}
 
-	/**
-	 * This serialization takes place in memory and is very unlikely to scale to
-	 * large graphs. Then again, serializing a large model to JSON will never fly.
-	 * 
-	 * @param model
-	 * @return
-	 * @throws ParseException
-	 */
-	public ConstructResult wrap(Model model) throws ParseException {
-		return ConstructResult.builder() //
-				.data(parse(model)) //
-				.build();
-	}
-
-	protected Map<String, Object> parse(Model model) throws ParseException {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		RDFDataMgr.write(outputStream, model, RDFFormat.JSONLD_COMPACT_FLAT);
-		return JSONObjectUtils.parse(outputStream.toString());
-	}
-
-	public Model unwrap(ConstructResult result, Supplier<Model> modelSupplier) {
-		String serialized = result.getData().toString();
-		ByteArrayInputStream inputStream = new ByteArrayInputStream(serialized.getBytes());
-		Model model = modelSupplier.get();
-		RDFDataMgr.read(model, inputStream, Lang.JSONLD);
-		return model;
-	}
-
-	public Model unwrap(ConstructResult result) {
-		return unwrap(result, ModelFactory::createDefaultModel);
+	protected Map<String, Binding> wrapSolution(final QuerySolution s) throws ParseException {
+		final Map<String, Binding> r = new HashMap<>();
+		for (final Iterator<String> it = s.varNames(); it.hasNext();) {
+			final String name = it.next();
+			r.put(name, wrapBinding(s.get(name)));
+		}
+		return r;
 	}
 
 }

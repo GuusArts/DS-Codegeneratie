@@ -24,13 +24,30 @@ public class DefaultValidationService<T> implements ValidationService {
 	protected MessageService messageService;
 
 	@Override
-	public void validate(JWSObject jws, Token t) throws Exception {
+	public JWSObject sign(final JWSObject object, final JWSSigner signer) throws Exception {
+		if (signer == null)
+			throw new ParseException("Trying to sign object without a key", 0);
+		object.sign(signer);
+		return object;
+	}
+
+	protected <U> void validate(final JWSObject jws, final Message<U> t, final JWTClaimsSet claims, final T aux)
+			throws Exception {
+		validateSignature(
+				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
+				claims);
+		messageService.validateFields(t);
+		messageService.validateIntegrity(t, (m, b) -> validationDelegate(m, b, aux));
+	}
+
+	@Override
+	public void validate(final JWSObject jws, final Token t) throws Exception {
 		validate(jws, t, null);
 	}
 
-	protected void validate(JWSObject jws, Token t, T aux) throws Exception {
-		JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
-		log.trace("Validating {} (from {} received as {})", t, jws);
+	protected void validate(final JWSObject jws, final Token t, final T aux) throws Exception {
+		final JWTClaimsSet claims = JWTClaimsSet.parse(jws.getPayload().toJSONObject());
+		DefaultValidationService.log.trace("Validating {} (from {} received as {})", t, jws);
 		if (t instanceof Message<?>) {
 			validate(jws, (Message<?>) t, claims, aux);
 		} else if (t instanceof VerifiableBase) {
@@ -40,19 +57,8 @@ public class DefaultValidationService<T> implements ValidationService {
 		}
 	}
 
-	protected void validateExtension(JWSObject jws, Token t, JWTClaimsSet claims, T aux) throws Exception {
-		throw new ParseException("Received object of unexpected type " + t.getClass().getCanonicalName(), 0);
-	}
-
-	protected <U> void validate(JWSObject jws, Message<U> t, JWTClaimsSet claims, T aux) throws Exception {
-		validateSignature(
-				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
-				claims);
-		messageService.validateFields(t);
-		messageService.validateIntegrity(t, (m, b) -> validationDelegate(m, b, aux));
-	}
-
-	protected void validate(JWSObject jws, VerifiableBase t, JWTClaimsSet claims, T aux) throws Exception {
+	protected void validate(final JWSObject jws, final VerifiableBase t, final JWTClaimsSet claims, final T aux)
+			throws Exception {
 		validateSignature(
 				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
 				claims);
@@ -60,25 +66,20 @@ public class DefaultValidationService<T> implements ValidationService {
 		vcService.validateIntegrity(t);
 	}
 
-	protected <U> void validationDelegate(Message<U> m, U body, T aux) throws Exception {
+	protected void validateExtension(final JWSObject jws, final Token t, final JWTClaimsSet claims, final T aux)
+			throws Exception {
+		throw new ParseException("Received object of unexpected type " + t.getClass().getCanonicalName(), 0);
 	}
 
-	protected void validateSignature(JWSVerifier verifier, JWSObject jws, JWTClaimsSet claims) throws Exception {
-		log.trace("Validating signature using {}", jws.getHeader().getKeyID());
-		if (verifier == null) {
+	protected void validateSignature(final JWSVerifier verifier, final JWSObject jws, final JWTClaimsSet claims)
+			throws Exception {
+		DefaultValidationService.log.trace("Validating signature using {}", jws.getHeader().getKeyID());
+		if (verifier == null)
 			throw new ParseException("Key " + jws.getHeader().getKeyID() + " could not be found for validation", 0);
-		}
-		if (!jws.verify(verifier)) {
+		if (!jws.verify(verifier))
 			throw new ParseException("Signature did not match", 0);
-		}
 	}
 
-	@Override
-	public JWSObject sign(JWSObject object, JWSSigner signer) throws Exception {
-		if (signer == null) {
-			throw new ParseException("Trying to sign object without a key", 0);
-		}
-		object.sign(signer);
-		return object;
+	protected <U> void validationDelegate(final Message<U> m, final U body, final T aux) throws Exception {
 	}
 }

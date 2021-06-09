@@ -62,7 +62,8 @@ public abstract class AbstractDCATTest {
 				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
 				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.conformsTo(new URL("http://purl.org/ozo/hr")) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
 				.distribution(Set.of(distribution)) //
@@ -71,7 +72,8 @@ public abstract class AbstractDCATTest {
 				.title("Datacatalogus voorbeeldzorg") //
 				.description("Een beschrijving van de datasets in het datastation van voorbeeldzorg") //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.license(new URL("https://creativecommons.org/licenses/by/4.0/")) //
 				.dataset(Set.of(dataset)) //
 				.build();

@@ -15,36 +15,34 @@ import nl.kik.datastation.mvc.ResponseMessageConverter;
 
 @Slf4j
 public class RemoteDatastationService {
-	private RestTemplate rest;
-	private ResponseMessageConverter responseConverter;
-	private RequestMessageConverter requestConverter;
+	private final RestTemplate rest;
+	private final ResponseMessageConverter responseConverter;
+	private final RequestMessageConverter requestConverter;
 
-	public RemoteDatastationService(RestTemplate rest, ResponseMessageConverter responseConverter,
-			RequestMessageConverter requestConverter) {
+	public RemoteDatastationService(final RestTemplate rest, final ResponseMessageConverter responseConverter,
+			final RequestMessageConverter requestConverter) {
 		this.rest = rest;
 		this.responseConverter = responseConverter;
 		this.requestConverter = requestConverter;
 	}
 
-	public void request(String url, Request<VerifiablePresentation> request)
+	public void request(final String url, final Request<VerifiablePresentation> request)
 			throws RestClientException, JOSEException, Exception {
-		log.trace("Sending request {} to {}", request, url);
-		ResponseEntity<Void> result = rest.postForEntity(url, requestConverter.encode(request), Void.class);
-		log.trace("Received for request {}", result.getStatusCode());
-		if (result.getStatusCode().isError()) {
+		RemoteDatastationService.log.trace("Sending request {} to {}", request, url);
+		final ResponseEntity<Void> result = rest.postForEntity(url, requestConverter.encode(request), Void.class);
+		RemoteDatastationService.log.trace("Received for request {}", result.getStatusCode());
+		if (result.getStatusCode().isError())
 			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
-		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public void response(String url, ReturnMessage<? extends Object> response)
+	public void response(final String url, final ReturnMessage<? extends Object> response)
 			throws RestClientException, JOSEException, Exception {
-		log.trace("Sending response {} to {}", response, url);
-		ResponseEntity<Void> result = rest.postForEntity(url,
+		RemoteDatastationService.log.trace("Sending response {} to {}", response, url);
+		final ResponseEntity<Void> result = rest.postForEntity(url,
 				responseConverter.encode((ReturnMessage<Object>) response), Void.class);
-		log.trace("Received for response {}", result.getStatusCode());
-		if (result.getStatusCode().isError()) {
+		RemoteDatastationService.log.trace("Received for response {}", result.getStatusCode());
+		if (result.getStatusCode().isError())
 			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
-		}
 	}
 }

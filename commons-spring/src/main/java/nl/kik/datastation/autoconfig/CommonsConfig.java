@@ -24,26 +24,14 @@ public class CommonsConfig {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public MessageService messageService() {
-		return new MessageService();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public VerifiableCredentialService verifiableCredentialService() {
-		return new VerifiableCredentialService();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
 	public KeyService keyService() {
 		return new DefaultKeyService();
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ValidationService vcValidationService() {
-		return new DefaultValidationService<Object>();
+	public MessageService messageService() {
+		return new MessageService();
 	}
 
 	@Bean
@@ -56,5 +44,17 @@ public class CommonsConfig {
 	@ConditionalOnMissingBean
 	public SPARQLService sparqLService() {
 		return new SPARQLService();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ValidationService vcValidationService() {
+		return new DefaultValidationService<>();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public VerifiableCredentialService verifiableCredentialService() {
+		return new VerifiableCredentialService();
 	}
 }
