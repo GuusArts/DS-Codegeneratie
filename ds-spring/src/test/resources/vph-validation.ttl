@@ -1,0 +1,43 @@
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#>
+@prefix sh:		<http://www.w3.org/ns/shacl#>
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#>
+@prefix owl:	<http://www.w3.org/2002/07/owl#>
+@prefix kik:	<https://purl.org/kik/>
+@prefix vph:	<http://www.zinl.nl/ontologies/VPH-domain-ontology#>
+
+kik:
+	a owl:Ontology ;
+	owl:imports sh: ;
+	sh:declare [
+		sh:prefix "kik" ;
+		sh:namespace "https://purl.org/kik/"^^xsd:anyURI ;
+	] ;
+	sh:declare [
+		sh:prefix "vph" ;
+		sh:namespace "http://www.zinl.nl/ontologies/VPH-domain-ontology#"^^xsd:anyURI ;
+	] ;
+.
+
+kik:MVP-1
+	a sh:NodeShape ;
+	sh:targetClass kik:WerkOvereenkomst ;
+	sh:property [
+		sh:message "MVP-1: Iedere WerkOvereenkomst heeft precies een startDatum." ;
+		sh:path kik:startDatum ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] ;
+.
+
+vph:MVP-2
+	a sh:NodeShape ;
+	sh:targetClass kik:ArbeidsOvereenkomstBepaaldeTijd ;
+	sh:property [
+		sh:message "MVP-2: Iedere ArbeidsOvereenkomstBepaaldeTijd heeft precies een eindDatum" ;
+		sh:class vph:Arbeidsovereenkomst ;
+		sh:path kik:eindDatum ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] ;
+.

@@ -18,6 +18,16 @@ public class FunctionWrapper {
 	}
 
 	@FunctionalInterface
+	public interface TriFunction<T, U, V, R> {
+		R apply(T t, U u, V v);
+	}
+
+	@FunctionalInterface
+	public interface TriFunctionWithException<T, U, V, R, E extends Exception> {
+		R apply(T t, U u, V v) throws E;
+	}
+
+	@FunctionalInterface
 	public interface ConsumerWithException<T, E extends Exception> {
 		void accept(T t) throws E;
 	}

@@ -3,7 +3,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>nl.kik-v.commons</groupId>
 	<artifactId>ds-spring</artifactId>
 	<name>KIK-V Datastation Components Spring</name>
 
@@ -26,6 +25,12 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-shacl</artifactId>
+			<version>${jena.version}</version>
 		</dependency>
 
 		<dependency>
@@ -58,6 +63,12 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.cedarsoftware</groupId>
+			<artifactId>java-util</artifactId>
+			<version>1.64.0</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

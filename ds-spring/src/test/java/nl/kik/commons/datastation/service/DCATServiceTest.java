@@ -14,8 +14,6 @@ import nl.kik.commons.datastation.dto.Graph;
 import nl.kik.commons.datastation.dto.RDFObject;
 import nl.kik.commons.datastation.dto.dcat.AbstractDCATTest;
 import nl.kik.commons.datastation.dto.dcat.Catalog;
-import nl.kik.commons.datastation.service.DCATService;
-import nl.kik.commons.datastation.service.RDFService;
 
 @Slf4j
 public class DCATServiceTest extends AbstractDCATTest {

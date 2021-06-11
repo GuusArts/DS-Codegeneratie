@@ -1,0 +1,59 @@
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+@prefix rdfs:	<http://www.w3.org/2000/01/rdf-schema#>
+@prefix sh:		<http://www.w3.org/ns/shacl#>
+@prefix xsd:	<http://www.w3.org/2001/XMLSchema#>
+@prefix rivm:	<http://www.rivm.nl/ontologie#>
+@prefix owl:	<http://www.w3.org/2002/07/owl#>
+
+rivm:
+	a owl:Ontology ;
+	owl:imports sh: ;
+	sh:declare [
+		sh:prefix "rivm" ;
+		sh:namespace "http://www.rivm.nl/ontologie#"^^xsd:anyURI ;
+	] ;
+.
+
+rivm:WoonplaatsShape
+	a sh:NodeShape ;
+	sh:message	"Woonplaats must be valid" ;
+	sh:targetClass	rivm:Woonplaats ;
+	sh:property [
+		sh:message	"Woonplaats must be part of gemeente" ;
+		sh:path rivm:part_of ;
+		sh:qualifiedValueShape [
+			sh:class rivm:Gemeente ;
+		] ;
+		sh:qualifiedMinCount 1 ;
+		sh:qualifiedMaxCount 1 ;
+	] ;
+	sh:property [
+		sh:message	"Woonplaats must have at least one local pub" ;
+		sh:severity sh:Warning ;
+		sh:path rivm:contains;
+		sh:qualifiedValueShape [
+			sh:class rivm:Pub ;
+		] ;
+		sh:qualifiedMinCount 1 ;
+	] ;
+	sh:property [
+		sh:message	"Woonplaats must have a label" ;
+		sh:path rdfs:label ;
+		sh:minCount 1 ;
+		sh:maxCount 1 ;
+	] .
+
+rivm:ProvincieShape
+	a sh:NodeShape ;
+	sh:targetClass rivm:Provincie ;
+	sh:message "Provincies must have at least one Gemeente" ;
+	sh:not [
+		sh:sparql [
+			a sh:SPARQLConstraint ;
+			sh:prefixes rivm: ;
+			sh:select """
+			SELECT $this ?gemeente
+			WHERE { ?gemeente rivm:part_of $this }
+			""" ;
+		]
+	] .

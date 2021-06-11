@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.Token;
 import nl.kik.commons.datastation.dto.ds.async.Message;
 import nl.kik.commons.datastation.dto.vc.VerifiableBase;
-import nl.kik.commons.datastation.service.MessageService;
-import nl.kik.commons.datastation.service.VerifiableCredentialService;
 
 @Slf4j
 public class DefaultValidationService<T> implements ValidationService {
