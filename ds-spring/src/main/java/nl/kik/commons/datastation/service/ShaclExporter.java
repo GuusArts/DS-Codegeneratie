@@ -1,13 +1,18 @@
 package nl.kik.commons.datastation.service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Blank;
 import org.apache.jena.graph.Node_Concrete;
@@ -58,6 +63,7 @@ import org.apache.jena.shacl.parser.Shape;
 import org.apache.jena.shacl.parser.ShapeVisitor;
 import org.apache.jena.shacl.validation.Severity;
 import org.apache.jena.shacl.vocabulary.SHACL;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.path.P_Alt;
 import org.apache.jena.sparql.path.P_Distinct;
 import org.apache.jena.sparql.path.P_FixedLength;
@@ -81,50 +87,32 @@ import org.apache.jena.vocabulary.RDF;
 
 public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisitor {
 	private final Model model;
-	private Map<Node, Resource> resources = new HashMap<>();
-	private Map<Node, Property> properties = new HashMap<>();
+	private final Map<Node, Resource> resources = new HashMap<>();
+	private final Map<Node, Property> properties = new HashMap<>();
+	private final Map<String, Pair<String, Resource>> prefixes = new HashMap<>();
 	private Resource parent;
 	private Resource path;
+	private Resource ontology;
 
-	public ShaclExporter(Model model) {
+	public ShaclExporter(final Model model) {
 		this.model = model;
 	}
 
-	public Model export(Shapes shapes) {
-		System.out.println("base: " + shapes.getBase());
-		if (!CollectionUtils.isEmpty(shapes.getImports())) {
-			Resource ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
-			model.add(ontology, RDF.type, OWL.Ontology);
-			shapes.getImports().forEach(i -> model.add(ontology, OWL.imports, toResource(i)));
+	private void add(final List<Path> result, final Path path) {
+		if (path instanceof P_Seq) {
+			final P_Seq pathSeq = (P_Seq) path;
+			add(result, pathSeq.getLeft());
+			add(result, pathSeq.getRight());
+		} else {
+			result.add(path);
 		}
-		if (shapes.getGraph() != null && shapes.getGraph().getPrefixMapping() != null) {
-			model.setNsPrefixes(shapes.getGraph().getPrefixMapping());
-		}
-		shapes.iterator().forEachRemaining(t -> t.visit(this));
-		return getModel();
-	}
-
-	public Model getModel() {
-		return model;
-	}
-
-	@Override
-	public void visit(NodeShape nodeShape) {
-		Resource savedParent = parent;
-		Resource nodeResource = toResource(nodeShape.getShapeNode());
-		parent = nodeResource;
-
-		model.add(nodeResource, RDF.type, toResource(SHACL.NodeShape));
-		commonNode(nodeShape, nodeResource);
-
-		parent = savedParent;
 	}
 
 	/**
 	 * @param nodeShape
 	 * @param nodeResource
 	 */
-	protected void commonNode(Shape nodeShape, Resource nodeResource) {
+	protected void commonNode(final Shape nodeShape, final Resource nodeResource) {
 		if (nodeShape.deactivated()) {
 			model.add(nodeResource, toProperty(SHACL.deactivated), model.createTypedLiteral(nodeShape.deactivated()));
 		}
@@ -139,10 +127,304 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		nodeShape.getPropertyShapes().forEach(p -> p.visit(this));
 	}
 
+	public Model export(final Shapes shapes) {
+		ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
+		if (!CollectionUtils.isEmpty(shapes.getImports())) {
+			model.add(ontology, RDF.type, OWL.Ontology);
+			shapes.getImports().forEach(i -> model.add(ontology, OWL.imports, toResource(i)));
+		}
+		if (shapes.getGraph() != null && shapes.getGraph().getPrefixMapping() != null) {
+			model.setNsPrefixes(shapes.getGraph().getPrefixMapping());
+		}
+		shapes.iterator().forEachRemaining(t -> t.visit(this));
+		return getModel();
+	}
+
+	public Model getModel() {
+		return model;
+	}
+
+	private List<Path> toList(final P_Seq pathSeq) {
+		final List<Path> result = new ArrayList<>();
+		add(result, pathSeq);
+		Collections.reverse(result);
+		return result;
+	}
+
+	private Literal toLiteral(final Node n) {
+		if (!(n instanceof Node_Concrete))
+			throw new IllegalArgumentException();
+		if (n instanceof Node_Blank)
+			throw new IllegalArgumentException();
+		else if (n instanceof Node_Literal) {
+			final Node_Literal ni = (Node_Literal) n;
+			Literal value;
+			if (ni.getLiteralDatatype() != null) {
+				value = model.createTypedLiteral(ni.getLiteralValue(), ni.getLiteralDatatype());
+			} else if (StringUtils.isNotBlank(ni.getLiteralDatatypeURI())) {
+				value = model.createTypedLiteral(ni.getLiteralValue(), ni.getLiteralDatatypeURI());
+			} else if (StringUtils.isNotBlank(ni.getLiteralLanguage()) && ni.getLiteralValue() instanceof String) {
+				value = model.createLiteral((String) ni.getLiteralValue(), ni.getLiteralLanguage());
+			} else {
+				value = model.createTypedLiteral(ni.getLiteralValue());
+			}
+			return value;
+		} else if (n instanceof Node_URI)
+			throw new IllegalArgumentException();
+		else
+			throw new IllegalArgumentException();
+	}
+
+	private Property toProperty(final Node n) {
+		if (properties.containsKey(n))
+			return properties.get(n);
+		if (!(n instanceof Node_Concrete))
+			throw new IllegalArgumentException();
+		if (n instanceof Node_Blank)
+			throw new IllegalArgumentException();
+		else if (n instanceof Node_Literal)
+			throw new IllegalArgumentException();
+		else if (n instanceof Node_URI) {
+			final Node_URI ni = (Node_URI) n;
+			final Property property = model.createProperty(ni.getURI());
+			properties.put(ni, property);
+			return property;
+		} else
+			throw new IllegalArgumentException();
+	}
+
+	private Resource toResource(final Node n) {
+		if (resources.containsKey(n))
+			return resources.get(n);
+		if (!(n instanceof Node_Concrete))
+			throw new IllegalArgumentException();
+		if (n instanceof Node_Blank) {
+			final Resource resource = model.createResource(
+					n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
+			resources.put(n, resource);
+			return resource;
+		} else if (n instanceof Node_Literal)
+			throw new IllegalArgumentException();
+		else if (n instanceof Node_URI) {
+			final Node_URI ni = (Node_URI) n;
+			final Resource resource = model.createResource(ni.getURI());
+			resources.put(ni, resource);
+			return resource;
+		} else
+			throw new IllegalArgumentException();
+	}
+
+	private Resource toURI(final String prefix, final String uri) throws URISyntaxException {
+		if (prefixes.containsKey(prefix)) {
+			final Pair<String, Resource> namespace = prefixes.get(prefix);
+			if (!namespace.getLeft().equals(uri))
+				return null;
+			return namespace.getRight();
+		}
+		final Resource r = model.createResource();
+		model.add(ontology, toProperty(SHACL.declare), r);
+		model.add(r, toProperty(SHACL.namespace), model.createTypedLiteral(new URI(uri)));
+		model.add(r, toProperty(SHACL.prefix), model.createTypedLiteral(prefix));
+		prefixes.put(prefix, Pair.of(uri, r));
+		return r;
+	}
+
 	@Override
-	public void visit(PropertyShape propertyShape) {
-		Resource savedParent = parent;
-		Resource nodeResource = toResource(propertyShape.getShapeNode());
+	public void visit(final ClassConstraint constraint) {
+		model.add(parent, toProperty(SHACL.class_), toResource(constraint.getExpectedClass()));
+	}
+
+	@Override
+	public void visit(final ClosedConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final ConstraintComponentSPARQL constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final DatatypeConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final DisjointConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final EqualsConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final HasValueConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final InConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final JLogConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final JViolationConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final LessThanConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final LessThanOrEqualsConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final MaxCount constraint) {
+		model.add(parent, toProperty(SHACL.maxCount), model.createTypedLiteral(constraint.getMaxCount()));
+	}
+
+	@Override
+	public void visit(final MinCount constraint) {
+		model.add(parent, toProperty(SHACL.minCount), model.createTypedLiteral(constraint.getMinCount()));
+	}
+
+	@Override
+	public void visit(final NodeKindConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final NodeShape nodeShape) {
+		final Resource savedParent = parent;
+		final Resource nodeResource = toResource(nodeShape.getShapeNode());
+		parent = nodeResource;
+
+		model.add(nodeResource, RDF.type, toResource(SHACL.NodeShape));
+		commonNode(nodeShape, nodeResource);
+
+		parent = savedParent;
+	}
+
+	@Override
+	public void visit(final P_Alt pathAlt) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_Distinct pathDistinct) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_FixedLength pFixedLength) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_Inverse inversePath) {
+		final Resource newPath = model.createResource();
+		inversePath.getSubPath().visit(this);
+		model.add(newPath, toProperty(SHACL.inversePath), path);
+		path = newPath;
+	}
+
+	@Override
+	public void visit(final P_Link pathNode) {
+		path = toResource(pathNode.getNode());
+	}
+
+	@Override
+	public void visit(final P_Mod pathMod) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_Multi pathMulti) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_NegPropSet pathNotOneOf) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_OneOrMore1 path) {
+		final Resource newPath = model.createResource();
+		path.getSubPath().visit(this);
+		model.add(newPath, toProperty(SHACL.oneOrMorePath), this.path);
+		this.path = newPath;
+	}
+
+	@Override
+	public void visit(final P_OneOrMoreN path) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_ReverseLink pathNode) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_Seq pathSeq) {
+		Resource tail = RDF.nil;
+		for (final Path p : toList(pathSeq)) {
+			final Resource newTail = model.createResource();
+			model.add(newTail, RDF.rest, tail);
+			p.visit(this);
+			model.add(newTail, RDF.first, path);
+			tail = newTail;
+		}
+		path = tail;
+	}
+
+	@Override
+	public void visit(final P_Shortest pathShortest) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_ZeroOrMore1 path) {
+		final Resource newPath = model.createResource();
+		path.getSubPath().visit(this);
+		model.add(newPath, toProperty(SHACL.zeroOrMorePath), this.path);
+		this.path = newPath;
+	}
+
+	@Override
+	public void visit(final P_ZeroOrMoreN path) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final P_ZeroOrOne path) {
+		final Resource newPath = model.createResource();
+		path.getSubPath().visit(this);
+		model.add(newPath, toProperty(SHACL.zeroOrOnePath), this.path);
+		this.path = newPath;
+	}
+
+	@Override
+	public void visit(final PatternConstraint constraint) {
+		throw new IllegalArgumentException();
+	}
+
+	@Override
+	public void visit(final PropertyShape propertyShape) {
+		final Resource savedParent = parent;
+		final Resource nodeResource = toResource(propertyShape.getShapeNode());
 		parent = nodeResource;
 
 		model.add(savedParent, toProperty(SHACL.property), nodeResource);
@@ -157,204 +439,10 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		parent = savedParent;
 	}
 
-	private Resource toResource(Node n) {
-		if (resources.containsKey(n)) {
-			return resources.get(n);
-		}
-		if (n instanceof Node_Concrete) {
-			if (n instanceof Node_Blank) {
-				Resource resource = model.createResource(
-						n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
-				resources.put(n, resource);
-				return resource;
-			} else if (n instanceof Node_Literal) {
-				throw new IllegalArgumentException();
-			} else if (n instanceof Node_URI) {
-				Node_URI ni = (Node_URI) n;
-				Resource resource = model.createResource(ni.getURI());
-				resources.put(ni, resource);
-				return resource;
-			} else {
-				throw new IllegalArgumentException();
-			}
-		} else {
-			throw new IllegalArgumentException();
-		}
-	}
-
-	private Property toProperty(Node n) {
-		if (properties.containsKey(n)) {
-			return properties.get(n);
-		}
-		if (n instanceof Node_Concrete) {
-			if (n instanceof Node_Blank) {
-				throw new IllegalArgumentException();
-			} else if (n instanceof Node_Literal) {
-				throw new IllegalArgumentException();
-			} else if (n instanceof Node_URI) {
-				Node_URI ni = (Node_URI) n;
-				Property property = model.createProperty(ni.getURI());
-				properties.put(ni, property);
-				return property;
-			} else {
-				throw new IllegalArgumentException();
-			}
-		} else {
-			throw new IllegalArgumentException();
-		}
-	}
-
-	private Literal toLiteral(Node n) {
-		if (n instanceof Node_Concrete) {
-			if (n instanceof Node_Blank) {
-				throw new IllegalArgumentException();
-			} else if (n instanceof Node_Literal) {
-				Node_Literal ni = (Node_Literal) n;
-				Literal value;
-				if (ni.getLiteralDatatype() != null) {
-					value = model.createTypedLiteral(ni.getLiteralValue(), ni.getLiteralDatatype());
-				} else if (StringUtils.isNotBlank(ni.getLiteralDatatypeURI())) {
-					value = model.createTypedLiteral(ni.getLiteralValue(), ni.getLiteralDatatypeURI());
-				} else if (StringUtils.isNotBlank(ni.getLiteralLanguage()) && ni.getLiteralValue() instanceof String) {
-					value = model.createLiteral((String) ni.getLiteralValue(), ni.getLiteralLanguage());
-				} else {
-					value = model.createTypedLiteral(ni.getLiteralValue());
-				}
-				return value;
-			} else if (n instanceof Node_URI) {
-				throw new IllegalArgumentException();
-			} else {
-				throw new IllegalArgumentException();
-			}
-		} else {
-			throw new IllegalArgumentException();
-		}
-	}
-
 	@Override
-	public void visit(ClassConstraint constraint) {
-		model.add(parent, toProperty(SHACL.class_), toResource(constraint.getExpectedClass()));
-	}
-
-	@Override
-	public void visit(DatatypeConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(NodeKindConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(MinCount constraint) {
-		model.add(parent, toProperty(SHACL.minCount), model.createTypedLiteral(constraint.getMinCount()));
-	}
-
-	@Override
-	public void visit(MaxCount constraint) {
-		model.add(parent, toProperty(SHACL.maxCount), model.createTypedLiteral(constraint.getMaxCount()));
-	}
-
-	@Override
-	public void visit(ValueMinExclusiveConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ValueMinInclusiveConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ValueMaxInclusiveConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ValueMaxExclusiveConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(StrMinLengthConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(StrMaxLengthConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(PatternConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(StrLanguageIn constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(UniqueLangConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(EqualsConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(DisjointConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(LessThanConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(LessThanOrEqualsConstraint constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ShNot constraint) {
-		Resource savedParent = parent;
-		Resource nodeResource = toResource(constraint.getOther().getShapeNode());
-		parent = nodeResource;
-		model.add(savedParent, toProperty(SHACL.not), nodeResource);
-		constraint.getOther().visit(this);
-		parent = savedParent;
-	}
-
-	@Override
-	public void visit(ShAnd constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ShOr constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ShXone constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(ShNode constraint) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(QualifiedValueShape constraint) {
-		Resource savedParent = parent;
-		Resource nodeResource = toResource(constraint.getSub().getShapeNode());
+	public void visit(final QualifiedValueShape constraint) {
+		final Resource savedParent = parent;
+		final Resource nodeResource = toResource(constraint.getSub().getShapeNode());
 		parent = nodeResource;
 		if (constraint.qMin() >= 0) {
 			model.add(savedParent, toProperty(SHACL.qualifiedMinCount), model.createTypedLiteral(constraint.qMin()));
@@ -371,34 +459,57 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
-	public void visit(ClosedConstraint constraint) {
+	public void visit(final ShAnd constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(HasValueConstraint constraint) {
+	public void visit(final ShNode constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(InConstraint constraint) {
+	public void visit(final ShNot constraint) {
+		final Resource savedParent = parent;
+		final Resource nodeResource = toResource(constraint.getOther().getShapeNode());
+		parent = nodeResource;
+		model.add(savedParent, toProperty(SHACL.not), nodeResource);
+		constraint.getOther().visit(this);
+		parent = savedParent;
+	}
+
+	@Override
+	public void visit(final ShOr constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(ConstraintComponentSPARQL constraint) {
+	public void visit(final ShXone constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(SparqlConstraint constraint) {
+	public void visit(final SparqlConstraint constraint) {
 		if (constraint.getMessage() != null) {
 			model.add(parent, toProperty(SHACL.message), model.createTypedLiteral(constraint.getMessage()));
 		}
-		Resource sparql = model.createResource();
+		final Resource sparql = model.createResource();
 		model.add(parent, toProperty(SHACL.sparql), sparql);
-		model.add(parent, RDF.type, toProperty(SHACL.SPARQLConstraint));
-		Query q = constraint.getQuery().cloneQuery();
+		model.add(sparql, RDF.type, toProperty(SHACL.SPARQLConstraint));
+		final Query q = constraint.getQuery().cloneQuery();
+		final PrefixMapping pm = q.getPrefixMapping();
+		for (final Entry<String, String> e : new HashSet<>(pm.getNsPrefixMap().entrySet())) {
+			Resource r = null;
+			try {
+				r = toURI(e.getKey(), e.getValue());
+			} catch (final URISyntaxException e1) {
+			}
+			if (r != null) {
+				pm.removeNsPrefix(e.getKey());
+				model.add(sparql, toProperty(SHACL.prefixes), model.createResource(e.getValue()));
+			}
+		}
+		q.getPrefixMapping().clearNsPrefixMap();
 		switch (q.queryType()) {
 		case ASK:
 			model.add(sparql, toProperty(SHACL.ask), model.createTypedLiteral(q.toString()));
@@ -417,130 +528,43 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
-	public void visit(JViolationConstraint constraint) {
+	public void visit(final StrLanguageIn constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(JLogConstraint constraint) {
+	public void visit(final StrMaxLengthConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_Link pathNode) {
-		path = toResource(pathNode.getNode());
-	}
-
-	@Override
-	public void visit(P_ReverseLink pathNode) {
+	public void visit(final StrMinLengthConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_NegPropSet pathNotOneOf) {
+	public void visit(final UniqueLangConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_Inverse inversePath) {
-		Resource newPath = model.createResource();
-		inversePath.getSubPath().visit(this);
-		model.add(newPath, toProperty(SHACL.inversePath), path);
-		path = newPath;
-	}
-
-	@Override
-	public void visit(P_Mod pathMod) {
+	public void visit(final ValueMaxExclusiveConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_FixedLength pFixedLength) {
+	public void visit(final ValueMaxInclusiveConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_Distinct pathDistinct) {
+	public void visit(final ValueMinExclusiveConstraint constraint) {
 		throw new IllegalArgumentException();
 	}
 
 	@Override
-	public void visit(P_Multi pathMulti) {
+	public void visit(final ValueMinInclusiveConstraint constraint) {
 		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(P_Shortest pathShortest) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(P_ZeroOrOne path) {
-		Resource newPath = model.createResource();
-		path.getSubPath().visit(this);
-		model.add(newPath, toProperty(SHACL.zeroOrOnePath), this.path);
-		this.path = newPath;
-	}
-
-	@Override
-	public void visit(P_ZeroOrMore1 path) {
-		Resource newPath = model.createResource();
-		path.getSubPath().visit(this);
-		model.add(newPath, toProperty(SHACL.zeroOrMorePath), this.path);
-		this.path = newPath;
-	}
-
-	@Override
-	public void visit(P_ZeroOrMoreN path) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(P_OneOrMore1 path) {
-		Resource newPath = model.createResource();
-		path.getSubPath().visit(this);
-		model.add(newPath, toProperty(SHACL.oneOrMorePath), this.path);
-		this.path = newPath;
-	}
-
-	@Override
-	public void visit(P_OneOrMoreN path) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(P_Alt pathAlt) {
-		throw new IllegalArgumentException();
-	}
-
-	@Override
-	public void visit(P_Seq pathSeq) {
-		Resource tail = RDF.nil;
-		for (Path p : toList(pathSeq)) {
-			Resource newTail = model.createResource();
-			model.add(newTail, RDF.rest, tail);
-			p.visit(this);
-			model.add(newTail, RDF.first, path);
-			tail = newTail;
-		}
-		path = tail;
-	}
-
-	private List<Path> toList(P_Seq pathSeq) {
-		List<Path> result = new ArrayList<>();
-		add(result, pathSeq);
-		Collections.reverse(result);
-		return result;
-	}
-
-	private void add(List<Path> result, Path path) {
-		if (path instanceof P_Seq) {
-			P_Seq pathSeq = (P_Seq) path;
-			add(result, pathSeq.getLeft());
-			add(result, pathSeq.getRight());
-		} else {
-			result.add(path);
-		}
 	}
 
 }

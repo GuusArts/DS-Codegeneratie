@@ -2,7 +2,6 @@ package nl.kik.commons.datastation.service;
 
 import java.util.List;
 
-import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
@@ -10,7 +9,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.ValidationReport;
-import org.apache.jena.shacl.lib.ShLib;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -61,16 +59,16 @@ public class RemoteDatastationService {
 			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
 	}
 
-	public ValidationReport validate(final String url, Shapes shapes) {
+	public ValidationReport validate(final String url, final Shapes shapes) {
 		RemoteDatastationService.log.trace("Sending shapes {} to {}", shapes, url);
-		RequestCallback request = r -> {
+		final RequestCallback request = r -> {
 			r.getHeaders().put(HttpHeaders.CONTENT_TYPE, List.of(Lang.TURTLE.getContentType().toHeaderString()));
 			r.getHeaders().put(HttpHeaders.ACCEPT, List.of(Lang.TURTLE.getContentType().toHeaderString()));
-			Model model = new ShaclExporter(ModelFactory.createDefaultModel()).export(shapes);
+			final Model model = new ShaclExporter(ModelFactory.createDefaultModel()).export(shapes);
 			RDFDataMgr.write(r.getBody(), model, RDFFormat.TURTLE_FLAT);
 		};
-		ResponseExtractor<ValidationReport> response = r -> {
-			Model model = ModelFactory.createDefaultModel();
+		final ResponseExtractor<ValidationReport> response = r -> {
+			final Model model = ModelFactory.createDefaultModel();
 			RDFDataMgr.read(model, r.getBody(), Lang.TURTLE);
 			return ValidationReport.fromModel(model);
 		};
