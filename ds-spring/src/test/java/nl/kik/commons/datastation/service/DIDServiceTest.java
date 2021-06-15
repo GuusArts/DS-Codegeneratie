@@ -1,16 +1,18 @@
 package nl.kik.commons.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.text.ParseException;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.nimbusds.jose.JOSEException;
 
 import uniresolver.ResolutionException;
 
+@Disabled
 class DIDServiceTest {
 	private DIDService service;
 
