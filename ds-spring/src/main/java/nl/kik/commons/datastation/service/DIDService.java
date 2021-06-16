@@ -43,11 +43,15 @@ import uniresolver.result.ResolveResult;
 
 @Service
 public class DIDService {
+	public static final String ED25519_VERIFICATION_KEY2018 = "Ed25519VerificationKey2018";
+	public static final String JSON_WEB_KEY2020 = "JsonWebKey2020";
 	private LocalUniResolver uniResolver;
 	private Map<String, String> resolveOptions;
 
 	@Value("${nl.kik.commons.datastation.did.web.enable:false}")
 	private boolean enableDIDweb = false;
+	@Value("${nl.kik.commons.datastation.did.web.url:http://localhost:8081/}")
+	private String webURL = "http://localhost:8081/";
 
 	@PostConstruct
 	public void init() {
@@ -69,7 +73,7 @@ public class DIDService {
 		);
 	}
 
-	private Set<String> SUPPORTED_KEYS = Set.of("JsonWebKey2020", "Ed25519VerificationKey2018");
+	private Set<String> SUPPORTED_KEYS = Set.of(JSON_WEB_KEY2020, ED25519_VERIFICATION_KEY2018);
 
 	public JWSVerifier getVerifier(final String issuer, final String keyId)
 			throws JOSEException, ResolutionException, ParseException {
@@ -120,7 +124,7 @@ public class DIDService {
 		if (publicKey.getPublicKeyJwk() != null) {
 			return toVerifier(JWK.parse(publicKey.getPublicKeyJwk()));
 		}
-		if (CollectionUtils.emptyIfNull(publicKey.getTypes()).contains("Ed25519VerificationKey2018")) {
+		if (CollectionUtils.emptyIfNull(publicKey.getTypes()).contains(ED25519_VERIFICATION_KEY2018)) {
 			String key = null;
 			if (publicKey.getPublicKeyBase64() != null) {
 				key = publicKey.getPublicKeyBase64();

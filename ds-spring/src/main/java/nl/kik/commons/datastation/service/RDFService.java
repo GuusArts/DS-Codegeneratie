@@ -130,7 +130,7 @@ public class RDFService {
 		m.end();
 	}
 
-	protected void addAllURLs(final Graph<? extends Model> g, final Resource resource, final Property property,
+	public static void addAllURLs(final Graph<? extends Model> g, final Resource resource, final Property property,
 			final Collection<? extends URL> list) {
 		for (final URL value : CollectionUtils.emptyIfNull(list)) {
 			addURL(g, resource, property, value);
@@ -142,14 +142,14 @@ public class RDFService {
 	 * @param resource
 	 * @param object
 	 */
-	protected void addURL(final Graph<? extends Model> g, final Resource resource, final Property property,
+	public static void addURL(final Graph<? extends Model> g, final Resource resource, final Property property,
 			final URL url) {
 		if (url != null) {
 			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
 		}
 	}
 
-	public Boolean getBoolean(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static Boolean getBoolean(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return properties.get(p).iterator().next().asLiteral().getBoolean();
 		} catch (final Exception e) {
@@ -162,7 +162,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public ZonedDateTime getDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static ZonedDateTime getDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return ZonedDateTime.parse(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (final Exception e) {
@@ -170,7 +170,7 @@ public class RDFService {
 		}
 	}
 
-	public Double getDouble(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static Double getDouble(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return properties.get(p).iterator().next().asLiteral().getDouble();
 		} catch (final Exception e) {
@@ -178,7 +178,7 @@ public class RDFService {
 		}
 	}
 
-	public Duration getDuration(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static Duration getDuration(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return Duration.parse(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (final Exception e) {
@@ -192,7 +192,7 @@ public class RDFService {
 	 * @param values
 	 * @return
 	 */
-	protected <U extends Enum<U>> U getEnum(final Collection<Resource> l, final Map<Resource, U> values) {
+	public static <U extends Enum<U>> U getEnum(final Collection<Resource> l, final Map<Resource, U> values) {
 		if (l == null)
 			return null;
 		final List<U> list = l.stream().map(rr -> {
@@ -213,14 +213,14 @@ public class RDFService {
 		return list.get(0);
 	}
 
-	public <U extends Enum<U>> U getEnum(final Graph<? extends Model> g, final Resource r, final Property p,
+	public static <U extends Enum<U>> U getEnum(final Graph<? extends Model> g, final Resource r, final Property p,
 			final Map<Resource, U> values) {
 		final U result = getEnum(search(g, r, p, null, Statement::getResource).collect(Collectors.toList()), values);
 		RDFService.log.trace("Get enum {} for {} -> {}", p, r, result);
 		return result;
 	}
 
-	public <U extends Enum<U>> U getEnum(final MultiValuedMap<Property, RDFNode> map, final Property p,
+	public static <U extends Enum<U>> U getEnum(final MultiValuedMap<Property, RDFNode> map, final Property p,
 			final Map<Resource, U> values) {
 		final U result = getEnum(map.get(p).stream() //
 				.filter(Resource.class::isInstance) //
@@ -235,7 +235,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public Float getFloat(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static Float getFloat(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return properties.get(p).iterator().next().asLiteral().getFloat();
 		} catch (final Exception e) {
@@ -248,7 +248,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public LocalDate getLocalDate(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static LocalDate getLocalDate(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return LocalDate.parse(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (final Exception e) {
@@ -256,7 +256,7 @@ public class RDFService {
 		}
 	}
 
-	public long getLong(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static long getLong(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return Long.parseLong(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (final Exception e) {
@@ -269,7 +269,7 @@ public class RDFService {
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected MultiValuedMap<Property, RDFNode> getProperties(final Graph<? extends Model> g, final Resource r) {
+	public static MultiValuedMap<Property, RDFNode> getProperties(final Graph<? extends Model> g, final Resource r) {
 		return (MultiValuedMap) search(g, r, null, null, s -> s) //
 				.collect(HashSetValuedHashMap::new, (b, s) -> b.put(s.getPredicate(), s.getObject()),
 						HashSetValuedHashMap::putAll); //
@@ -280,7 +280,7 @@ public class RDFService {
 	 * @param type
 	 * @return
 	 */
-	public Resource getResource(final Graph<? extends Model> g, final Resource r, final Property p) {
+	public static Resource getResource(final Graph<? extends Model> g, final Resource r, final Property p) {
 		g.beginRead();
 		try {
 			return g.getModel().getProperty(r, p).getResource();
@@ -296,7 +296,7 @@ public class RDFService {
 	 * @param type
 	 * @return
 	 */
-	public Resource getResource(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static Resource getResource(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return properties.get(p).iterator().next().asResource();
 		} catch (final Exception e) {
@@ -312,7 +312,7 @@ public class RDFService {
 	 * @param clazz
 	 * @return
 	 */
-	protected <T> Set<T> getSet(final MultiValuedMap<Property, RDFNode> properties, final Property property,
+	public static <T> Set<T> getSet(final MultiValuedMap<Property, RDFNode> properties, final Property property,
 			final Function<RDFNode, T> getter) {
 		final Set<T> result = properties.get(property).stream() //
 				.map(getter) //
@@ -328,7 +328,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public String getString(final Graph<? extends Model> g, final Resource r, final Property p) {
+	public static String getString(final Graph<? extends Model> g, final Resource r, final Property p) {
 		g.beginRead();
 		try {
 			return getString(g.getModel().getProperty(r, p).getObject());
@@ -344,7 +344,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public String getString(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static String getString(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return getString(properties.get(p).iterator().next());
 		} catch (final Exception e) {
@@ -352,7 +352,7 @@ public class RDFService {
 		}
 	}
 
-	protected String getString(final RDFNode node) {
+	public static String getString(final RDFNode node) {
 		try {
 			return node.asLiteral().getString();
 		} catch (final Exception e) {
@@ -360,8 +360,9 @@ public class RDFService {
 		}
 	}
 
-	protected Set<String> getStringSet(final MultiValuedMap<Property, RDFNode> properties, final Property property) {
-		return getSet(properties, property, this::getString);
+	public static Set<String> getStringSet(final MultiValuedMap<Property, RDFNode> properties,
+			final Property property) {
+		return getSet(properties, property, RDFService::getString);
 	}
 
 	/**
@@ -369,7 +370,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public Long getTimestamp(final Graph<? extends Model> g, final Resource r, final Property p) {
+	public static Long getTimestamp(final Graph<? extends Model> g, final Resource r, final Property p) {
 		g.beginRead();
 		try {
 			return g.getModel().getProperty(r, p).getLong();
@@ -385,7 +386,7 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public URL getURL(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static URL getURL(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return getURL(properties.get(p).iterator().next());
 		} catch (final Exception e) {
@@ -393,7 +394,7 @@ public class RDFService {
 		}
 	}
 
-	protected URL getURL(final RDFNode node) {
+	public static URL getURL(final RDFNode node) {
 		try {
 			return new URL(node.asResource().getURI());
 		} catch (final Exception e) {
@@ -405,16 +406,16 @@ public class RDFService {
 		}
 	}
 
-	public Set<URL> getURLSet(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
-		return getSet(properties, p, this::getURL);
+	public static Set<URL> getURLSet(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		return getSet(properties, p, RDFService::getURL);
 	}
 
 	/**
 	 * @param r
 	 * @return
 	 */
-	public <U> Stream<U> search(final Graph<? extends Model> g, final Resource r, final Property p, final Resource o,
-			final Function<Statement, U> extract) {
+	public static <U> Stream<U> search(final Graph<? extends Model> g, final Resource r, final Property p,
+			final Resource o, final Function<Statement, U> extract) {
 		g.beginRead();
 		try {
 			RDFService.log.trace("Search for ({}, {}, {})", r, p, o);
@@ -447,8 +448,8 @@ public class RDFService {
 	 * @param extract
 	 * @return
 	 */
-	public <U> Stream<U> searchLiteral(final Graph<? extends Model> graph, final Resource resource, final Property prop,
-			final String value, final Function<Statement, U> extract) {
+	public static <U> Stream<U> searchLiteral(final Graph<? extends Model> graph, final Resource resource,
+			final Property prop, final String value, final Function<Statement, U> extract) {
 		graph.beginRead();
 		try {
 			RDFService.log.trace("Search for ({}, {}, {})", resource, prop, value);
