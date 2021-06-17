@@ -20,8 +20,6 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.VCARD4;
 import org.springframework.stereotype.Service;
 
-import nl.kik.commons.datastation.dto.Graph;
-import nl.kik.commons.datastation.dto.RDFObject;
 import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.CatalogRecord;
 import nl.kik.commons.datastation.dto.dcat.DCATObject;
@@ -52,6 +50,10 @@ import nl.kik.commons.datastation.dto.foaf.FOAFObject.FOAFObjectBuilder;
 import nl.kik.commons.datastation.dto.foaf.Group.GroupBuilder;
 import nl.kik.commons.datastation.dto.foaf.Organization.OrganizationBuilder;
 import nl.kik.commons.datastation.dto.foaf.Person.PersonBuilder;
+import nl.kik.commons.dto.Graph;
+import nl.kik.commons.dto.RDFObject;
+import nl.kik.commons.service.AbstractRDFService;
+import nl.kik.commons.service.RDFService;
 
 @Service
 public class DCATService extends AbstractRDFService {

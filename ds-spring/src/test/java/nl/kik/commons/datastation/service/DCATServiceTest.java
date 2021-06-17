@@ -10,10 +10,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.kik.commons.datastation.dto.Graph;
-import nl.kik.commons.datastation.dto.RDFObject;
 import nl.kik.commons.datastation.dto.dcat.AbstractDCATTest;
 import nl.kik.commons.datastation.dto.dcat.Catalog;
+import nl.kik.commons.dto.Graph;
+import nl.kik.commons.dto.RDFObject;
+import nl.kik.commons.service.RDFService;
 
 @Slf4j
 public class DCATServiceTest extends AbstractDCATTest {

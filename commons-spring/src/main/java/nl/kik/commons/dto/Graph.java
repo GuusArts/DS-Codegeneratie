@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.dto;
+package nl.kik.commons.dto;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.Dataset;

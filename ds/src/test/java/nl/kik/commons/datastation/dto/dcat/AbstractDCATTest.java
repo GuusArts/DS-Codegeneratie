@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 
-import nl.kik.commons.datastation.dto.RDFObject;
 import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.DataService;
 import nl.kik.commons.datastation.dto.dcat.Dataset;
@@ -16,6 +15,7 @@ import nl.kik.commons.datastation.dto.dcat.Distribution;
 import nl.kik.commons.datastation.dto.dcat.kikv.Constants;
 import nl.kik.commons.datastation.dto.foaf.Agent;
 import nl.kik.commons.datastation.dto.foaf.Organization;
+import nl.kik.commons.dto.RDFObject;
 
 public abstract class AbstractDCATTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();

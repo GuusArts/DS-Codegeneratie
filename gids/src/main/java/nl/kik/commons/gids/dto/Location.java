@@ -1,11 +1,10 @@
-package nl.kik.commons.datastation.dto;
+package nl.kik.commons.gids.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
@@ -13,9 +12,9 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
-@EqualsAndHashCode
-public class RDFObject {
-	@Setter
-	@EqualsAndHashCode.Exclude
-	private String id;
+@EqualsAndHashCode(callSuper = true)
+public class Location extends GidsObject implements HasName, HasAgb {
+	private String name;
+	private String number;
+	private String agb;
 }

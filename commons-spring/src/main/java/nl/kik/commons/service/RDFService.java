@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.service;
+package nl.kik.commons.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,7 +38,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.kik.commons.datastation.dto.Graph;
+import nl.kik.commons.dto.Graph;
 
 @Slf4j
 public class RDFService {

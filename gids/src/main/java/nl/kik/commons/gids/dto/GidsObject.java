@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.dto.foaf;
+package nl.kik.commons.gids.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,5 +14,5 @@ import nl.kik.commons.dto.RDFObject;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class FOAFObject extends RDFObject {
+public class GidsObject extends RDFObject {
 }

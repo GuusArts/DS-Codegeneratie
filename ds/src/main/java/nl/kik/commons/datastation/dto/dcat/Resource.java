@@ -11,8 +11,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import nl.kik.commons.datastation.dto.RDFObject;
 import nl.kik.commons.datastation.dto.foaf.Agent;
+import nl.kik.commons.dto.RDFObject;
 
 @SuperBuilder(toBuilder = true)
 @Getter
