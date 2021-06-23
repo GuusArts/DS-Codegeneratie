@@ -572,7 +572,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			throw new IllegalArgumentException("Query must project onto exactly one value (the rtequested resource)");
 		}
 		String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
-		log.info("Exceuting with variable {} query {}", variableName, q);
+		log.trace("Exceuting with variable {} query {}", variableName, q);
 		return (List<U>) search(graph, q) //
 				.map(s -> {
 					try {
