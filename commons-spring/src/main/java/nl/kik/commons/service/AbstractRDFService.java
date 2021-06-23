@@ -254,7 +254,9 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 	protected <T extends RDFObject> T getObject(L graph, RDFNode n, Class<T> clazz) {
 		return Optional.ofNullable(n) //
 				.filter(RDFNode::isResource) //
-				.map(r -> lookupById(graph, r.asResource().getURI())) //
+				.map(RDFNode::asResource) //
+				.filter(Resource::isURIResource) //
+				.map(r -> lookupById(graph, r.getURI())) //
 				.filter(Optional::isPresent) //
 				.map(Optional::get) //
 				.filter(clazz::isInstance) //

@@ -23,6 +23,7 @@ import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -546,7 +547,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			return RDFService.getProperties(g.getGraph(), r);
 		}
 		if (g.isRemote()) {
-			return (MultiValuedMap) search(g.getRemote(), r, null, null, s -> s) //
+			return (MultiValuedMap) search(g, r, null, null, s -> s) //
 					.collect(HashSetValuedHashMap::new, (b, s) -> b.put(s.getPredicate(), s.getObject()),
 							HashSetValuedHashMap::putAll); //
 
@@ -562,32 +563,55 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return lookupById(new GraphOrRemote(remote), id);
 	}
 
-	public static <U> Stream<U> search(GraphOrRemote g, final Resource r, final Property p, final Resource o,
-			final Function<Statement, U> extract) {
-		if (g.isGraph()) {
-			return search(g.getGraph(), r, p, o, extract);
+	@SuppressWarnings("unchecked")
+	public <U extends GidsObject> List<U> query(GraphOrRemote graph, Query q, Class<U> clazz) {
+		if (q == null || !q.isSelectType()) {
+			throw new IllegalArgumentException("Exactly one SELECT query must be given");
 		}
-		if (g.isRemote()) {
-			return search(g.getRemote(), r, p, o, extract);
+		if (q.getProjectVars().size() != 1) {
+			throw new IllegalArgumentException("Query must project onto exactly one value (the rtequested resource)");
 		}
-		throw new IllegalArgumentException(); // Should never be reachable
+		String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
+		log.info("Exceuting with variable {} query {}", variableName, q);
+		return (List<U>) search(graph, q) //
+				.map(s -> {
+					try {
+						Resource v = s.getResource(variableName);
+						log.trace(" - {} -> {}", s, v);
+						return v;
+					} catch (final Exception ex) {
+						log.trace(" - Failed extracting from {}", s);
+						return null;
+					}
+				}) //
+				.filter(Objects::nonNull) //
+				.map(r -> getObject(graph, r, GidsObject.class)) //
+				.filter(Objects::nonNull) //
+				.filter(o -> clazz == null || clazz.isInstance(o)) //
+				.collect(Collectors.toList());
+	}
+
+	public <U extends GidsObject> List<U> query(Graph<? extends Model> graph, Query q, Class<U> clazz) {
+		return query(new GraphOrRemote(graph), q, clazz);
+	}
+
+	public <U extends GidsObject> List<U> query(String remote, Query q, Class<U> clazz) {
+		return query(new GraphOrRemote(remote), q, clazz);
 	}
 
 	/**
 	 * @param r
 	 * @return
 	 */
-	public static <U> Stream<U> search(String service, final Resource r, final Property p, final Resource o,
+	public static <U> Stream<U> search(GraphOrRemote graph, final Resource r, final Property p, final Resource o,
 			final Function<Statement, U> extract) {
 		log.trace("Search for ({}, {}, {})", r, p, o);
-
-		Query q = getSelectQuery(r, p, o);
-		try (QueryExecution qe = QueryExecutionFactory.sparqlService(service, q)) {
-			ResultSet rs = qe.execSelect();
-			return StreamSupport
-					.stream(Spliterators.spliteratorUnknownSize(rs,
-							Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
-					.filter(Objects::nonNull) //
+		if (graph.isGraph()) {
+			return search(graph.getGraph(), r, p, o, extract);
+		}
+		if (graph.isRemote()) {
+			Query q = getSelectQuery(r, p, o);
+			return search(graph, q) //
 					.map(s -> {
 						try {
 							final U v = extract.apply(new StatementImpl(s.get("?s").asResource(),
@@ -600,15 +624,42 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						}
 					}) //
 					.filter(Objects::nonNull) //
+			;
+		}
+		throw new IllegalArgumentException(); // Should never be reachable
+	}
+
+	protected static Stream<QuerySolution> search(GraphOrRemote graph, Query q) {
+		try (QueryExecution qe = getQueryExecution(graph, q)) {
+			ResultSet rs = qe.execSelect();
+			return StreamSupport
+					.stream(Spliterators.spliteratorUnknownSize(rs,
+							Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
+					.filter(Objects::nonNull) //
 					.collect(Collectors.toList()) //
 					.stream();
 		}
 	}
 
+	/**
+	 * @param graph
+	 * @param q
+	 * @return
+	 */
+	protected static QueryExecution getQueryExecution(GraphOrRemote graph, Query q) {
+		if (graph.isGraph()) {
+			return QueryExecutionFactory.create(q, graph.getGraph().getModel());
+		}
+		if (graph.isRemote()) {
+			return QueryExecutionFactory.sparqlService(graph.getRemote(), q);
+		}
+		throw new IllegalArgumentException(); // Cannot happen
+	}
+
 	public Stream<RDFNode> getSources(GraphOrRemote graph, Resource s, Property p, RDFNode o) {
 		if (graph.isGraph()) {
-			return graph.getGraph().getModel().listReifiedStatements(graph.getGraph().getModel().createStatement(s, p, o))
-					.toList().stream() //
+			return graph.getGraph().getModel()
+					.listReifiedStatements(graph.getGraph().getModel().createStatement(s, p, o)).toList().stream() //
 					.flatMap(r -> search(graph, r, Vocabulary.source, null, st -> st.getObject()));
 		}
 		if (graph.isRemote()) {
@@ -622,26 +673,19 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					.addWhere("?s", RDF.object, o) //
 					.addWhere("?s", Vocabulary.source, "?source") //
 					.build();
-			try (QueryExecution qe = QueryExecutionFactory.sparqlService(graph.getRemote(), q)) {
-				ResultSet rs = qe.execSelect();
-				return StreamSupport
-						.stream(Spliterators.spliteratorUnknownSize(rs,
-								Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
-						.filter(Objects::nonNull) //
-						.map(st -> {
-							try {
-								Resource v = st.get("?source").asResource();
-								log.trace(" - {} -> {}", st, v);
-								return (RDFNode) v;
-							} catch (final Exception ex) {
-								log.trace(" - Failed extracting from {}", s);
-								return null;
-							}
-						}) //
-						.filter(Objects::nonNull) //
-						.collect(Collectors.toList()) //
-						.stream();
-			}
+			return search(graph, q) //
+					.map(st -> {
+						try {
+							Resource v = st.get("?source").asResource();
+							log.trace(" - {} -> {}", st, v);
+							return (RDFNode) v;
+						} catch (final Exception ex) {
+							log.trace(" - Failed extracting from {}", s);
+							return null;
+						}
+					}) //
+					.filter(Objects::nonNull) //
+			;
 		}
 		throw new IllegalArgumentException(); // Should never reach here
 	}

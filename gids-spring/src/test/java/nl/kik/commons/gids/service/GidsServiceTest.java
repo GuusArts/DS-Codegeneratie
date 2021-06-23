@@ -4,17 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.jena.arq.querybuilder.AskBuilder;
+import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.fuseki.main.FusekiServer;
 import org.apache.jena.fuseki.server.DataService;
 import org.apache.jena.fuseki.server.Operation;
+import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.DatasetGraphOne;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +33,7 @@ import nl.kik.commons.gids.dto.Concessionaire;
 import nl.kik.commons.gids.dto.DeliveryMethod;
 import nl.kik.commons.gids.dto.GidsAttribute;
 import nl.kik.commons.gids.dto.GidsObject;
+import nl.kik.commons.gids.dto.GraphOrRemote;
 import nl.kik.commons.gids.dto.Location;
 import nl.kik.commons.gids.dto.Organisation;
 import nl.kik.commons.gids.dto.Region;
@@ -105,8 +111,7 @@ class GidsServiceTest {
 
 	@Test
 	void testSave() {
-		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		model.forEach(o -> service.save(g, o));
+		final Graph<Model> g = getLoadedModel();
 		RDFService.snapshot(g, true, null);
 	}
 
@@ -140,8 +145,7 @@ class GidsServiceTest {
 
 	@Test
 	void testLoadLocal() {
-		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		model.forEach(o -> service.save(g, o));
+		final Graph<Model> g = getLoadedModel();
 		for (final RDFObject m : model) {
 			final Optional<RDFObject> o = service.lookupById(g, m.getId());
 			if (o.isEmpty()) {
@@ -158,8 +162,30 @@ class GidsServiceTest {
 
 	@Test
 	void testLoadRemote() {
-		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		model.forEach(o -> service.save(g, o));
+		FusekiServer fusekiServer = startFuseki();
+		try {
+			for (final RDFObject m : model) {
+				final Optional<RDFObject> o = service.lookupById("http://localhost:54321/graph/gids/sparql", m.getId());
+				if (o.isEmpty()) {
+					Assertions.fail("Not found " + m);
+				} else {
+					log.trace("Comparing");
+					log.trace("{}", m);
+					log.trace("{}", o.get());
+					Assertions.assertEquals(m, o.get());
+					Assertions.assertNotSame(m, o.get());
+				}
+			}
+		} finally {
+			fusekiServer.stop();
+		}
+	}
+
+	/**
+	 * @return
+	 */
+	protected FusekiServer startFuseki() {
+		final Graph<Model> g = getLoadedModel();
 
 		final DataService metadataService = DataService //
 				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
@@ -178,20 +204,149 @@ class GidsServiceTest {
 
 		fusekiServer.start();
 		fusekiServer.logServer();
+		return fusekiServer;
+	}
 
-		for (final RDFObject m : model) {
-			final Optional<RDFObject> o = service.lookupById("http://localhost:54321/graph/gids/sparql", m.getId());
-			if (o.isEmpty()) {
-				Assertions.fail("Not found " + m);
-			} else {
-				log.trace("Comparing");
-				log.trace("{}", m);
-				log.trace("{}", o.get());
-				Assertions.assertEquals(m, o.get());
-				Assertions.assertNotSame(m, o.get());
-			}
+	@Test
+	void testQueryLocal() {
+		final Graph<Model> g = getLoadedModel();
+		testQueries(new GraphOrRemote(g));
+	}
+
+	/**
+	 * @return
+	 */
+	protected Graph<Model> getLoadedModel() {
+		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
+		model.forEach(o -> service.save(g, o));
+		return g;
+	}
+
+	@Test
+	void testQueryRemote() {
+		FusekiServer fusekiServer = startFuseki();
+		try {
+			testQueries(new GraphOrRemote("http://localhost:54321/graph/gids/sparql"));
+		} finally {
+			fusekiServer.stop();
 		}
+	}
 
-		fusekiServer.stop();
+	/**
+	 * @param g
+	 */
+	protected void testQueries(GraphOrRemote g) {
+		// Illegal query type
+		assertThrows(IllegalArgumentException.class, () -> {
+			Query query = new AskBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+					.addWhere("?a", GidsService.Vocabulary.houseNumber, "'2'") //
+					.build();
+			service.query(g, query, Organisation.class);
+		});
+
+		// Too many variables
+		assertThrows(IllegalArgumentException.class, () -> {
+			Query query = new SelectBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.setDistinct(true) //
+					.addVar("?test") //
+					.addVar("?a") //
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+					.addWhere("?a", GidsService.Vocabulary.houseNumber, "'2'") //
+					.build();
+			service.query(g, query, Organisation.class);
+		});
+
+		// Regular search
+		Query query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?test") //
+				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+				.addWhere("?a", GidsService.Vocabulary.houseNumber, "'2'") //
+				.build();
+
+		List<Organisation> organisations = service.query(g, query, Organisation.class);
+		assertEquals(1, organisations.size());
+		assertEquals(organisation, organisations.iterator().next());
+
+		// Without type filter
+		organisations = service.query(g, query, null);
+		assertEquals(1, organisations.size());
+		assertEquals(organisation, organisations.iterator().next());
+
+		// Not found
+		query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?test") //
+				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+				.addWhere("?a", GidsService.Vocabulary.houseNumber, "'3'") //
+				.build();
+
+		organisations = service.query(g, query, Organisation.class);
+		assertEquals(0, organisations.size());
+
+		// Property with two values
+		query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?test") //
+				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'c'") //
+				.build();
+
+		organisations = service.query(g, query, null);
+		assertEquals(1, organisations.size());
+		assertEquals(organisation, organisations.iterator().next());
+
+		query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?test") //
+				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'C'") //
+				.build();
+
+		organisations = service.query(g, query, null);
+		assertEquals(1, organisations.size());
+		assertEquals(organisation, organisations.iterator().next());
+
+		query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?test") //
+				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'D'") //
+				.build();
+
+		organisations = service.query(g, query, Organisation.class);
+		assertEquals(0, organisations.size());
+
+		// Select all (this is not efficient!)
+		query = new SelectBuilder() //
+				.addPrefix("", GidsService.Vocabulary.uri) //
+				.setDistinct(true) //
+				.addVar("?s") //
+				.addWhere("?s", RDF.type, "?t") //
+				.build();
+
+		organisations = service.query(g, query, Organisation.class);
+		assertEquals(1, organisations.size());
+		assertEquals(organisation, organisations.iterator().next());
+		List<Address> addresses = service.query(g, query, Address.class);
+		assertEquals(1, addresses.size());
+		assertEquals(address, addresses.iterator().next());
+		List<GidsObject> objects = service.query(g, query, GidsObject.class);
+		assertEquals(6, objects.size());
 	}
 }
