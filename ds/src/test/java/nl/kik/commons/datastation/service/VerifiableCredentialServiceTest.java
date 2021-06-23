@@ -26,8 +26,6 @@ import nl.kik.commons.datastation.dto.ds.async.Request;
 import nl.kik.commons.datastation.dto.vc.AbstractVerifiableCredentialTest;
 import nl.kik.commons.datastation.dto.vc.VerifiableBase;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
-import nl.kik.commons.datastation.service.MessageService;
-import nl.kik.commons.datastation.service.VerifiableCredentialService;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 
 @Slf4j

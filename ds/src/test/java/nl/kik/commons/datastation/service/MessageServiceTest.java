@@ -22,7 +22,6 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.async.AbstractMessageTest;
 import nl.kik.commons.datastation.dto.ds.async.Message;
-import nl.kik.commons.datastation.service.MessageService;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 
 @Slf4j

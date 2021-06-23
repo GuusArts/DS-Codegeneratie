@@ -8,11 +8,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 
-import nl.kik.commons.datastation.dto.ds.async.ErrorReport;
-import nl.kik.commons.datastation.dto.ds.async.Message;
-import nl.kik.commons.datastation.dto.ds.async.Request;
-import nl.kik.commons.datastation.dto.ds.async.Response;
-
 public abstract class AbstractMessageTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
 	protected Request<String> request;

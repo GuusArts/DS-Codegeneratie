@@ -7,10 +7,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 
-import nl.kik.commons.datastation.dto.vc.ValidatedQuery;
-import nl.kik.commons.datastation.dto.vc.VerifiableBase;
-import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
-
 public abstract class AbstractVerifiableCredentialTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
 	protected ValidatedQuery credential;

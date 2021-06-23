@@ -16,7 +16,6 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.AbstractResultTest;
 import nl.kik.commons.datastation.dto.ds.Result;
-import nl.kik.commons.datastation.service.ResultService;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 
 @Slf4j

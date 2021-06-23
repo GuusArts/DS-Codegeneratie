@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -29,6 +30,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.vocabulary.RDF;
 import org.springframework.stereotype.Service;
@@ -448,8 +450,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (RDFNode n : all) {
 			try {
 				T v = mapper.apply(n);
-				Resource r = graph.getReified(resource, p, n);
-				search(graph, r, Vocabulary.source, null, s -> s.getObject()) //
+				getSources(graph, resource, p, n) //
 						.map(reverseSources::get) //
 						.filter(Objects::nonNull) //
 						.forEach(s -> builder.alternative(s, v));
@@ -466,8 +467,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (RDFNode n : all) {
 			try {
 				T v = mapper.apply(n);
-				Resource r = graph.getReified(resource, p, n);
-				search(graph, r, Vocabulary.source, null, s -> s.getObject()) //
+				getSources(graph, resource, p, n) //
 						.map(reverseSources::get) //
 						.filter(Objects::nonNull) //
 						.map(s -> GidsAttribute.<T>builder().alternative(s, v).build()) //
@@ -590,8 +590,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					.filter(Objects::nonNull) //
 					.map(s -> {
 						try {
-							final U v = extract.apply(
-									new StatementImpl((Resource) s.get("?s"), (Property) s.get("?p"), s.get("?o")));
+							final U v = extract.apply(new StatementImpl(s.get("?s").asResource(),
+									new PropertyImpl(s.get("?p").asResource().getURI()), s.get("?o")));
 							log.trace(" - {} -> {}", s, v);
 							return v;
 						} catch (final Exception ex) {
@@ -599,8 +599,51 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 							return null;
 						}
 					}) //
-					.filter(Objects::nonNull); //
+					.filter(Objects::nonNull) //
+					.collect(Collectors.toList()) //
+					.stream();
 		}
+	}
+
+	public Stream<RDFNode> getSources(GraphOrRemote graph, Resource s, Property p, RDFNode o) {
+		if (graph.isGraph()) {
+			return graph.getGraph().getModel().listReifiedStatements(graph.getGraph().getModel().createStatement(s, p, o))
+					.toList().stream() //
+					.flatMap(r -> search(graph, r, Vocabulary.source, null, st -> st.getObject()));
+		}
+		if (graph.isRemote()) {
+			Query q = new SelectBuilder() //
+					.addPrefix("", Vocabulary.uri) //
+					.addVar("?source") //
+					.setDistinct(true) //
+					.addWhere("?s", RDF.type, RDF.Statement) //
+					.addWhere("?s", RDF.subject, s) //
+					.addWhere("?s", RDF.predicate, p) //
+					.addWhere("?s", RDF.object, o) //
+					.addWhere("?s", Vocabulary.source, "?source") //
+					.build();
+			try (QueryExecution qe = QueryExecutionFactory.sparqlService(graph.getRemote(), q)) {
+				ResultSet rs = qe.execSelect();
+				return StreamSupport
+						.stream(Spliterators.spliteratorUnknownSize(rs,
+								Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
+						.filter(Objects::nonNull) //
+						.map(st -> {
+							try {
+								Resource v = st.get("?source").asResource();
+								log.trace(" - {} -> {}", st, v);
+								return (RDFNode) v;
+							} catch (final Exception ex) {
+								log.trace(" - Failed extracting from {}", s);
+								return null;
+							}
+						}) //
+						.filter(Objects::nonNull) //
+						.collect(Collectors.toList()) //
+						.stream();
+			}
+		}
+		throw new IllegalArgumentException(); // Should never reach here
 	}
 
 	/**
@@ -627,13 +670,14 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			builder = builder //
 					.addBind(e.asExpr(p), "?p");
 		}
-		if (r != null) {
+		if (o != null) {
 			builder = builder //
 					.addBind(e.asExpr(o), "?o");
 		}
 		Query q = builder //
 				.addWhere("?s", "?p", "?o") //
 				.build();
+		log.trace("Generated query {}", q);
 		return q;
 	}
 

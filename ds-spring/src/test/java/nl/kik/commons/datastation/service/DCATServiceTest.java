@@ -28,9 +28,7 @@ public class DCATServiceTest extends AbstractDCATTest {
 	@Test
 	void testGetAllCatalogs() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		for (final RDFObject m : model) {
-			service.save(g, m);
-		}
+		model.forEach(o -> service.save(g, o));
 		final Collection<? extends Catalog> catalogs = service.getAllCatalogs(g);
 		DCATServiceTest.log.trace("Found {} catalogs: {}", catalogs.size(), catalogs);
 		Assertions.assertEquals(1, catalogs.size());
@@ -40,9 +38,7 @@ public class DCATServiceTest extends AbstractDCATTest {
 	@Test
 	void testLoad() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		for (final RDFObject m : model) {
-			service.save(g, m);
-		}
+		model.forEach(o -> service.save(g, o));
 		for (final RDFObject m : model) {
 			final Optional<RDFObject> o = service.lookupById(g, m.getId());
 			if (o.isEmpty()) {
@@ -59,9 +55,7 @@ public class DCATServiceTest extends AbstractDCATTest {
 	@Test
 	void testSave() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		for (final RDFObject m : model) {
-			service.save(g, m);
-		}
+		model.forEach(o -> service.save(g, o));
 		RDFService.snapshot(g, true, null);
 	}
 }

@@ -15,7 +15,6 @@ import nl.kik.commons.datastation.dto.dcat.AbstractDCATTest;
 import nl.kik.commons.datastation.dto.dcat.DataService;
 import nl.kik.commons.datastation.dto.dcat.Dataset;
 import nl.kik.commons.datastation.dto.dcat.kikv.Constants;
-import nl.kik.commons.datastation.service.CatalogService;
 
 class CatalogServiceTest extends AbstractDCATTest {
 	private CatalogService service;

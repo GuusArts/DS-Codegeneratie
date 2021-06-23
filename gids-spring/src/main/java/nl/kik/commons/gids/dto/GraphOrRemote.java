@@ -2,10 +2,7 @@ package nl.kik.commons.gids.dto;
 
 import java.util.Objects;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
@@ -80,16 +77,6 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 
 	public Graph<? extends Model> getGraph() {
 		return graph;
-	}
-
-	public Resource getReified(Resource s, Property p, RDFNode o) {
-		if (isGraph()) {
-			return getGraph().getModel().getAnyReifiedStatement(getGraph().getModel().createStatement(s, p, o));
-		}
-		if (isRemote()) {
-			throw new NotImplementedException(); // TODO
-		}
-		throw new IllegalArgumentException(); // Should never reach here
 	}
 
 }

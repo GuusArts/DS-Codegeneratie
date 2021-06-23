@@ -9,8 +9,12 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.jena.fuseki.main.FusekiServer;
+import org.apache.jena.fuseki.server.DataService;
+import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.sparql.core.DatasetGraphOne;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +32,7 @@ import nl.kik.commons.gids.dto.Location;
 import nl.kik.commons.gids.dto.Organisation;
 import nl.kik.commons.gids.dto.Region;
 import nl.kik.commons.gids.dto.Source;
+import nl.kik.commons.service.RDFService;
 
 @Slf4j
 class GidsServiceTest {
@@ -102,7 +107,7 @@ class GidsServiceTest {
 	void testSave() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		model.forEach(o -> service.save(g, o));
-//		RDFService.snapshot(g, true, null);
+		RDFService.snapshot(g, true, null);
 	}
 
 	@Test
@@ -110,10 +115,10 @@ class GidsServiceTest {
 		Address lrza = address.project(Source.LRZA);
 		Address tabelbeheer = address.project(Source.TABELBEHEER);
 
-		log.info("Projecting");
-		log.info("{}", address);
-		log.info("{}", lrza);
-		log.info("{}", tabelbeheer);
+		log.trace("Projecting");
+		log.trace("{}", address);
+		log.trace("{}", lrza);
+		log.trace("{}", tabelbeheer);
 
 		assertNotEquals(address, lrza);
 		assertNotEquals(address, tabelbeheer);
@@ -134,7 +139,7 @@ class GidsServiceTest {
 	}
 
 	@Test
-	void testLoad() {
+	void testLoadLocal() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		model.forEach(o -> service.save(g, o));
 		for (final RDFObject m : model) {
@@ -142,13 +147,51 @@ class GidsServiceTest {
 			if (o.isEmpty()) {
 				Assertions.fail("Not found " + m);
 			} else {
-				log.info("Comparing");
-				log.info("{}", m);
-				log.info("{}", o.get());
+				log.trace("Comparing");
+				log.trace("{}", m);
+				log.trace("{}", o.get());
 				Assertions.assertEquals(m, o.get());
 				Assertions.assertNotSame(m, o.get());
 			}
 		}
 	}
 
+	@Test
+	void testLoadRemote() {
+		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
+		model.forEach(o -> service.save(g, o));
+
+		final DataService metadataService = DataService //
+				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
+				.addEndpoint(Operation.GSP_R, "") //
+				.addEndpoint(Operation.GSP_R, "data") //
+				.addEndpoint(Operation.Query, "query") //
+				.addEndpoint(Operation.Query, "sparql") //
+				.build();
+
+		FusekiServer fusekiServer = FusekiServer.create() //
+				.port(54321) //
+				.loopback(true) //
+				.contextPath("/graph") //
+				.add("/gids", metadataService) //
+				.build();
+
+		fusekiServer.start();
+		fusekiServer.logServer();
+
+		for (final RDFObject m : model) {
+			final Optional<RDFObject> o = service.lookupById("http://localhost:54321/graph/gids/sparql", m.getId());
+			if (o.isEmpty()) {
+				Assertions.fail("Not found " + m);
+			} else {
+				log.trace("Comparing");
+				log.trace("{}", m);
+				log.trace("{}", o.get());
+				Assertions.assertEquals(m, o.get());
+				Assertions.assertNotSame(m, o.get());
+			}
+		}
+
+		fusekiServer.stop();
+	}
 }

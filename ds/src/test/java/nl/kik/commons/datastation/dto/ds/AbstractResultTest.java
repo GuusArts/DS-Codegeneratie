@@ -6,14 +6,6 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 
-import nl.kik.commons.datastation.dto.ds.AskResult;
-import nl.kik.commons.datastation.dto.ds.Binding;
-import nl.kik.commons.datastation.dto.ds.Header;
-import nl.kik.commons.datastation.dto.ds.RDFType;
-import nl.kik.commons.datastation.dto.ds.Result;
-import nl.kik.commons.datastation.dto.ds.SelectBody;
-import nl.kik.commons.datastation.dto.ds.SelectResult;
-
 public abstract class AbstractResultTest {
 	private AskResult ask;
 	private SelectResult select;
