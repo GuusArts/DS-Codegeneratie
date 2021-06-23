@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder(toBuilder = true)
 @Getter
-@ToString(callSuper = true)
+@ToString
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode
 public class RDFObject {

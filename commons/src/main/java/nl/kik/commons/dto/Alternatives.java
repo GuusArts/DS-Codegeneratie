@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder(toBuilder = true)
 @Getter
-@ToString(callSuper = true)
+@ToString
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode
 public abstract class Alternatives<K, V> implements Projectable<K, Alternatives<K, V>> {
@@ -60,12 +60,14 @@ public abstract class Alternatives<K, V> implements Projectable<K, Alternatives<
 		protected final Map<K, V> values = new HashMap<K, V>();
 
 		public B alternatives(Map<K, V> values) {
-			this.values.putAll(values);
+			values.forEach(this::alternative);
 			return self();
 		}
 
 		public B alternative(K key, V value) {
-			this.values.put(key, value);
+			if (key != null && value != null) {
+				this.values.put(key, value);
+			}
 			return self();
 		}
 	}

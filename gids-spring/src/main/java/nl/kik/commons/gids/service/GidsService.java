@@ -1,6 +1,9 @@
 package nl.kik.commons.gids.service;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -192,9 +195,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	protected <T> void addEnum(Graph<? extends Model> g, Resource resource, Property property,
 			GidsAttribute<T> attribute, Map<T, Resource> map) {
-		if (attribute.getValues() != null) {
+		if (attribute != null && attribute.getValues() != null) {
 			attribute.getValues().forEach((k, v) -> {
-				Resource r = map.get(attribute);
+				Resource r = map.get(v);
 				if (r != null) {
 					Statement s = g.getModel().createStatement(resource, property, r);
 					g.getModel().add(s);
@@ -267,7 +270,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			saveGidsObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, Vocabulary.CareOffice);
 			addProperty(g, resource, Vocabulary.code, object.getCode());
-			addProperty(g, resource, Vocabulary.region, object.getRegion());
+			addObject(g, resource, Vocabulary.region, object.getRegion(), false);
 			addObject(g, resource, Vocabulary.concessionaire, object.getConcessionaire(), false);
 			addName(g, resource, object);
 			g.commit();
@@ -417,35 +420,124 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		throw new IllegalArgumentException("Cannot load Gids objects of type " + t.getSimpleName());
 	}
 
+	private <B extends GidsObject.GidsObjectBuilder<?, ?>> B getGidsObject(GraphOrRemote graph,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
+		return getRDFObject(graph, properties, resource, builder) //
+		;
+	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends Address.AddressBuilder<?, ?>> B getAddress(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.houseNumber(
+						getAlternatives(graph, resource, properties, Vocabulary.houseNumber, RDFService::getString)) //
+				.houseLetter(
+						getAlternatives(graph, resource, properties, Vocabulary.houseLetter, RDFService::getString)) //
+				.town(getAlternatives(graph, resource, properties, Vocabulary.town, RDFService::getString)) //
+				.province(getAlternatives(graph, resource, properties, Vocabulary.province, RDFService::getString)) //
+				.postalcode(getAlternatives(graph, resource, properties, Vocabulary.postalcode, RDFService::getString)) //
+				.street(getAlternatives(graph, resource, properties, Vocabulary.street, RDFService::getString)) //
+		;
 	}
+
+	private <T> GidsAttribute<T> getAlternatives(GraphOrRemote graph, Resource resource,
+			MultiValuedMap<Property, RDFNode> properties, Property p, Function<RDFNode, T> mapper) {
+		Collection<RDFNode> all = properties.get(p);
+		var builder = GidsAttribute.<T>builder();
+		for (RDFNode n : all) {
+			try {
+				T v = mapper.apply(n);
+				Resource r = graph.getReified(resource, p, n);
+				search(graph, r, Vocabulary.source, null, s -> s.getObject()) //
+						.map(reverseSources::get) //
+						.filter(Objects::nonNull) //
+						.forEach(s -> builder.alternative(s, v));
+			} catch (final Exception e) {
+			}
+		}
+		return builder.build();
+	}
+
+	private <T> List<GidsAttribute<T>> getAlternativesList(GraphOrRemote graph, Resource resource,
+			MultiValuedMap<Property, RDFNode> properties, Property p, Function<RDFNode, T> mapper) {
+		Collection<RDFNode> all = properties.get(p);
+		List<GidsAttribute<T>> result = new ArrayList<>();
+		for (RDFNode n : all) {
+			try {
+				T v = mapper.apply(n);
+				Resource r = graph.getReified(resource, p, n);
+				search(graph, r, Vocabulary.source, null, s -> s.getObject()) //
+						.map(reverseSources::get) //
+						.filter(Objects::nonNull) //
+						.map(s -> GidsAttribute.<T>builder().alternative(s, v).build()) //
+						.forEach(result::add);
+			} catch (final Exception e) {
+			}
+		}
+		return result.isEmpty() ? null : result;
+	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends CareOffice.CareOfficeBuilder<?, ?>> B getCareOffice(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.code(getAlternatives(graph, resource, properties, Vocabulary.code, RDFService::getString)) //
+				.name(getAlternatives(graph, resource, properties, Vocabulary.name, RDFService::getString)) //
+				.region(getAlternatives(graph, resource, properties, Vocabulary.region,
+						n -> getObject(graph, n, Region.class))) //
+				.concessionaire(getAlternatives(graph, resource, properties, Vocabulary.concessionaire,
+						n -> getObject(graph, n, Concessionaire.class))) //
+		;
 	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends Concessionaire.ConcessionaireBuilder<?, ?>> B getConcessionaire(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.name(getAlternatives(graph, resource, properties, Vocabulary.name, RDFService::getString)) //
+		;
 	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends Location.LocationBuilder<?, ?>> B getLocation(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.name(getAlternatives(graph, resource, properties, Vocabulary.name, RDFService::getString)) //
+				.number(getAlternatives(graph, resource, properties, Vocabulary.number, RDFService::getString)) //
+				.agb(getAlternatives(graph, resource, properties, Vocabulary.agb, RDFService::getString)) //
+		;
 	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends Organisation.OrganisationBuilder<?, ?>> B getOrganisation(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.address(getAlternatives(graph, resource, properties, Vocabulary.address,
+						n -> getObject(graph, n, Address.class))) //
+				.office(getAlternatives(graph, resource, properties, Vocabulary.office,
+						n -> getObject(graph, n, CareOffice.class))) //
+				.name(getAlternatives(graph, resource, properties, Vocabulary.name, RDFService::getString)) //
+				.tradeName(getAlternatives(graph, resource, properties, Vocabulary.tradeName, RDFService::getString)) //
+				.careProviderName(getAlternatives(graph, resource, properties, Vocabulary.careProviderName,
+						RDFService::getString)) //
+				.lastModified(
+						getAlternatives(graph, resource, properties, Vocabulary.lastModified, RDFService::getDateTime)) //
+				.agb(getAlternatives(graph, resource, properties, Vocabulary.agb, RDFService::getString)) //
+				.location(getAlternativesList(graph, resource, properties, Vocabulary.location,
+						n -> getObject(graph, n, Location.class))) //
+				.deliveryMethod(getAlternatives(graph, resource, properties, Vocabulary.deliveryMethod,
+						n -> n.isResource() ? getEnum(Collections.singletonList(n.asResource()), reverseDeliveryMethods)
+								: null)) //
+		;
 	}
+
+	@SuppressWarnings("unchecked")
 	private <B extends Region.RegionBuilder<?, ?>> B getRegion(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
-		// TODO Auto-generated method stub
-		return builder;
+		return (B) getGidsObject(graph, properties, resource, builder) //
+				.code(getAlternatives(graph, resource, properties, Vocabulary.code, RDFService::getString)) //
+		;
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -470,6 +562,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return lookupById(new GraphOrRemote(remote), id);
 	}
 
+	public static <U> Stream<U> search(GraphOrRemote g, final Resource r, final Property p, final Resource o,
+			final Function<Statement, U> extract) {
+		if (g.isGraph()) {
+			return search(g.getGraph(), r, p, o, extract);
+		}
+		if (g.isRemote()) {
+			return search(g.getRemote(), r, p, o, extract);
+		}
+		throw new IllegalArgumentException(); // Should never be reachable
+	}
+
 	/**
 	 * @param r
 	 * @return
@@ -478,6 +581,35 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			final Function<Statement, U> extract) {
 		log.trace("Search for ({}, {}, {})", r, p, o);
 
+		Query q = getSelectQuery(r, p, o);
+		try (QueryExecution qe = QueryExecutionFactory.sparqlService(service, q)) {
+			ResultSet rs = qe.execSelect();
+			return StreamSupport
+					.stream(Spliterators.spliteratorUnknownSize(rs,
+							Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
+					.filter(Objects::nonNull) //
+					.map(s -> {
+						try {
+							final U v = extract.apply(
+									new StatementImpl((Resource) s.get("?s"), (Property) s.get("?p"), s.get("?o")));
+							log.trace(" - {} -> {}", s, v);
+							return v;
+						} catch (final Exception ex) {
+							log.trace(" - Failed extracting from {}", s);
+							return null;
+						}
+					}) //
+					.filter(Objects::nonNull); //
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param p
+	 * @param o
+	 * @return
+	 */
+	protected static Query getSelectQuery(final Resource r, final Property p, final Resource o) {
 		var builder = new SelectBuilder();
 		var e = builder.getExprFactory();
 		builder = builder //
@@ -502,26 +634,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		Query q = builder //
 				.addWhere("?s", "?p", "?o") //
 				.build();
-
-		try (QueryExecution qe = QueryExecutionFactory.sparqlService(service, q)) {
-			ResultSet rs = qe.execSelect();
-			return StreamSupport
-					.stream(Spliterators.spliteratorUnknownSize(rs,
-							Spliterator.ORDERED | Spliterator.DISTINCT | Spliterator.IMMUTABLE), false) //
-					.filter(Objects::nonNull) //
-					.map(s -> {
-						try {
-							final U v = extract.apply(
-									new StatementImpl((Resource) s.get("?s"), (Property) s.get("?p"), s.get("?o")));
-							log.trace(" - {} -> {}", s, v);
-							return v;
-						} catch (final Exception ex) {
-							log.trace(" - Failed extracting from {}", s);
-							return null;
-						}
-					}) //
-					.filter(Objects::nonNull); //
-		}
+		return q;
 	}
 
 }

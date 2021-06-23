@@ -164,7 +164,20 @@ public class RDFService {
 	 */
 	public static ZonedDateTime getDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
-			return ZonedDateTime.parse(properties.get(p).iterator().next().asLiteral().getString());
+			return getDateTime(properties.get(p).iterator().next());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public static ZonedDateTime getDateTime(RDFNode n) {
+		try {
+			return ZonedDateTime.parse(n.asLiteral().getString());
 		} catch (final Exception e) {
 			return null;
 		}
