@@ -1,0 +1,347 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="https://kik-v.nl/ontology/starter/gids#"
+     xml:base="https://kik-v.nl/ontology/starter/gids"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="https://kik-v.nl/ontology/starter/gids#"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#address -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#address">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAddress"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#concessionaire -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#concessionaire">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#CareOffice"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Concessionaire"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#deliveryMethod -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#deliveryMethod">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Organisation"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#DeliveryMethod"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#location -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#location">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Organisation"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Location"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#office -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#office">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Organisation"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#CareOffice"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#region -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#region">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#CareOffice"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Region"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#source -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#source">
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Source"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#agb -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#agb">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#careProviderName -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#careProviderName">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Organisation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#code -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#code">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#houseLetter -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#houseLetter">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#houseNumber -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#houseNumber">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#lastModified -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#lastModified">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Changeable"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#name -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#name">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#number -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#number">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Location"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#postalcode -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#postalcode">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#province -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#province">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#street -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#street">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#town -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#town">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Address"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#tradeName -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#tradeName">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#Organisation"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Address -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Address"/>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#CareOffice -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#CareOffice">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Changeable -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Changeable">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Concessionaire -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Concessionaire">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#DeliveryMethod -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#DeliveryMethod">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Enums"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Enums -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Enums"/>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#HasAddress -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#HasAddress">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#HasAgb -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#HasAgb">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#HasCode -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#HasCode">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#HasName -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#HasName">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Interfaces -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Location -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Location">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Organisation -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Organisation">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Changeable"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAddress"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Region -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Region">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#Source -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Source">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Enums"/>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

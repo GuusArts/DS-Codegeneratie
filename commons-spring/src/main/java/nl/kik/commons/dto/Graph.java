@@ -4,6 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.Transactional;
 
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(exclude = { "model", "transactional" })
 @JsonInclude(Include.NON_NULL)
 @Slf4j
-public class Graph<G extends Model> {
+public class Graph<G extends Model> implements Source {
 	private G model;
 	private Transactional transactional;
 	private Graph<? extends Model> delegate;
@@ -178,6 +179,11 @@ public class Graph<G extends Model> {
 				}
 			}
 		}
+	}
+
+	@Override
+	public Resource getResource(String uri) {
+		return getModel().getResource(uri);
 	}
 
 }

@@ -14,22 +14,24 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Location extends GidsObject implements HasName, HasAgb, Projectable<Source, Location> {
+public class CareOffice extends GidsObject implements HasName, Projectable<Source, CareOffice> {
+	private GidsAttribute<String> code;
+	private GidsAttribute<Region> region;
+	private GidsAttribute<Concessionaire> concessionaire;
 	private GidsAttribute<String> name;
-	private GidsAttribute<String> number;
-	private GidsAttribute<String> agb;
 
 	@Override
-	public Location project(Source key) {
-		return Location.builder() //
+	public CareOffice project(Source key) {
+		return CareOffice.builder() //
+				.code(code == null ? null : code.project(key)) //
+				.region(region == null ? null : region.project(key)) //
+				.concessionaire(concessionaire == null ? null : concessionaire.project(key)) //
 				.name(name == null ? null : name.project(key)) //
-				.number(number == null ? null : number.project(key)) //
-				.agb(agb == null ? null : agb.project(key)) //
 				.build().orNull();
 	}
 
-	public Location orNull() {
-		if (name == null && number == null && agb == null) {
+	public CareOffice orNull() {
+		if (code == null && region == null && concessionaire == null && name == null) {
 			return null;
 		} else {
 			return this;

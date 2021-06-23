@@ -23,15 +23,17 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.dto.RDFObject.RDFObjectBuilder;
+import nl.kik.commons.dto.Source;
 
 @Slf4j
-public abstract class AbstractRDFService extends RDFService {
+public abstract class AbstractRDFService<L extends Source> extends RDFService {
 	public <U extends RDFObject> U save(Graph<? extends Model> g, U object) {
 		saveDetails(g, object);
 		return object;
@@ -92,10 +94,10 @@ public abstract class AbstractRDFService extends RDFService {
 	protected abstract void deleteDetails(Graph<? extends Model> g, Resource resource, RDFObject object, boolean purge);
 
 	@SuppressWarnings("unchecked")
-	public <U extends RDFObject> Optional<U> lookupById(Graph<? extends Model> graph, @NotNull String id) {
+	public <U extends RDFObject> Optional<U> lookupById(L graph, @NotNull String id) {
 		graph.beginRead();
 		try {
-			return Optional.ofNullable(graph.getModel().getResource(id)).stream()//
+			return Optional.ofNullable(graph.getResource(id)).stream()//
 					.map(r -> Pair.of(r, getProperties(graph, r))) //
 					.map(p -> Pair.of(p.getRight(), (U) getObject(graph, p.getRight(), p.getLeft()))) //
 					.filter(p -> p.getRight() != null) //
@@ -106,9 +108,17 @@ public abstract class AbstractRDFService extends RDFService {
 		}
 	}
 
+	protected MultiValuedMap<Property, RDFNode> getProperties(L g, final Resource r) {
+		if (g instanceof Graph) {
+			return RDFService.getProperties((Graph<?>) g, r);
+		} else {
+			throw new IllegalArgumentException();
+		}
+	}
+
 	@SuppressWarnings("unchecked")
-	protected <U extends RDFObject> U getObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource) {
+	protected <U extends RDFObject> U getObject(L graph, MultiValuedMap<Property, RDFNode> properties,
+			Resource resource) {
 		return getMostSpecificType(getObjectTypes(), properties, resource).map(t -> {
 			log.trace("Loading {} of type {}", resource, t);
 			return getObject(graph, properties, resource, (Class<U>) t);
@@ -147,8 +157,8 @@ public abstract class AbstractRDFService extends RDFService {
 
 	protected abstract Map<Resource, Class<? extends RDFObject>> getObjectTypes();
 
-	protected abstract <U extends RDFObject> U getObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, Class<U> t);
+	protected abstract <U extends RDFObject> U getObject(L graph, MultiValuedMap<Property, RDFNode> properties,
+			Resource resource, Class<U> t);
 
 	/**
 	 * @param g
@@ -174,52 +184,60 @@ public abstract class AbstractRDFService extends RDFService {
 	 * @param resource
 	 * @param property
 	 * @param object
+	 * @return
 	 */
-	protected void addObject(Graph<? extends Model> g, Resource resource, Property property, RDFObject object) {
+	protected Statement addObject(Graph<? extends Model> g, Resource resource, Property property, RDFObject object) {
 		if (object != null) {
 			Resource r = saveDetails(g, object);
-			g.getModel().add(resource, property, r);
+			Statement s = g.getModel().createStatement(resource, property, r);
+			g.getModel().add(s);
+			return s;
 		}
+		return null;
 	}
 
-	protected void addProperty(Graph<? extends Model> g, Resource resource, Property property, Object value) {
+	protected Statement addProperty(Graph<? extends Model> g, Resource resource, Property property, Object value) {
 		if (value != null) {
 			if (value instanceof URL) {
 				log.warn("URLs should be added using addURL for {}", property);
 			}
+			Statement s;
 			if (value instanceof Duration) {
-				g.getModel().add(resource, property,
+				s = g.getModel().createStatement(resource, property,
 						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
 			} else if (value instanceof ZonedDateTime) {
-				g.getModel().add(resource, property,
-						g.getModel().createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), new XSDDateTimeType("dateTime")));
+				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(
+						((ZonedDateTime) value).toOffsetDateTime().toString(), new XSDDateTimeType("dateTime")));
 			} else {
-				g.getModel().add(resource, property, g.getModel().createTypedLiteral(value));
+				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(value));
 			}
+			g.getModel().add(s);
+			return s;
 		}
+		return null;
 	}
 
-
 	@SuppressWarnings("unchecked")
-	protected <B extends RDFObjectBuilder<?, ?>> B getRDFObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Resource resource, B builder) {
+	protected <B extends RDFObjectBuilder<?, ?>> B getRDFObject(L graph, MultiValuedMap<Property, RDFNode> properties,
+			Resource resource, B builder) {
 		return (B) builder //
 				.id(resource.getURI()) //
 		;
 	}
+
 	/**
 	 * @param graph
 	 * @param properties
 	 * @param member
 	 * @return
 	 */
-	protected <T extends RDFObject> Set<T> getSet(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Property property, Class<T> clazz) {
+	protected <T extends RDFObject> Set<T> getSet(L graph, MultiValuedMap<Property, RDFNode> properties,
+			Property property, Class<T> clazz) {
 		return getSet(properties, property, n -> getObject(graph, n, clazz));
 	}
 
-	protected <T extends RDFObject> T getObject(Graph<? extends Model> graph,
-			MultiValuedMap<Property, RDFNode> properties, Property property, Class<T> clazz) {
+	protected <T extends RDFObject> T getObject(L graph, MultiValuedMap<Property, RDFNode> properties,
+			Property property, Class<T> clazz) {
 		List<T> result = properties.get(property).stream() //
 				.map(n -> getObject(graph, n, clazz)) //
 				.filter(Objects::nonNull) //
@@ -233,7 +251,7 @@ public abstract class AbstractRDFService extends RDFService {
 		return result.get(0);
 	}
 
-	protected <T extends RDFObject> T getObject(Graph<? extends Model> graph, RDFNode n, Class<T> clazz) {
+	protected <T extends RDFObject> T getObject(L graph, RDFNode n, Class<T> clazz) {
 		return Optional.ofNullable(n) //
 				.filter(RDFNode::isResource) //
 				.map(r -> lookupById(graph, r.asResource().getURI())) //

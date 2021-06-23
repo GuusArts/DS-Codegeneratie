@@ -56,7 +56,7 @@ import nl.kik.commons.service.AbstractRDFService;
 import nl.kik.commons.service.RDFService;
 
 @Service
-public class DCATService extends AbstractRDFService {
+public class DCATService extends AbstractRDFService<Graph<Model>> {
 	public static class Vocabulary extends DCAT {
 		private static final Model m = ModelFactory.createDefaultModel();
 
@@ -107,13 +107,13 @@ public class DCATService extends AbstractRDFService {
 
 	}
 
-	private <B extends AgentBuilder<?, ?>> B getAgent(final Graph<? extends Model> graph,
+	private <B extends AgentBuilder<?, ?>> B getAgent(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getFOAFObject(graph, properties, resource, builder) //
 		;
 	}
 
-	public Collection<? extends Catalog> getAllCatalogs(final Graph<? extends Model> graph) {
+	public Collection<? extends Catalog> getAllCatalogs(final Graph<Model> graph) {
 		return search(graph, null, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog, Statement::getSubject) //
 				.map(r -> Pair.of(r, getProperties(graph, r))) //
 				.map(p -> getObject(graph, p.getRight(), p.getLeft())) //
@@ -123,7 +123,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends CatalogBuilder<?, ?>> B getCatalog(final Graph<? extends Model> graph,
+	private <B extends CatalogBuilder<?, ?>> B getCatalog(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDataset(graph, properties, resource, builder) //
 				.themeTaxonomy(
@@ -137,7 +137,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends CatalogRecordBuilder<?, ?>> B getCatalogRecord(final Graph<? extends Model> graph,
+	private <B extends CatalogRecordBuilder<?, ?>> B getCatalogRecord(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
 				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
@@ -149,7 +149,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends DataServiceBuilder<?, ?>> B getDataService(final Graph<? extends Model> graph,
+	private <B extends DataServiceBuilder<?, ?>> B getDataService(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getResource(graph, properties, resource, builder) //
 				.endpointURL(getURL(properties, org.apache.jena.vocabulary.DCAT.endpointURL)) //
@@ -160,7 +160,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends DatasetBuilder<?, ?>> B getDataset(final Graph<? extends Model> graph,
+	private <B extends DatasetBuilder<?, ?>> B getDataset(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getResource(graph, properties, resource, builder) //
 				.distribution(
@@ -173,14 +173,14 @@ public class DCATService extends AbstractRDFService {
 		;
 	}
 
-	private <B extends DCATObjectBuilder<?, ?>> B getDCATObject(final Graph<? extends Model> graph,
+	private <B extends DCATObjectBuilder<?, ?>> B getDCATObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getRDFObject(graph, properties, resource, builder) //
 		;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <U extends DCATObject> U getDCATObject(final Graph<? extends Model> graph,
+	protected <U extends DCATObject> U getDCATObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
 		if (Catalog.class.isAssignableFrom(t))
 			return (U) getCatalog(graph, properties, resource, Catalog.builder()).build();
@@ -204,7 +204,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends DistributionBuilder<?, ?>> B getDistribution(final Graph<? extends Model> graph,
+	private <B extends DistributionBuilder<?, ?>> B getDistribution(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
 				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
@@ -223,14 +223,14 @@ public class DCATService extends AbstractRDFService {
 		;
 	}
 
-	private <B extends FOAFObjectBuilder<?, ?>> B getFOAFObject(final Graph<? extends Model> graph,
+	private <B extends FOAFObjectBuilder<?, ?>> B getFOAFObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getRDFObject(graph, properties, resource, builder) //
 		;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <U extends FOAFObject> U getFOAFObject(final Graph<? extends Model> graph,
+	protected <U extends FOAFObject> U getFOAFObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
 		if (Group.class.isAssignableFrom(t))
 			return (U) getGroup(graph, properties, resource, Group.builder()).build();
@@ -242,7 +242,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends GroupBuilder<?, ?>> B getGroup(final Graph<? extends Model> graph,
+	private <B extends GroupBuilder<?, ?>> B getGroup(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getAgent(graph, properties, resource, builder) //
 				.member(getSet(graph, properties, Vocabulary.member, Agent.class)) //
@@ -251,7 +251,7 @@ public class DCATService extends AbstractRDFService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	protected <U extends RDFObject> U getObject(final Graph<? extends Model> graph,
+	protected <U extends RDFObject> U getObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
 		if (DCATObject.class.isAssignableFrom(t))
 			return (U) getDCATObject(graph, properties, resource, (Class<DCATObject>) t);
@@ -266,7 +266,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends OrganizationBuilder<?, ?>> B getOrganization(final Graph<? extends Model> graph,
+	private <B extends OrganizationBuilder<?, ?>> B getOrganization(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getAgent(graph, properties, resource, builder) //
 				.name(getString(properties, Vocabulary.name)) //
@@ -275,7 +275,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends PeriodOfTimeBuilder<?, ?>> B getPeriodOfTime(final Graph<? extends Model> graph,
+	private <B extends PeriodOfTimeBuilder<?, ?>> B getPeriodOfTime(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
 				.startDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.startDate)) //
@@ -283,7 +283,7 @@ public class DCATService extends AbstractRDFService {
 		;
 	}
 
-	private <B extends PersonBuilder<?, ?>> B getPerson(final Graph<? extends Model> graph,
+	private <B extends PersonBuilder<?, ?>> B getPerson(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getAgent(graph, properties, resource, builder) //
 		;
@@ -295,7 +295,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends RelationshipBuilder<?, ?>> B getRelationship(final Graph<? extends Model> graph,
+	private <B extends RelationshipBuilder<?, ?>> B getRelationship(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
 				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
@@ -304,7 +304,7 @@ public class DCATService extends AbstractRDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <B extends ResourceBuilder<?, ?>> B getResource(final Graph<? extends Model> graph,
+	private <B extends ResourceBuilder<?, ?>> B getResource(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
 				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
@@ -326,7 +326,7 @@ public class DCATService extends AbstractRDFService {
 		;
 	}
 
-	private <B extends RoleBuilder<?, ?>> B getRole(final Graph<? extends Model> graph,
+	private <B extends RoleBuilder<?, ?>> B getRole(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getDCATObject(graph, properties, resource, builder) //
 		;
@@ -415,7 +415,7 @@ public class DCATService extends AbstractRDFService {
 			g.end();
 		}
 	}
-
+	
 	protected void saveDCATObject(final Graph<? extends Model> g, final Resource resource, final DCATObject object) {
 		saveRDFObject(g, resource, object);
 	}

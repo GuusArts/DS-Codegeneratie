@@ -3,7 +3,6 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>nl.kik-v.commons</groupId>
 	<artifactId>gids-spring</artifactId>
 	<name>KIK-V Zorgaanbieder Gids Components Spring</name>
 
@@ -17,6 +16,16 @@
 		<dependency>
 			<groupId>nl.kik-v.commons</groupId>
 			<artifactId>commons-spring</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>${jena.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-querybuilder</artifactId>
+			<version>${jena.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>nl.kik-v.commons</groupId>

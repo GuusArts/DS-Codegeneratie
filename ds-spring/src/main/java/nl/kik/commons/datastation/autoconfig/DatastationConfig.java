@@ -15,7 +15,7 @@ import nl.kik.commons.datastation.service.ValidationService;
 import nl.kik.commons.datastation.service.VerifiableCredentialService;
 
 @Configuration
-public class CommonsConfig {
+public class DatastationConfig {
 	@Bean
 	@ConditionalOnMissingBean
 	public CatalogService catalogServce() {
