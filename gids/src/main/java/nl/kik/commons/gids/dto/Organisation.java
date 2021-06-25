@@ -35,6 +35,7 @@ public class Organisation extends GidsObject
 	@Override
 	public Organisation project(Source key) {
 		return Organisation.builder() //
+				.id(getId()) //
 				.address(address == null ? null : address.project(key)) //
 				.office(office == null ? null : office.project(key)) //
 				.name(name == null ? null : name.project(key)) //

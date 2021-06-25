@@ -23,6 +23,7 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 	@Override
 	public CareOffice project(Source key) {
 		return CareOffice.builder() //
+				.id(getId()) //
 				.code(code == null ? null : code.project(key)) //
 				.region(region == null ? null : region.project(key)) //
 				.concessionaire(concessionaire == null ? null : concessionaire.project(key)) //

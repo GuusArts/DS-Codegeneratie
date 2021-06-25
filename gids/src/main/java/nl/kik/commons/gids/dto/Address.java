@@ -24,6 +24,7 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 
 	public Address project(Source key) {
 		return Address.builder() //
+				.id(getId()) //
 				.houseNumber(houseNumber == null ? null : houseNumber.project(key)) //
 				.houseLetter(houseLetter == null ? null : houseLetter.project(key)) //
 				.town(town == null ? null : town.project(key)) //

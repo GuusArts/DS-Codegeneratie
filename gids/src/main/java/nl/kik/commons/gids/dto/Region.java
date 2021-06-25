@@ -20,6 +20,7 @@ public class Region extends GidsObject implements Projectable<Source, Region> {
 	@Override
 	public Region project(Source key) {
 		return Region.builder() //
+				.id(getId()) //
 				.code(code == null ? null : code.project(key)) //
 				.build().orNull();
 	}

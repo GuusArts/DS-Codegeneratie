@@ -23,6 +23,7 @@ public class Location extends GidsObject implements HasName, HasAgb, HasKvk, Pro
 	@Override
 	public Location project(Source key) {
 		return Location.builder() //
+				.id(getId()) //
 				.name(name == null ? null : name.project(key)) //
 				.number(number == null ? null : number.project(key)) //
 				.agb(agb == null ? null : agb.project(key)) //

@@ -20,6 +20,7 @@ public class Concessionaire extends GidsObject implements HasName, Projectable<S
 	@Override
 	public Concessionaire project(Source key) {
 		return Concessionaire.builder() //
+				.id(getId()) //
 				.name(name == null ? null : name.project(key)) //
 				.build().orNull();
 	}
