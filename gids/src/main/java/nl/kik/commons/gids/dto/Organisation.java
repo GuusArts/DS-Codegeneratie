@@ -20,7 +20,7 @@ import nl.kik.commons.dto.Projectable;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
 public class Organisation extends GidsObject
-		implements HasName, HasAgb, HasAddress, Changeable, Projectable<Source, Organisation> {
+		implements HasName, HasAgb, HasKvk, HasAddress, Changeable, Projectable<Source, Organisation> {
 	private GidsAttribute<Address> address;
 	private GidsAttribute<CareOffice> office;
 	private GidsAttribute<String> name;
@@ -28,6 +28,7 @@ public class Organisation extends GidsObject
 	private GidsAttribute<String> careProviderName;
 	private GidsAttribute<ZonedDateTime> lastModified;
 	private GidsAttribute<String> agb;
+	private GidsAttribute<String> kvk;
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 

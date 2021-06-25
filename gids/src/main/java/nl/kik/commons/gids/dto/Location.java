@@ -14,10 +14,11 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Location extends GidsObject implements HasName, HasAgb, Projectable<Source, Location> {
+public class Location extends GidsObject implements HasName, HasAgb, HasKvk, Projectable<Source, Location> {
 	private GidsAttribute<String> name;
 	private GidsAttribute<String> number;
 	private GidsAttribute<String> agb;
+	private GidsAttribute<String> kvk;
 
 	@Override
 	public Location project(Source key) {

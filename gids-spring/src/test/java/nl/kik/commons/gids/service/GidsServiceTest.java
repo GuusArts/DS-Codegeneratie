@@ -77,6 +77,7 @@ class GidsServiceTest {
 				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
 						.alternative(Source.TABELBEHEER, "2").build()) //
 				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build()) //
+				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "87654321").build()) //
 				.build();
 
 		address = Address.builder() //
@@ -101,6 +102,7 @@ class GidsServiceTest {
 				.lastModified(GidsAttribute.<ZonedDateTime>builder()
 						.alternative(Source.LRZA, ZonedDateTime.now().toOffsetDateTime().toZonedDateTime()).build()) //
 				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build()) //
+				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
 				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()
 						.alternative(Source.KIK_STARTER, DeliveryMethod.KIKStarter).build()) //
