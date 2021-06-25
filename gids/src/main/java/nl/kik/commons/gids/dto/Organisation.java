@@ -42,6 +42,7 @@ public class Organisation extends GidsObject
 				.careProviderName(careProviderName == null ? null : careProviderName.project(key)) //
 				.lastModified(lastModified == null ? null : lastModified.project(key)) //
 				.agb(agb == null ? null : agb.project(key)) //
+				.kvk(kvk == null ? null : kvk.project(key)) //
 				.location(location == null ? null
 						: location.stream().map(l -> l.project(key)).filter(Objects::nonNull)
 								.collect(Collectors.toList())) //
@@ -51,7 +52,7 @@ public class Organisation extends GidsObject
 
 	public Organisation orNull() {
 		if (address == null && office == null && name == null && tradeName == null && careProviderName == null
-				&& lastModified == null && agb == null && (location == null || location.isEmpty())
+				&& lastModified == null && agb == null && kvk == null && (location == null || location.isEmpty())
 				&& deliveryMethod == null) {
 			return null;
 		} else {

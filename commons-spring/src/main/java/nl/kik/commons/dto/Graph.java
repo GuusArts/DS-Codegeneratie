@@ -49,18 +49,27 @@ public class Graph<G extends Model> implements Source {
 	}
 
 	public static <T extends Model> Graph<T> create(T model) {
-		return create(model, null);
+		return create(model, null, null);
+	}
+
+	public static <T extends Model> Graph<T> create(T model, Graph<? extends Model> delegate) {
+		return create(model, null, delegate);
 	}
 
 	public static <T extends Model> Graph<T> create(T model, Transactional t) {
+		return create(model, t, null);
+	}
+
+	public static <T extends Model> Graph<T> create(T model, Transactional t, Graph<? extends Model> delegate) {
 		return Graph.<T>creator() //
 				.model(model) //
 				.transactional(t) //
+				.delegate(delegate) //
 				.build();
 	}
 
 	public static <T extends Model> Graph<T> create(Pair<T, Transactional> p) {
-		return create(p.getLeft(), p.getRight());
+		return create(p.getLeft(), p.getRight(), null);
 	}
 
 	public void commit() {

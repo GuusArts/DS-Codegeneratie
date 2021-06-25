@@ -26,11 +26,12 @@ public class Location extends GidsObject implements HasName, HasAgb, HasKvk, Pro
 				.name(name == null ? null : name.project(key)) //
 				.number(number == null ? null : number.project(key)) //
 				.agb(agb == null ? null : agb.project(key)) //
+				.kvk(kvk == null ? null : kvk.project(key)) //
 				.build().orNull();
 	}
 
 	public Location orNull() {
-		if (name == null && number == null && agb == null) {
+		if (name == null && number == null && agb == null && kvk == null) {
 			return null;
 		} else {
 			return this;
