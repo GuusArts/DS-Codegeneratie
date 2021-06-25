@@ -44,6 +44,10 @@ public abstract class Alternatives<K, V> implements Projectable<K, Alternatives<
 		}
 		return null;
 	}
+	
+	public boolean isUnique() {
+		return new HashSet<>(values.values()).size() == 1;
+	}
 
 	public Set<K> getSources() {
 		return new HashSet<K>(values.keySet());
