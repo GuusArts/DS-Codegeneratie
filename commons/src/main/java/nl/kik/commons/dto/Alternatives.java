@@ -39,6 +39,10 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>>
 		return null;
 	}
 
+	public V getAny(K key) {
+		return getAny(key, null);
+	}
+
 	public V getAny(K key, ZonedDateTime date) {
 		ZonedDateTime now = ZonedDateTime.now();
 		return getAll(key, date).stream() //

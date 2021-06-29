@@ -17,6 +17,17 @@ import nl.kik.commons.dto.Alternatives;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
 public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> {
+	public static <V> GidsAttribute<V> of(Source s, V value) {
+		return GidsAttribute.<V>builder() //
+				.alternative(s, value) //
+				.build();
+	}
+
+	public static <V> GidsAttribute<V> of(Source s, ZonedDateTime from, ZonedDateTime to, V value) {
+		return GidsAttribute.<V>builder() //
+				.alternative(s, from, to, value) //
+				.build();
+	}
 
 	@Override
 	public GidsAttribute<V> project(Source key, ZonedDateTime date) {

@@ -83,6 +83,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		public static Resource Concessionaire = Vocabulary.resource("Concessionaire");
 		public static Resource Address = Vocabulary.resource("Address");
 
+		public static Resource Root = Vocabulary.resource("Root");
+
 		//// Object properties
 		public static Property address = Vocabulary.property("address");
 		public static Property concessionaire = Vocabulary.property("concessionaire");
@@ -106,6 +108,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		public static Property street = Vocabulary.property("street");
 		public static Property town = Vocabulary.property("town");
 		public static Property tradeName = Vocabulary.property("tradeName");
+
+		public static Property root = Vocabulary.property("root");
 		public static Property source = Vocabulary.property("source");
 		public static Property from = Vocabulary.property("from");
 		public static Property to = Vocabulary.property("to");
@@ -130,6 +134,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		protected static final Resource resource(final String local) {
 			return ResourceFactory.createResource(Vocabulary.uri + local);
 		}
+	}
+
+	public void save(Graph<? extends Model> g, GidsAttribute<? extends GidsObject> object) {
+		addObject(g, Vocabulary.Root, Vocabulary.root, object, true);
 	}
 
 	private static Map<Resource, Class<? extends RDFObject>> objectTypes = Map.ofEntries( //
@@ -201,7 +209,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				attribute.getValues().entries().forEach(e -> {
 					Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
 					if (s != null) {
-						final Resource rs = g.getModel().getAnyReifiedStatement(s);
+						final Resource rs = g.getModel().createReifiedStatement(s);
 						g.getModel().add(rs, Vocabulary.source, sources.get(e.getKey()));
 						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
@@ -222,7 +230,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				if (r != null) {
 					Statement s = g.getModel().createStatement(resource, property, r);
 					g.getModel().add(s);
-					final Resource rs = g.getModel().getAnyReifiedStatement(s);
+					final Resource rs = g.getModel().createReifiedStatement(s);
 					g.getModel().add(rs, Vocabulary.source, sources.get(e.getKey()));
 					super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 					super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
@@ -242,7 +250,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					}
 					Statement s = super.addObject(g, resource, property, e.getValue().getRight());
 					if (s != null) {
-						final Resource rs = g.getModel().getAnyReifiedStatement(s);
+						final Resource rs = g.getModel().createReifiedStatement(s);
 						g.getModel().add(rs, Vocabulary.source, sources.get(e.getKey()));
 						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
@@ -485,6 +493,26 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						HashSetValuedHashMap::putAll); //
 	}
 
+	private List<Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(GraphOrRemote graph,
+			Resource resource) {
+		Query q = new SelectBuilder() //
+				.setDistinct(true) //
+				.addVar("?so") //
+				.addVar("?f") //
+				.addVar("?t") //
+				.addWhere("?st", RDF.type, RDF.Statement) //
+				.addWhere("?st", RDF.subject, Vocabulary.Root) //
+				.addWhere("?st", RDF.predicate, Vocabulary.root) //
+				.addWhere("?st", RDF.object, resource) //
+				.addWhere("?st", Vocabulary.source, "?so") //
+				.addOptional("?st", Vocabulary.from, "?f") //
+				.addOptional("?st", Vocabulary.to, "?t") //
+				.build();
+		return search(graph, q) //
+				.map(s -> Triple.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())) //
+				.collect(Collectors.toList());
+	}
+
 	private <B extends GidsObject.GidsObjectBuilder<?, ?>> B getGidsObject(GraphOrRemote graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return getRDFObject(graph, properties, resource, builder) //
@@ -519,10 +547,12 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (RDFNode n : all) {
 			try {
 				T v = mapper.apply(n);
-				sources.get(Pair.of(p, n)).stream() //
-						.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
-						.filter(t -> t.getRight() != null) //
-						.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v));
+				if (v != null) {
+					sources.get(Pair.of(p, n)).stream() //
+							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
+							.filter(t -> t.getRight() != null) //
+							.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v));
+				}
 			} catch (final Exception e) {
 			}
 		}
@@ -538,13 +568,15 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (RDFNode n : all) {
 			try {
 				T v = mapper.apply(n);
-				sources.get(Pair.of(p, n)).stream() //
-						.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
-						.filter(t -> t.getRight() != null) //
-						.map(s -> GidsAttribute.<T>builder() //
-								.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v) //
-								.build()) //
-						.forEach(result::add);
+				if (v != null) {
+					sources.get(Pair.of(p, n)).stream() //
+							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
+							.filter(t -> t.getRight() != null) //
+							.map(s -> GidsAttribute.<T>builder() //
+									.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v) //
+									.build()) //
+							.forEach(result::add);
+				}
 			} catch (final Exception e) {
 			}
 		}
@@ -641,16 +673,22 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		throw new IllegalArgumentException(); // Should never be reachable
 	}
 
-	public <U extends RDFObject> Optional<U> lookupById(Graph<? extends Model> graph, @NotNull String id) {
-		return lookupById(new GraphOrRemote(graph), id);
-	}
-
-	public <U extends RDFObject> Optional<U> lookupById(String remote, @NotNull String id) {
-		return lookupById(new GraphOrRemote(remote), id);
+	@SuppressWarnings("unchecked")
+	public <U extends GidsObject> Optional<GidsAttribute<U>> lookupById(Graph<? extends Model> graph,
+			@NotNull String id) {
+		GraphOrRemote g = new GraphOrRemote(graph);
+		return lookupById(g, id).map(o -> addAlternatives(g, (U) o));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U extends GidsObject> List<U> query(GraphOrRemote graph, Query q, Class<U> clazz) {
+	public <U extends GidsObject> Optional<GidsAttribute<U>> lookupById(String remote, String auth,
+			@NotNull String id) {
+		GraphOrRemote g = new GraphOrRemote(remote, auth);
+		return lookupById(g, id).map(o -> addAlternatives(g, (U) o));
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <U extends GidsObject> List<GidsAttribute<U>> query(GraphOrRemote graph, Query q, Class<U> clazz) {
 		if (q == null || !q.isSelectType()) {
 			throw new IllegalArgumentException("Exactly one SELECT query must be given");
 		}
@@ -660,7 +698,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
 		log.trace("Exceuting with variable {} query {}", variableName, q);
 		AtomicInteger loaded = new AtomicInteger();
-		return (List<U>) search(graph, q) //
+		return (List<GidsAttribute<U>>) (List) search(graph, q) //
 				.map(s -> {
 					try {
 						Resource v = s.getResource(variableName);
@@ -675,6 +713,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.map(r -> getObject(graph, r, GidsObject.class)) //
 				.filter(Objects::nonNull) //
 				.filter(o -> clazz == null || clazz.isInstance(o)) //
+				.map(o -> addAlternatives(graph, o)) //
+				.filter(Objects::nonNull) //
 				.peek(o -> {
 					if (loaded.incrementAndGet() % 1000 == 0) {
 						log.trace("Loaded {}", loaded);
@@ -683,15 +723,24 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.collect(Collectors.toList());
 	}
 
-	public <U extends GidsObject> List<U> query(Graph<? extends Model> graph, Query q, Class<U> clazz) {
+	private <U extends GidsObject> GidsAttribute<U> addAlternatives(GraphOrRemote graph, U object) {
+		var builder = GidsAttribute.<U>builder();
+		getRootSources(graph, graph.getResource(object.getId())).stream()
+				.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
+				.filter(t -> t.getRight() != null) //
+				.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), object));
+		return builder.build();
+	}
+
+	public <U extends GidsObject> List<GidsAttribute<U>> query(Graph<? extends Model> graph, Query q, Class<U> clazz) {
 		return query(new GraphOrRemote(graph), q, clazz);
 	}
 
-	public <U extends GidsObject> List<U> query(String remote, Query q, Class<U> clazz) {
+	public <U extends GidsObject> List<GidsAttribute<U>> query(String remote, Query q, Class<U> clazz) {
 		return query(remote, null, q, clazz);
 	}
 
-	public <U extends GidsObject> List<U> query(String remote, String auth, Query q, Class<U> clazz) {
+	public <U extends GidsObject> List<GidsAttribute<U>> query(String remote, String auth, Query q, Class<U> clazz) {
 		return query(new GraphOrRemote(remote, auth), q, clazz);
 	}
 
@@ -831,10 +880,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return httpclient;
 	}
 
-	public void save(String remote, String auth, RDFObject object) {
+	public void save(String remote, String auth, GidsAttribute<? extends GidsObject> object) {
 		Model model = ModelFactory.createDefaultModel();
 		Graph<Model> graph = Graph.create(model);
-		super.save(graph, object);
+		save(graph, object);
 		try (RDFConnection connection = getConnection(getUploadURL(remote), auth)) {
 			connection.begin(TxnType.WRITE);
 			try {

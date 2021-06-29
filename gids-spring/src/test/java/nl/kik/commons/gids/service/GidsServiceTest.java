@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -124,19 +125,20 @@ class GidsServiceTest {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		FusekiServer fusekiServer = startFuseki(g);
 		try {
-			for (final RDFObject m : model) {
-				service.save(SERVER_URL, null, m);
+			for (final GidsObject m : model) {
+				service.save(SERVER_URL, null, GidsAttribute.of(Source.LRZA, m));
 			}
 			for (final RDFObject m : model) {
-				final Optional<RDFObject> o = service.lookupById(SERVER_URL, m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(SERVER_URL, null, m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
 					log.trace("Comparing");
 					log.trace("{}", m);
 					log.trace("{}", o.get());
-					Assertions.assertEquals(m, o.get());
-					Assertions.assertNotSame(m, o.get());
+					Assertions.assertTrue(o.get().isUnique());
+					Assertions.assertEquals(m, o.get().getAny());
+					Assertions.assertNotSame(m, o.get().getAny());
 				}
 			}
 		} finally {
@@ -176,16 +178,17 @@ class GidsServiceTest {
 	@Test
 	void testLoadLocal() {
 		final Graph<Model> g = getLoadedModel();
-		for (final RDFObject m : model) {
-			final Optional<RDFObject> o = service.lookupById(g, m.getId());
+		for (final GidsObject m : model) {
+			final Optional<GidsAttribute<GidsObject>> o = service.lookupById(g, m.getId());
 			if (o.isEmpty()) {
 				Assertions.fail("Not found " + m);
 			} else {
 				log.trace("Comparing");
 				log.trace("{}", m);
 				log.trace("{}", o.get());
-				Assertions.assertEquals(m, o.get());
-				Assertions.assertNotSame(m, o.get());
+				Assertions.assertTrue(o.get().isUnique());
+				Assertions.assertEquals(m, o.get().getAny());
+				Assertions.assertNotSame(m, o.get().getAny());
 			}
 		}
 	}
@@ -194,16 +197,17 @@ class GidsServiceTest {
 	void testLoadRemote() {
 		FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
-			for (final RDFObject m : model) {
-				final Optional<RDFObject> o = service.lookupById(SERVER_URL, m.getId());
+			for (final GidsObject m : model) {
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(SERVER_URL, null, m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
 					log.trace("Comparing");
 					log.trace("{}", m);
 					log.trace("{}", o.get());
-					Assertions.assertEquals(m, o.get());
-					Assertions.assertNotSame(m, o.get());
+					Assertions.assertTrue(o.get().isUnique());
+					Assertions.assertEquals(m, o.get().getAny());
+					Assertions.assertNotSame(m, o.get().getAny());
 				}
 			}
 		} finally {
@@ -258,7 +262,7 @@ class GidsServiceTest {
 	 */
 	protected Graph<Model> getLoadedModel() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		model.forEach(o -> service.save(g, o));
+		model.forEach(o -> service.save(g, GidsAttribute.of(Source.LRZA, o)));
 		return g;
 	}
 
@@ -312,14 +316,16 @@ class GidsServiceTest {
 				.addWhere("?a", GidsService.Vocabulary.houseNumber, "'2'") //
 				.build();
 
-		List<Organisation> organisations = service.query(g, query, Organisation.class);
+		List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
 		assertEquals(1, organisations.size());
-		assertEquals(organisation, organisations.iterator().next());
+		assertTrue(organisations.iterator().next().isUnique());
+		assertEquals(organisation, organisations.iterator().next().getAny());
 
 		// Without type filter
 		organisations = service.query(g, query, null);
 		assertEquals(1, organisations.size());
-		assertEquals(organisation, organisations.iterator().next());
+		assertTrue(organisations.iterator().next().isUnique());
+		assertEquals(organisation, organisations.iterator().next().getAny());
 
 		// Not found
 		query = new SelectBuilder() //
@@ -346,7 +352,8 @@ class GidsServiceTest {
 
 		organisations = service.query(g, query, null);
 		assertEquals(1, organisations.size());
-		assertEquals(organisation, organisations.iterator().next());
+		assertTrue(organisations.iterator().next().isUnique());
+		assertEquals(organisation, organisations.iterator().next().getAny());
 
 		query = new SelectBuilder() //
 				.addPrefix("", GidsService.Vocabulary.uri) //
@@ -359,7 +366,8 @@ class GidsServiceTest {
 
 		organisations = service.query(g, query, null);
 		assertEquals(1, organisations.size());
-		assertEquals(organisation, organisations.iterator().next());
+		assertTrue(organisations.iterator().next().isUnique());
+		assertEquals(organisation, organisations.iterator().next().getAny());
 
 		query = new SelectBuilder() //
 				.addPrefix("", GidsService.Vocabulary.uri) //
@@ -383,11 +391,11 @@ class GidsServiceTest {
 
 		organisations = service.query(g, query, Organisation.class);
 		assertEquals(1, organisations.size());
-		assertEquals(organisation, organisations.iterator().next());
-		List<Address> addresses = service.query(g, query, Address.class);
-		assertEquals(1, addresses.size());
-		assertEquals(address, addresses.iterator().next());
-		List<GidsObject> objects = service.query(g, query, GidsObject.class);
-		assertEquals(6, objects.size());
+		assertTrue(organisations.iterator().next().isUnique());
+		assertEquals(organisation, organisations.iterator().next().getAny());
+		List<GidsAttribute<Address>> addresses = service.query(g, query, Address.class); // Cannot look up non-roots
+		assertEquals(0, addresses.size());
+		List<GidsAttribute<GidsObject>> objects = service.query(g, query, GidsObject.class);
+		assertEquals(4, objects.size()); // We save more, but only roots count
 	}
 }

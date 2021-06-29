@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <rdf:RDF xmlns="https://kik-v.nl/ontology/starter/gids#"
      xml:base="https://kik-v.nl/ontology/starter/gids"
+     xmlns:dc="http://purl.org/dc/elements/1.1/"
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
      xmlns:xml="http://www.w3.org/XML/1998/namespace"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
-    <owl:Ontology rdf:about="https://kik-v.nl/ontology/starter/gids#"/>
+    <owl:Ontology rdf:about="https://kik-v.nl/ontology/starter/gids#">
+        <owl:imports rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    </owl:Ontology>
     
 
 
@@ -76,9 +79,19 @@
     
 
 
+    <!-- https://kik-v.nl/ontology/starter/gids#root -->
+
+    <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#root">
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+        <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
+    </owl:ObjectProperty>
+    
+
+
     <!-- https://kik-v.nl/ontology/starter/gids#source -->
 
     <owl:ObjectProperty rdf:about="https://kik-v.nl/ontology/starter/gids#source">
+        <rdfs:domain rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement"/>
         <rdfs:range rdf:resource="https://kik-v.nl/ontology/starter/gids#Source"/>
     </owl:ObjectProperty>
     
@@ -118,6 +131,15 @@
     <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#code">
         <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
         <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#from -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#from">
+        <rdfs:domain rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
     </owl:DatatypeProperty>
     
 
@@ -203,6 +225,15 @@
     
 
 
+    <!-- https://kik-v.nl/ontology/starter/gids#to -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#to">
+        <rdfs:domain rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- https://kik-v.nl/ontology/starter/gids#town -->
 
     <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#town">
@@ -243,6 +274,7 @@
     <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#CareOffice">
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
     </owl:Class>
     
 
@@ -259,6 +291,7 @@
 
     <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Concessionaire">
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
     </owl:Class>
     
 
@@ -341,6 +374,7 @@
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasKvk"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
     </owl:Class>
     
 
@@ -349,6 +383,15 @@
 
     <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Region">
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasCode"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
+    </owl:Class>
+    
+
+
+    <!-- https://kik-v.nl/ontology/starter/gids#RootObject -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#RootObject">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
     </owl:Class>
     
 

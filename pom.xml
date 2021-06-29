@@ -15,7 +15,7 @@
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-		<spring.boot.version>2.5.1</spring.boot.version>
+		<spring.boot.version>2.5.2</spring.boot.version>
 		<junit.version>5.7.2</junit.version>
 		<jena.version>4.1.0</jena.version>
 	</properties>
