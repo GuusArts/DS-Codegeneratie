@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -14,13 +16,13 @@ import nl.kik.commons.dto.Alternatives;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class GidsAttribute<V> extends Alternatives<Source, V> {
+public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> {
 
 	@Override
-	public GidsAttribute<V> project(Source key) {
+	public GidsAttribute<V> project(Source key, ZonedDateTime date) {
 		if (getValues().containsKey(key)) {
 			return GidsAttribute.<V>builder() //
-					.alternative(key, get(key)) //
+					.alternatives(key, getAll(key, date)) //
 					.build();
 		} else {
 			return null;

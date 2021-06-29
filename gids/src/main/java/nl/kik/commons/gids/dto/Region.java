@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -18,10 +20,10 @@ public class Region extends GidsObject implements Projectable<Source, Region> {
 	private GidsAttribute<String> code;
 
 	@Override
-	public Region project(Source key) {
+	public Region project(Source key, ZonedDateTime date) {
 		return Region.builder() //
 				.id(getId()) //
-				.code(code == null ? null : code.project(key)) //
+				.code(code == null ? null : code.project(key, date)) //
 				.build().orNull();
 	}
 

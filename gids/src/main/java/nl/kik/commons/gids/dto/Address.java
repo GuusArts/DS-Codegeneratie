@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -22,15 +24,15 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 	private GidsAttribute<String> postalcode;
 	private GidsAttribute<String> street;
 
-	public Address project(Source key) {
+	public Address project(Source key, ZonedDateTime date) {
 		return Address.builder() //
 				.id(getId()) //
-				.houseNumber(houseNumber == null ? null : houseNumber.project(key)) //
-				.houseLetter(houseLetter == null ? null : houseLetter.project(key)) //
-				.town(town == null ? null : town.project(key)) //
-				.province(province == null ? null : province.project(key)) //
-				.postalcode(postalcode == null ? null : postalcode.project(key)) //
-				.street(street == null ? null : street.project(key)) //
+				.houseNumber(houseNumber == null ? null : houseNumber.project(key, date)) //
+				.houseLetter(houseLetter == null ? null : houseLetter.project(key, date)) //
+				.town(town == null ? null : town.project(key, date)) //
+				.province(province == null ? null : province.project(key, date)) //
+				.postalcode(postalcode == null ? null : postalcode.project(key, date)) //
+				.street(street == null ? null : street.project(key, date)) //
 				.build().orNull();
 	}
 

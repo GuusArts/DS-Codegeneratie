@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -18,10 +20,10 @@ public class Concessionaire extends GidsObject implements HasName, Projectable<S
 	private GidsAttribute<String> name;
 
 	@Override
-	public Concessionaire project(Source key) {
+	public Concessionaire project(Source key, ZonedDateTime date) {
 		return Concessionaire.builder() //
 				.id(getId()) //
-				.name(name == null ? null : name.project(key)) //
+				.name(name == null ? null : name.project(key, date)) //
 				.build().orNull();
 	}
 

@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -14,25 +16,25 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Location extends GidsObject implements HasName, HasAgb, HasKvk, Projectable<Source, Location> {
+public class Location extends GidsObject implements HasName, HasAgb, HasAddress, Projectable<Source, Location> {
 	private GidsAttribute<String> name;
 	private GidsAttribute<String> number;
 	private GidsAttribute<String> agb;
-	private GidsAttribute<String> kvk;
+	private GidsAttribute<Address> address;
 
 	@Override
-	public Location project(Source key) {
+	public Location project(Source key, ZonedDateTime date) {
 		return Location.builder() //
 				.id(getId()) //
-				.name(name == null ? null : name.project(key)) //
-				.number(number == null ? null : number.project(key)) //
-				.agb(agb == null ? null : agb.project(key)) //
-				.kvk(kvk == null ? null : kvk.project(key)) //
+				.name(name == null ? null : name.project(key, date)) //
+				.number(number == null ? null : number.project(key, date)) //
+				.agb(agb == null ? null : agb.project(key, date)) //
+				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
 	}
 
 	public Location orNull() {
-		if (name == null && number == null && agb == null && kvk == null) {
+		if (name == null && number == null && agb == null && address == null) {
 			return null;
 		} else {
 			return this;

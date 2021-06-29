@@ -42,6 +42,8 @@ import nl.kik.commons.service.RDFService;
 
 @Slf4j
 class GidsServiceTest {
+	private static final int PORT = 54321;
+	private static final String SERVER_URL = "http://localhost:" + PORT + "/graph/gids";
 	private GidsService service;
 	private Address address;
 	private CareOffice careOffice;
@@ -72,14 +74,6 @@ class GidsServiceTest {
 				.region(GidsAttribute.<Region>builder().alternative(Source.TABELBEHEER, region).build()) //
 				.build();
 
-		location = Location.builder() //
-				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build()) //
-				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
-						.alternative(Source.TABELBEHEER, "2").build()) //
-				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build()) //
-				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "87654321").build()) //
-				.build();
-
 		address = Address.builder() //
 				.houseNumber(GidsAttribute.<String>builder().alternative(Source.LRZA, "2")
 						.alternative(Source.TABELBEHEER, "2").build()) //
@@ -89,6 +83,14 @@ class GidsServiceTest {
 				.province(GidsAttribute.<String>builder().alternative(Source.LRZA, "Noord-Brabant").build()) //
 				.postalcode(GidsAttribute.<String>builder().alternative(Source.LRZA, "5621KA").build()) //
 				.street(GidsAttribute.<String>builder().alternative(Source.LRZA, "Suikerpeerstraat").build()) //
+				.build();
+
+		location = Location.builder() //
+				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build()) //
+				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
+						.alternative(Source.TABELBEHEER, "2").build()) //
+				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build()) //
+				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.build();
 
 		organisation = Organisation.builder() //
@@ -112,9 +114,35 @@ class GidsServiceTest {
 	}
 
 	@Test
-	void testSave() {
+	void testSaveLocal() {
 		final Graph<Model> g = getLoadedModel();
 		RDFService.snapshot(g, true, null);
+	}
+
+	@Test
+	void testSaveRemote() {
+		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
+		FusekiServer fusekiServer = startFuseki(g);
+		try {
+			for (final RDFObject m : model) {
+				service.save(SERVER_URL, null, m);
+			}
+			for (final RDFObject m : model) {
+				final Optional<RDFObject> o = service.lookupById(SERVER_URL, m.getId());
+				if (o.isEmpty()) {
+					Assertions.fail("Not found " + m);
+				} else {
+					log.trace("Comparing");
+					log.trace("{}", m);
+					log.trace("{}", o.get());
+					Assertions.assertEquals(m, o.get());
+					Assertions.assertNotSame(m, o.get());
+				}
+			}
+		} finally {
+			fusekiServer.stop();
+			fusekiServer.join();
+		}
 	}
 
 	@Test
@@ -131,17 +159,17 @@ class GidsServiceTest {
 		assertNotEquals(address, tabelbeheer);
 		assertNotEquals(tabelbeheer, lrza);
 
-		assertEquals(address.getHouseNumber().get(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
-				lrza.getHouseNumber().get());
-		assertEquals(address.getHouseLetter().get(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
-				lrza.getHouseLetter().get());
-		assertNotEquals(address.getHouseLetter().get(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
-				tabelbeheer.getHouseLetter().get());
+		assertEquals(address.getHouseNumber().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
+				lrza.getHouseNumber().getAny());
+		assertEquals(address.getHouseLetter().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
+				lrza.getHouseLetter().getAny());
+		assertNotEquals(address.getHouseLetter().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
+				tabelbeheer.getHouseLetter().getAny());
 
 		assertNotNull(address.getTown());
-		assertNotNull(address.getTown().get());
+		assertNotNull(address.getTown().getAny());
 		assertNotNull(lrza.getTown());
-		assertNotNull(lrza.getTown().get());
+		assertNotNull(lrza.getTown().getAny());
 		assertNull(tabelbeheer.getTown());
 	}
 
@@ -164,10 +192,10 @@ class GidsServiceTest {
 
 	@Test
 	void testLoadRemote() {
-		FusekiServer fusekiServer = startFuseki();
+		FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
 			for (final RDFObject m : model) {
-				final Optional<RDFObject> o = service.lookupById("http://localhost:54321/graph/gids/sparql", m.getId());
+				final Optional<RDFObject> o = service.lookupById(SERVER_URL, m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
@@ -180,15 +208,14 @@ class GidsServiceTest {
 			}
 		} finally {
 			fusekiServer.stop();
+			fusekiServer.join();
 		}
 	}
 
 	/**
 	 * @return
 	 */
-	protected FusekiServer startFuseki() {
-		final Graph<Model> g = getLoadedModel();
-
+	protected FusekiServer startFuseki(Graph<Model> g) {
 		final DataService metadataService = DataService //
 				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
 				.addEndpoint(Operation.GSP_R, "") //
@@ -196,16 +223,27 @@ class GidsServiceTest {
 				.addEndpoint(Operation.Query, "query") //
 				.addEndpoint(Operation.Query, "sparql") //
 				.build();
+		final DataService uploadService = DataService //
+				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
+				.addEndpoint(Operation.GSP_RW, "") //
+				.addEndpoint(Operation.GSP_RW, "data") //
+				.build();
 
 		FusekiServer fusekiServer = FusekiServer.create() //
-				.port(54321) //
+				.port(PORT) //
 				.loopback(true) //
 				.contextPath("/graph") //
 				.add("/gids", metadataService) //
+				.add("/upload/gids", uploadService) //
 				.build();
 
 		fusekiServer.start();
 		fusekiServer.logServer();
+
+		try {
+			Thread.sleep(2000); // Wait for server to start
+		} catch (InterruptedException e) {
+		}
 		return fusekiServer;
 	}
 
@@ -226,11 +264,12 @@ class GidsServiceTest {
 
 	@Test
 	void testQueryRemote() {
-		FusekiServer fusekiServer = startFuseki();
+		FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
-			testQueries(new GraphOrRemote("http://localhost:54321/graph/gids/sparql"));
+			testQueries(new GraphOrRemote(SERVER_URL));
 		} finally {
 			fusekiServer.stop();
+			fusekiServer.join();
 		}
 	}
 

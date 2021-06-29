@@ -326,8 +326,8 @@
     <!-- https://kik-v.nl/ontology/starter/gids#Location -->
 
     <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Location">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAddress"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
-        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasKvk"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasName"/>
     </owl:Class>
     

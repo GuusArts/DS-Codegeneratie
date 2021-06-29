@@ -33,21 +33,21 @@ public class Organisation extends GidsObject
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 
 	@Override
-	public Organisation project(Source key) {
+	public Organisation project(Source key, ZonedDateTime date) {
 		return Organisation.builder() //
 				.id(getId()) //
-				.address(address == null ? null : address.project(key)) //
-				.office(office == null ? null : office.project(key)) //
-				.name(name == null ? null : name.project(key)) //
-				.tradeName(tradeName == null ? null : tradeName.project(key)) //
-				.careProviderName(careProviderName == null ? null : careProviderName.project(key)) //
-				.lastModified(lastModified == null ? null : lastModified.project(key)) //
-				.agb(agb == null ? null : agb.project(key)) //
-				.kvk(kvk == null ? null : kvk.project(key)) //
+				.address(address == null ? null : address.project(key, date)) //
+				.office(office == null ? null : office.project(key, date)) //
+				.name(name == null ? null : name.project(key, date)) //
+				.tradeName(tradeName == null ? null : tradeName.project(key, date)) //
+				.careProviderName(careProviderName == null ? null : careProviderName.project(key, date)) //
+				.lastModified(lastModified == null ? null : lastModified.project(key, date)) //
+				.agb(agb == null ? null : agb.project(key, date)) //
+				.kvk(kvk == null ? null : kvk.project(key, date)) //
 				.location(location == null ? null
-						: location.stream().map(l -> l.project(key)).filter(Objects::nonNull)
+						: location.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
 								.collect(Collectors.toList())) //
-				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key)) //
+				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build().orNull();
 	}
 
