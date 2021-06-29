@@ -88,6 +88,12 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>>
 				.collect(Collectors.toList());
 	}
 
+	public Collection<V> getAll() {
+		return values.values().stream() //
+				.map(t -> t.getRight()) //
+				.collect(Collectors.toList());
+	}
+
 	private boolean isActual(Triple<ZonedDateTime, ZonedDateTime, V> t, ZonedDateTime date) {
 		return (t.getLeft() == null || !t.getLeft().isAfter(date))
 				&& (t.getMiddle() == null || t.getMiddle().isAfter(date));
