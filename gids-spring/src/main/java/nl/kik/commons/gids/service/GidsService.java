@@ -76,54 +76,54 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	public static class Vocabulary {
 		//// Classes
-		public static Resource Organisation = Vocabulary.resource("Organisation");
-		public static Resource Location = Vocabulary.resource("Location");
-		public static Resource CareOffice = Vocabulary.resource("CareOffice");
-		public static Resource Region = Vocabulary.resource("Region");
-		public static Resource Concessionaire = Vocabulary.resource("Concessionaire");
-		public static Resource Address = Vocabulary.resource("Address");
+		public static final Resource Organisation = Vocabulary.resource("Organisation");
+		public static final Resource Location = Vocabulary.resource("Location");
+		public static final Resource CareOffice = Vocabulary.resource("CareOffice");
+		public static final Resource Region = Vocabulary.resource("Region");
+		public static final Resource Concessionaire = Vocabulary.resource("Concessionaire");
+		public static final Resource Address = Vocabulary.resource("Address");
 
 		public static Resource Root = Vocabulary.resource("Root");
 
 		//// Object properties
-		public static Property address = Vocabulary.property("address");
-		public static Property concessionaire = Vocabulary.property("concessionaire");
-		public static Property deliveryMethod = Vocabulary.property("deliveryMethod");
-		public static Property location = Vocabulary.property("location");
-		public static Property office = Vocabulary.property("office");
-		public static Property region = Vocabulary.property("region");
+		public static final Property address = Vocabulary.property("address");
+		public static final Property concessionaire = Vocabulary.property("concessionaire");
+		public static final Property deliveryMethod = Vocabulary.property("deliveryMethod");
+		public static final Property location = Vocabulary.property("location");
+		public static final Property office = Vocabulary.property("office");
+		public static final Property region = Vocabulary.property("region");
 
 		//// Data properties
-		public static Property agb = Vocabulary.property("agb");
-		public static Property kvk = Vocabulary.property("kvk");
-		public static Property careProviderName = Vocabulary.property("careProviderName");
-		public static Property code = Vocabulary.property("code");
-		public static Property houseLetter = Vocabulary.property("houseLetter");
-		public static Property houseNumber = Vocabulary.property("houseNumber");
-		public static Property lastModified = Vocabulary.property("lastModified");
-		public static Property name = Vocabulary.property("name");
-		public static Property number = Vocabulary.property("number");
-		public static Property postalcode = Vocabulary.property("postalcode");
-		public static Property province = Vocabulary.property("province");
-		public static Property street = Vocabulary.property("street");
-		public static Property town = Vocabulary.property("town");
-		public static Property tradeName = Vocabulary.property("tradeName");
+		public static final Property agb = Vocabulary.property("agb");
+		public static final Property kvk = Vocabulary.property("kvk");
+		public static final Property careProviderName = Vocabulary.property("careProviderName");
+		public static final Property code = Vocabulary.property("code");
+		public static final Property houseLetter = Vocabulary.property("houseLetter");
+		public static final Property houseNumber = Vocabulary.property("houseNumber");
+		public static final Property lastModified = Vocabulary.property("lastModified");
+		public static final Property name = Vocabulary.property("name");
+		public static final Property number = Vocabulary.property("number");
+		public static final Property postalcode = Vocabulary.property("postalcode");
+		public static final Property province = Vocabulary.property("province");
+		public static final Property street = Vocabulary.property("street");
+		public static final Property town = Vocabulary.property("town");
+		public static final Property tradeName = Vocabulary.property("tradeName");
 
-		public static Property root = Vocabulary.property("root");
-		public static Property source = Vocabulary.property("source");
-		public static Property from = Vocabulary.property("from");
-		public static Property to = Vocabulary.property("to");
+		public static final Property root = Vocabulary.property("root");
+		public static final Property source = Vocabulary.property("source");
+		public static final Property from = Vocabulary.property("from");
+		public static final Property to = Vocabulary.property("to");
 
 		//// Enums
-		public static Resource DeliveryMethod = Vocabulary.resource("DeliveryMethod");
-		public static Resource ODB = Vocabulary.resource("ODB");
-		public static Resource Datastation = Vocabulary.resource("Datastation");
-		public static Resource KIKStarter = Vocabulary.resource("KIKStarter");
+		public static final Resource DeliveryMethod = Vocabulary.resource("DeliveryMethod");
+		public static final Resource ODB = Vocabulary.resource("ODB");
+		public static final Resource Datastation = Vocabulary.resource("Datastation");
+		public static final Resource KIKStarter = Vocabulary.resource("KIKStarter");
 
-		public static Resource Source = Vocabulary.resource("Source");
-		public static Resource LRZA = Vocabulary.resource("LRZA");
-		public static Resource TABELBEHEER = Vocabulary.resource("TABELBEHEER");
-		public static Resource KIK_STARTER = Vocabulary.resource("KIK_STARTER");
+		public static final Resource Source = Vocabulary.resource("Source");
+		public static final Resource LRZA = Vocabulary.resource("LRZA");
+		public static final Resource TABELBEHEER = Vocabulary.resource("TABELBEHEER");
+		public static final Resource KIK_STARTER = Vocabulary.resource("KIK_STARTER");
 
 		public static final String uri = "https://kik-v.nl/ontology/starter/gids#";
 
