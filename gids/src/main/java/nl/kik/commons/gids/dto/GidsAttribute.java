@@ -32,7 +32,7 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> 
 	@Override
 	public GidsAttribute<V> project(Source key, ZonedDateTime date) {
 		return GidsAttribute.<V>builder() //
-			.alternatives(key, getAll(key, date)) //
+			.alternatives(getAll(key, date)) //
 			.build();
 	}
 
