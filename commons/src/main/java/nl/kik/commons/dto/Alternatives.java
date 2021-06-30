@@ -28,8 +28,7 @@ import lombok.experimental.SuperBuilder;
 @ToString
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode
-public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>>
-		implements Projectable<K, Alternatives<K, V, A>> {
+public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implements Projectable<K, A> {
 	private final MultiValuedMap<K, Triple<ZonedDateTime, ZonedDateTime, V>> values = new ArrayListValuedHashMap<>();
 
 	public V getAny() {
