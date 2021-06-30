@@ -31,13 +31,9 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> 
 
 	@Override
 	public GidsAttribute<V> project(Source key, ZonedDateTime date) {
-		if (getValues().containsKey(key)) {
-			return GidsAttribute.<V>builder() //
-					.alternatives(key, getAll(key, date)) //
-					.build();
-		} else {
-			return null;
-		}
+		return GidsAttribute.<V>builder() //
+			.alternatives(key, getAll(key, date)) //
+			.build();
 	}
 
 	private static final class GidsAttributeBuilderImpl<V>

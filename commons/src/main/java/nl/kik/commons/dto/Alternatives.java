@@ -43,6 +43,10 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>>
 		return getAny(key, null);
 	}
 
+	public V getAny(ZonedDateTime date) {
+		return getAny(null, date);
+	}
+
 	public V getAny(K key, ZonedDateTime date) {
 		ZonedDateTime now = ZonedDateTime.now();
 		return getAll(key, date).stream() //
@@ -77,13 +81,21 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>>
 				.orElse(null);
 	}
 
+	public Collection<Triple<ZonedDateTime, ZonedDateTime, V>> getAll(K key) {
+		return getAll(key, null);
+	}	
+
+	public Collection<Triple<ZonedDateTime, ZonedDateTime, V>> getAll(ZonedDateTime date) {
+		return getAll(null, date);
+	}	
+
 	/**
 	 * @param key
 	 * @param date
 	 * @return
 	 */
 	public Collection<Triple<ZonedDateTime, ZonedDateTime, V>> getAll(K key, ZonedDateTime date) {
-		return values.get(key).stream() //
+		return (key == null? values.values().stream() : values.get(key).stream()) //
 				.filter(t -> date == null || isActual(t, date))// if date != null, then it must be within period
 				.collect(Collectors.toList());
 	}
