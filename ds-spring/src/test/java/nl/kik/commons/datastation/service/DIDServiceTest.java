@@ -5,14 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.text.ParseException;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.nimbusds.jose.JOSEException;
 
 import uniresolver.ResolutionException;
 
-@Disabled
 class DIDServiceTest {
 	private DIDService service;
 
@@ -33,6 +31,16 @@ class DIDServiceTest {
 	@Test
 	void testNotFound() throws JOSEException, ResolutionException {
 		assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor:britney", null));
+	}
+
+	@Test
+	void testRaw() throws JOSEException, ResolutionException {
+		assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor", null));
+	}
+
+	@Test
+	void testLocal() throws JOSEException, ResolutionException {
+		assertThrows(ResolutionException.class, () -> service.getVerifier("did:web:localhost:britney", null));
 	}
 
 	@Test

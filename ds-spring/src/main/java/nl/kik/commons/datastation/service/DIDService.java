@@ -37,7 +37,6 @@ import foundation.identity.did.jsonld.DIDKeywords;
 import foundation.identity.jsonld.JsonLDUtils;
 import uniresolver.ResolutionException;
 import uniresolver.driver.Driver;
-import uniresolver.driver.http.HttpDriver;
 import uniresolver.local.LocalUniResolver;
 import uniresolver.result.ResolveResult;
 
@@ -49,9 +48,11 @@ public class DIDService {
 	private Map<String, String> resolveOptions;
 
 	@Value("${nl.kik.commons.datastation.did.web.enable:false}")
-	private boolean enableDIDweb = false;
-	@Value("${nl.kik.commons.datastation.did.web.url:http://localhost:8081/}")
-	private String webURL = "http://localhost:8081/";
+	private boolean enableDIDweb = true;
+	@Value("${nl.kik.commons.datastation.did.web.localhost:false}")
+	private boolean allowLocalhost = true;
+	@Value("${nl.kik.commons.datastation.did.web.localhost.port:8280}")
+	private int localhostPort = 8280;
 
 	@PostConstruct
 	public void init() {
@@ -60,9 +61,14 @@ public class DIDService {
 		Map<String, Driver> drivers = new HashMap<>();
 
 		if (enableDIDweb) {
-			HttpDriver driver = new HttpDriver();
-			driver.setPattern("^(did:web:.+)$");
-			driver.setResolveUri("http://localhost:8081/1.0/identifiers/$1");
+//			HttpDriver driver = new HttpDriver();
+//			driver.setPattern("");
+//			driver.setResolveUri("http://localhost:8081/1.0/identifiers/$1");
+//			drivers.put("driver-web", driver);
+			
+			DIDWeb driver = new DIDWeb();
+			driver.setAllowLocalhost(allowLocalhost);
+			driver.setLocalhostPort(localhostPort);
 			drivers.put("driver-web", driver);
 		}
 

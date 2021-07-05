@@ -83,7 +83,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		public static final Resource Concessionaire = Vocabulary.resource("Concessionaire");
 		public static final Resource Address = Vocabulary.resource("Address");
 
-		public static Resource Root = Vocabulary.resource("Root");
+		public static final Resource Root = Vocabulary.resource("Root");
 
 		//// Object properties
 		public static final Property address = Vocabulary.property("address");
