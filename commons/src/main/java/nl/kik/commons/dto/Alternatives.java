@@ -1,15 +1,10 @@
 package nl.kik.commons.dto;
 
 import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,7 +24,13 @@ import lombok.experimental.SuperBuilder;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode
 public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implements Projectable<K, A> {
+
+	@JsonIgnore
 	private final MultiValuedMap<K, Triple<ZonedDateTime, ZonedDateTime, V>> values = new ArrayListValuedHashMap<>();
+
+	public Map<K, Collection<Triple<ZonedDateTime, ZonedDateTime, V>>> getValuesMap() {
+		return values.asMap();
+	}
 
 	public V getAny() {
 		Iterator<Triple<ZonedDateTime, ZonedDateTime, V>> iterator = values.values().iterator();
