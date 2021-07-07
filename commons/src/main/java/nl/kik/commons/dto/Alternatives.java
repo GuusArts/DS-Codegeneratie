@@ -32,6 +32,10 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 		return values.asMap();
 	}
 
+	public void setValues(Map<K, Collection<Triple<ZonedDateTime, ZonedDateTime, V>>> values) {
+		values.putAll(values);
+	}
+
 	public V getAny() {
 		Iterator<Triple<ZonedDateTime, ZonedDateTime, V>> iterator = values.values().iterator();
 		if (iterator.hasNext()) {
