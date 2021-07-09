@@ -90,7 +90,7 @@ class GidsServiceTest {
 				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build()) //
 				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
 						.alternative(Source.TABELBEHEER, "2").build()) //
-				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build()) //
+				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build())) //
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.build();
 
@@ -104,7 +104,8 @@ class GidsServiceTest {
 						GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Loves You").build()) //
 				.lastModified(GidsAttribute.<ZonedDateTime>builder()
 						.alternative(Source.LRZA, ZonedDateTime.now().toOffsetDateTime().toZonedDateTime()).build()) //
-				.agb(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build()) //
+				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build(),
+						GidsAttribute.<String>builder().alternative(Source.LRZA, "34567890").build())) //
 				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
 				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()

@@ -1,6 +1,9 @@
 package nl.kik.commons.gids.dto;
 
 import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -19,7 +22,7 @@ import nl.kik.commons.dto.Projectable;
 public class Location extends GidsObject implements HasName, HasAgb, HasAddress, Projectable<Source, Location> {
 	private GidsAttribute<String> name;
 	private GidsAttribute<String> number;
-	private GidsAttribute<String> agb;
+	private List<GidsAttribute<String>> agb;
 	private GidsAttribute<Address> address;
 
 	@Override
@@ -28,13 +31,15 @@ public class Location extends GidsObject implements HasName, HasAgb, HasAddress,
 				.id(getId()) //
 				.name(name == null ? null : name.project(key, date)) //
 				.number(number == null ? null : number.project(key, date)) //
-				.agb(agb == null ? null : agb.project(key, date)) //
+				.agb(agb == null ? null
+						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+								.collect(Collectors.toList())) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
 	}
 
 	public Location orNull() {
-		if (name == null && number == null && agb == null && address == null) {
+		if (name == null && number == null && (agb == null || agb.isEmpty()) && address == null) {
 			return null;
 		} else {
 			return this;

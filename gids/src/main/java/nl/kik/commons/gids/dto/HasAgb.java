@@ -1,5 +1,7 @@
 package nl.kik.commons.gids.dto;
 
+import java.util.List;
+
 public interface HasAgb{
-	GidsAttribute<String> getAgb();
+	List<GidsAttribute<String>> getAgb();
 }

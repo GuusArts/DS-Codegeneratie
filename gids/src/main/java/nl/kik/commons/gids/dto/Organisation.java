@@ -27,7 +27,7 @@ public class Organisation extends GidsObject
 	private GidsAttribute<String> tradeName;
 	private GidsAttribute<String> careProviderName;
 	private GidsAttribute<ZonedDateTime> lastModified;
-	private GidsAttribute<String> agb;
+	private List<GidsAttribute<String>> agb;
 	private GidsAttribute<String> kvk;
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
@@ -42,7 +42,9 @@ public class Organisation extends GidsObject
 				.tradeName(tradeName == null ? null : tradeName.project(key, date)) //
 				.careProviderName(careProviderName == null ? null : careProviderName.project(key, date)) //
 				.lastModified(lastModified == null ? null : lastModified.project(key, date)) //
-				.agb(agb == null ? null : agb.project(key, date)) //
+				.agb(agb == null ? null
+						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+								.collect(Collectors.toList())) //
 				.kvk(kvk == null ? null : kvk.project(key, date)) //
 				.location(location == null ? null
 						: location.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
@@ -53,8 +55,8 @@ public class Organisation extends GidsObject
 
 	public Organisation orNull() {
 		if (address == null && office == null && name == null && tradeName == null && careProviderName == null
-				&& lastModified == null && agb == null && kvk == null && (location == null || location.isEmpty())
-				&& deliveryMethod == null) {
+				&& lastModified == null && (agb == null || agb.isEmpty()) && kvk == null
+				&& (location == null || location.isEmpty()) && deliveryMethod == null) {
 			return null;
 		} else {
 			return this;

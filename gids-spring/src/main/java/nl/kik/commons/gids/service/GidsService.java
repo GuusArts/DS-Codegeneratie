@@ -336,7 +336,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @param object
 	 */
 	protected void addAgb(Graph<? extends Model> g, Resource resource, HasAgb object) {
-		addProperty(g, resource, Vocabulary.agb, object.getAgb());
+		addAllProperties(g, resource, Vocabulary.agb, object.getAgb());
 	}
 
 	/**
@@ -616,7 +616,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
 				.number(getAlternatives(graph, resource, properties, sources, Vocabulary.number, RDFService::getString)) //
-				.agb(getAlternatives(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
+				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
 				.address(getAlternatives(graph, resource, properties, sources, Vocabulary.address,
 						n -> getObject(graph, n, Address.class))) //
 		;
@@ -639,7 +639,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						RDFService::getString)) //
 				.lastModified(getAlternatives(graph, resource, properties, sources, Vocabulary.lastModified,
 						RDFService::getDateTime)) //
-				.agb(getAlternatives(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
+				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
 				.kvk(getAlternatives(graph, resource, properties, sources, Vocabulary.kvk, RDFService::getString)) //
 				.location(getAlternativesList(graph, resource, properties, sources, Vocabulary.location,
 						n -> getObject(graph, n, Location.class))) //
