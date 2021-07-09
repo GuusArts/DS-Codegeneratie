@@ -20,6 +20,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
@@ -493,7 +494,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						HashSetValuedHashMap::putAll); //
 	}
 
-	private List<Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(GraphOrRemote graph,
+	private MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(GraphOrRemote graph,
 			Resource resource) {
 		Query q = new SelectBuilder() //
 				.setDistinct(true) //
@@ -509,8 +510,32 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.addOptional("?st", Vocabulary.to, "?t") //
 				.build();
 		return search(graph, q) //
-				.map(s -> Triple.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())) //
-				.collect(Collectors.toList());
+				.collect(ArrayListValuedHashMap::new, (m, s) -> m.put(resource,
+						Triple.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())),
+						(a, b) -> a.putAll(b));
+	}
+
+	private MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(
+			GraphOrRemote graph) {
+		Query q = new SelectBuilder() //
+				.setDistinct(true) //
+				.addVar("?o") //
+				.addVar("?so") //
+				.addVar("?f") //
+				.addVar("?t") //
+				.addWhere("?st", RDF.type, RDF.Statement) //
+				.addWhere("?st", RDF.subject, Vocabulary.Root) //
+				.addWhere("?st", RDF.predicate, Vocabulary.root) //
+				.addWhere("?st", RDF.object, "?o") //
+				.addWhere("?st", Vocabulary.source, "?so") //
+				.addOptional("?st", Vocabulary.from, "?f") //
+				.addOptional("?st", Vocabulary.to, "?t") //
+				.build();
+		return search(graph, q) //
+				.collect(
+						ArrayListValuedHashMap::new, (m, s) -> m.put(s.get("?o").asResource(), Triple
+								.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())),
+						(a, b) -> a.putAll(b));
 	}
 
 	private <B extends GidsObject.GidsObjectBuilder<?, ?>> B getGidsObject(GraphOrRemote graph,
@@ -698,7 +723,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
 		log.trace("Exceuting with variable {} query {}", variableName, q);
 		AtomicInteger loaded = new AtomicInteger();
-		return (List<GidsAttribute<U>>) (List) search(graph, q) //
+		List<GidsObject> attributes = search(graph, q) //
 				.map(s -> {
 					try {
 						Resource v = s.getResource(variableName);
@@ -713,19 +738,43 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.map(r -> getObject(graph, r, GidsObject.class)) //
 				.filter(Objects::nonNull) //
 				.filter(o -> clazz == null || clazz.isInstance(o)) //
-				.map(o -> addAlternatives(graph, o)) //
-				.filter(Objects::nonNull) //
-				.peek(o -> {
-					if (loaded.incrementAndGet() % 1000 == 0) {
-						log.trace("Loaded {}", loaded);
-					}
-				}) //
 				.collect(Collectors.toList());
+
+		if (attributes.size() < 10) {
+			return (List) attributes.stream() //
+					.map(o -> addAlternatives(graph, o)) //
+					.filter(Objects::nonNull) //
+					.peek(o -> {
+						if (loaded.incrementAndGet() % 1000 == 0) {
+							log.trace("Loaded {}", loaded);
+						}
+					}) //
+					.collect(Collectors.toList());
+		} else {
+			MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> rootSources = getRootSources(
+					graph);
+			return (List) attributes.stream() //
+					.map(o -> addAlternatives(graph, rootSources, o)) //
+					.filter(Objects::nonNull) //
+					.peek(o -> {
+						if (loaded.incrementAndGet() % 1000 == 0) {
+							log.trace("Loaded {}", loaded);
+						}
+					}) //
+					.collect(Collectors.toList());
+
+		}
 	}
 
 	private <U extends GidsObject> GidsAttribute<U> addAlternatives(GraphOrRemote graph, U object) {
+		return addAlternatives(graph, getRootSources(graph, graph.getResource(object.getId())), object);
+	}
+
+	private <U extends GidsObject> GidsAttribute<U> addAlternatives(GraphOrRemote graph,
+			MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> rootSources, U object) {
 		var builder = GidsAttribute.<U>builder();
-		getRootSources(graph, graph.getResource(object.getId())).stream()
+		Resource resource = graph.getResource(object.getId());
+		rootSources.get(resource).stream()
 				.map(t -> Triple.of(t.getLeft(), t.getMiddle(), reverseSources.get(t.getRight()))) //
 				.filter(t -> t.getRight() != null) //
 				.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), object));
