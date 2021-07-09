@@ -50,6 +50,10 @@
 			<id>ocs-maven-release</id>
 			<url>https://maven.square.opencirclesolutions.nl/releases/</url>
 		</repository>
+		<snapshotRepository>
+			<id>ocs-maven-snapshot</id>
+			<url>https://maven.square.opencirclesolutions.nl/snapshots/</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<dependencyManagement>
