@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>nl.kik-v.commons</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.7.10</version>
+		<version>0.7.11-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
