@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,7 +18,7 @@ import nl.kik.commons.dto.RDFObject;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
 public class DataService extends Resource {
-	URL endpointURL;
+	URI endpointURL;
 	Set<RDFObject> endpointDescription;
 	Set<Dataset> servesDataset;
 

@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -22,5 +22,5 @@ public class CatalogRecord extends DCATObject {
 	ZonedDateTime issued;
 	ZonedDateTime modified;
 //	foaf:Resource primaryTopic;
-	URL conformsTo; // Standard
+	URI conformsTo; // Standard
 }

@@ -15,7 +15,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.util.StreamUtils;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 
 import lombok.extern.slf4j.Slf4j;

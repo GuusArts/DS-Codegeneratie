@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Set;
@@ -27,13 +27,13 @@ public class Distribution extends DCATObject {
 //	List<RightsStatement> accessRights;
 //	List<RightsStatement> rights;
 	// odrl:Policy hasPolicy;
-	Set<URL> accessURL;
+	Set<URI> accessURL;
 	Set<DataService> accessService;
-	Set<URL> downloadURL;
+	Set<URI> downloadURL;
 	Double byteSize;
 	Float spatialResolutionInMeters;
 	Duration temporalResolution;
-	URL conformsTo;// Standard
+	URI conformsTo;// Standard
 //	List<MediaType> mediaType;
 //	List<MediaTypeOrExtent> format;
 //	List<MediaType> packageFormat;

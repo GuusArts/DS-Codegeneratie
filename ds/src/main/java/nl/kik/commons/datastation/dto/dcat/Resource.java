@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -21,7 +21,7 @@ import nl.kik.commons.dto.RDFObject;
 @EqualsAndHashCode(callSuper = true)
 public class Resource extends DCATObject {
 //	List<RightsStatement> accessRights;
-	URL conformsTo; // Standard
+	URI conformsTo; // Standard
 	Kind contactPoint;
 	Agent creator;
 	String description;
@@ -38,7 +38,7 @@ public class Resource extends DCATObject {
 	Set<String> keyword;
 //	foaf:Document landingPage;
 //	prov:Attribution qualifiedAttribution;
-	URL license; // LicenseDocument
+	URI license; // LicenseDocument
 //	List<RightsStatement> rights;
 //	odrl:Policy;
 	Set<RDFObject> isReferencedBy;

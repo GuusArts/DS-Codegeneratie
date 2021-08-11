@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -26,33 +26,33 @@ public abstract class AbstractDCATTest {
 	void setUp() throws Exception {
 		publisher = Organization.builder() //
 				.name("Voorbeeldzorg") //
-				.type(new URL("http://purl.org/adms/publishertype/NonProfitOrganisation")) //
+				.type(new URI("http://purl.org/adms/publishertype/NonProfitOrganisation")) //
 				.build();
 		dataservice = DataService.builder() //
 				.conformsTo(Constants.STANDARD_VERIFIED_SPARQL) //
 				.title("Gevalideerde vragen") //
 				.description("Service voor het uitvoeren van gevalideerde vragen via sparql") //
-				.endpointURL(new URL("http://data.example.com/api/verifiedsparql")).build();
+				.endpointURL(new URI("http://data.example.com/api/verifiedsparql")).build();
 		sparqlservice = DataService.builder() //
 				.conformsTo(Constants.STANDARD_SPARQL) //
 				.title("SPARQL") //
 				.description("Service voor het uitvoeren van vragen via sparql") //
-				.endpointURL(new URL("http://data.example.com/api/sparql")).build();
+				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
 		sparqlservice2 = DataService.builder() //
 				.conformsTo(Constants.STANDARD_SPARQL) //
 				.title("SPARQL 2") //
 				.description("Service voor het uitvoeren van vragen via sparql") //
-				.endpointURL(new URL("http://data.example.com/api/sparql")).build();
+				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
 		graphstoreservice = DataService.builder() //
 				.conformsTo(Constants.STANDARD_GRAPHSTORE) //
 				.title("GRAPHSTORE") //
 				.description("Service voor graph store") //
-				.endpointURL(new URL("http://data.example.com/api/graphstore")).build();
+				.endpointURL(new URI("http://data.example.com/api/graphstore")).build();
 		shaclservice = DataService.builder() //
 				.conformsTo(Constants.STANDARD_SHACL) //
 				.title("SHACL") //
 				.description("Service voor graph store") //
-				.endpointURL(new URL("http://data.example.com/api/shacl")).build();
+				.endpointURL(new URI("http://data.example.com/api/shacl")).build();
 		distribution = Distribution.builder() //
 				.accessService(Set.of(dataservice, sparqlservice, sparqlservice2, graphstoreservice, shaclservice)) //
 				.conformsTo(Constants.STANDARD_RDF) //
@@ -63,7 +63,7 @@ public abstract class AbstractDCATTest {
 				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
 				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.conformsTo(new URL("http://purl.org/ozo/hr")) //
+				.conformsTo(new URI("http://purl.org/ozo/hr")) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
 				.distribution(Set.of(distribution)) //
 				.build();
@@ -72,7 +72,7 @@ public abstract class AbstractDCATTest {
 				.description("Een beschrijving van de datasets in het datastation van voorbeeldzorg") //
 				.publisher(publisher) //
 				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.license(new URL("https://creativecommons.org/licenses/by/4.0/")) //
+				.license(new URI("https://creativecommons.org/licenses/by/4.0/")) //
 				.dataset(Set.of(dataset)) //
 				.build();
 		model = List.of(catalog, publisher, dataset, distribution, dataservice);

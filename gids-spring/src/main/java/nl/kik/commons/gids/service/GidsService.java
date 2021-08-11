@@ -520,6 +520,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 							.forEach(result::add);
 				}
 			} catch (final Exception e) {
+				// Mask error
 			}
 		}
 		return result.isEmpty() ? null : result;

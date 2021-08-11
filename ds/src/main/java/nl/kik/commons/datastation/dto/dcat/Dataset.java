@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
-import java.net.URL;
+import java.net.URI;
 import java.time.Duration;
 import java.util.Set;
 
@@ -19,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class Dataset extends Resource {
 	Set<Distribution> distribution;
-	URL accrualPeriodicity; // Frequency
+	URI accrualPeriodicity; // Frequency
 //	Location spatial;
 	Float spatialResolutionInMeters;
 	PeriodOfTime temporal;

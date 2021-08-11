@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.service;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -21,7 +21,7 @@ public class CatalogService {
 	 * @param provides
 	 * @return
 	 */
-	public Collection<Dataset> getDatasets(final Catalog catalog, final URL provides) {
+	public Collection<Dataset> getDatasets(final Catalog catalog, final URI provides) {
 		Objects.requireNonNull(catalog, "catalog must be given");
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(catalog.getDataset(), Collections.<Dataset>emptySet()).stream() //
@@ -43,7 +43,7 @@ public class CatalogService {
 	 * @param provices
 	 * @return
 	 */
-	public Optional<DataService> getEndpoint(final Dataset dataset, final URL provides) {
+	public Optional<DataService> getEndpoint(final Dataset dataset, final URI provides) {
 		return getEndpoints(dataset, provides).stream().findAny();
 	}
 
@@ -54,7 +54,7 @@ public class CatalogService {
 	 * @param provices
 	 * @return
 	 */
-	public Collection<DataService> getEndpoints(final Dataset dataset, final URL provides) {
+	public Collection<DataService> getEndpoints(final Dataset dataset, final URI provides) {
 		Objects.requireNonNull(dataset, "dataset must be given");
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet()).stream() //

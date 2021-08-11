@@ -1,7 +1,7 @@
 package nl.kik.commons.datastation.service;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -32,8 +32,8 @@ class CatalogServiceTest extends AbstractDCATTest {
 	}
 
 	@Test
-	void testGetDatasetsNone() throws MalformedURLException {
-		final Collection<Dataset> datasets = service.getDatasets(catalog, new URL("http://example.org/non/existant"));
+	void testGetDatasetsNone() throws URISyntaxException {
+		final Collection<Dataset> datasets = service.getDatasets(catalog, new URI("http://example.org/non/existant"));
 		Assertions.assertTrue(datasets.isEmpty());
 	}
 

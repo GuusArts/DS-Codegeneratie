@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -46,10 +46,10 @@ public class RDFService {
 	public static final String GRAPH = "graph";
 	public static final String COLON = ":";
 
-	public static void addAllURLs(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final Collection<? extends URL> list) {
-		for (final URL value : CollectionUtils.emptyIfNull(list)) {
-			RDFService.addURL(g, resource, property, value);
+	public static void addAllURIs(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Collection<? extends URI> list) {
+		for (final URI value : CollectionUtils.emptyIfNull(list)) {
+			RDFService.addURI(g, resource, property, value);
 		}
 	}
 
@@ -58,8 +58,8 @@ public class RDFService {
 	 * @param resource
 	 * @param object
 	 */
-	public static void addURL(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final URL url) {
+	public static void addURI(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final URI url) {
 		if (url != null) {
 			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
 		}
@@ -387,28 +387,28 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public static URL getURL(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+	public static URI getURI(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
-			return RDFService.getURL(properties.get(p).iterator().next());
+			return RDFService.getURI(properties.get(p).iterator().next());
 		} catch (final Exception e) {
 			return null;
 		}
 	}
 
-	public static URL getURL(final RDFNode node) {
+	public static URI getURI(final RDFNode node) {
 		try {
-			return new URL(node.asResource().getURI());
+			return new URI(node.asResource().getURI());
 		} catch (final Exception e) {
 			try {
-				return new URL(node.asLiteral().getString());
+				return new URI(node.asLiteral().getString());
 			} catch (final Exception e2) {
 				return null;
 			}
 		}
 	}
 
-	public static Set<URL> getURLSet(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
-		return RDFService.getSet(properties, p, RDFService::getURL);
+	public static Set<URI> getURISet(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		return RDFService.getSet(properties, p, RDFService::getURI);
 	}
 
 	/**

@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.foaf;
 
-import java.net.URL;
+import java.net.URI;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -17,5 +17,5 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public abstract class Agent extends FOAFObject {
 	private String name;
-	private URL type;
+	private URI type;
 }
