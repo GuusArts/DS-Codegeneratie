@@ -495,6 +495,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 							.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v));
 				}
 			} catch (final Exception e) {
+				// Mask error
 			}
 		}
 		return builder.build();

@@ -3,6 +3,7 @@ package nl.kik.commons.datastation.mvc;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Map;
 
@@ -26,7 +27,7 @@ import nl.kik.commons.datastation.util.FunctionWrapper.FunctionWithException;
 
 @Slf4j
 public abstract class MessageMessageConverter<T, M extends Message<T>> extends AbstractHttpMessageConverter<M> {
-	protected static final Charset UTF8 = Charset.forName("UTF-8");
+	protected static final Charset UTF8 = StandardCharsets.UTF_8;
 	protected MessageService service;
 	protected KeyService keys;
 	protected ValidationService validator;
@@ -62,7 +63,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 		}
 	}
 
-	public String encode(final M message) throws JOSEException, Exception {
+	public String encode(final M message) throws Exception {
 		return encodeMessage(message, null).serialize();
 	}
 
@@ -71,9 +72,8 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	 * @param outputMessage
 	 * @return
 	 * @throws Exception
-	 * @throws JOSEException
 	 */
-	protected JWSObject encodeMessage(final M t, final HttpOutputMessage outputMessage) throws Exception, JOSEException {
+	protected JWSObject encodeMessage(final M t, final HttpOutputMessage outputMessage) throws Exception {
 		final JWSObject wrapped = service.wrap(t, getEncoder(outputMessage));
 		return validator.sign(wrapped, keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 	}
@@ -96,8 +96,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	protected abstract Class<M> getMessageClass();
 
 	@Override
-	protected M readInternal(final Class<? extends M> clazz, final HttpInputMessage inputMessage)
-			throws IOException, HttpMessageNotReadableException {
+	protected M readInternal(final Class<? extends M> clazz, final HttpInputMessage inputMessage) throws IOException {
 		MessageMessageConverter.log.trace("Deserialize {}", clazz.getSimpleName());
 		String s = StreamUtils.copyToString(inputMessage.getBody(), MessageMessageConverter.UTF8);
 		if (MediaType.APPLICATION_FORM_URLENCODED.equalsTypeAndSubtype(inputMessage.getHeaders().getContentType())) {
@@ -115,8 +114,7 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	}
 
 	@Override
-	protected void writeInternal(final M t, final HttpOutputMessage outputMessage)
-			throws IOException, HttpMessageNotWritableException {
+	protected void writeInternal(final M t, final HttpOutputMessage outputMessage) throws IOException {
 		MessageMessageConverter.log.trace("Serialize {}", t.getClass().getSimpleName());
 		try {
 			final JWSObject wrapped = encodeMessage(t, outputMessage);
