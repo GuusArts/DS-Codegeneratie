@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Test;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class GidsAttributeTest {
+class GidsAttributeTest {
 
 	@Test
-	public void testOverlappingInternalConsistency() {
+	void testOverlappingInternalConsistency() {
 		log.info("Just one");
 		GidsAttribute<String> v = GidsAttribute.<String>builder() //
 				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 3), "A")//
@@ -36,7 +36,7 @@ public class GidsAttributeTest {
 	}
 
 	@Test
-	public void testOverlappingSame() {
+	void testOverlappingSame() {
 		log.info("Clearly disjoint");
 		GidsAttribute<String> v = GidsAttribute.<String>builder() //
 				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 3), "A")//
@@ -119,7 +119,7 @@ public class GidsAttributeTest {
 	}
 
 	@Test
-	public void testOverlappingDifferent() {
+	void testOverlappingDifferent() {
 		assertThrows(IllegalArgumentException.class, () -> {
 			GidsAttribute.<String>builder() //
 					.alternative(Source.KIK_STARTER, date(12, 4), date(12, 2), "A")//
@@ -187,7 +187,7 @@ public class GidsAttributeTest {
 	}
 	
 	@Test
-	public void testGet() {
+	void testGet() {
 		GidsAttribute<String> v = GidsAttribute.<String>builder() //
 				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 4), "A")//
 				.alternative(Source.KIK_STARTER, date(12, 6), date(12, 8), "B")//
@@ -221,7 +221,7 @@ public class GidsAttributeTest {
 		assertEquals(string, value.getRight());
 	}
 
-	protected LocalDate date(int month, int day) {
+	private LocalDate date(int month, int day) {
 		return LocalDate.of(2021, month, day);
 	}
 

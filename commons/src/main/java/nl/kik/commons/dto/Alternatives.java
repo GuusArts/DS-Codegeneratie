@@ -74,39 +74,7 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 	public V getAny(K key, LocalDate date) {
 		LocalDate now = LocalDate.now();
 		return getAll(key, date).stream() //
-				.sorted((s, t) -> { // Sort by date with currently active preferred
-					boolean actualS = s.getMiddle() == null || isActual(s.getMiddle().getLeft(), s.getMiddle().getRight(), now);
-					boolean actualT = t.getMiddle() == null || isActual(t.getMiddle().getLeft(), t.getMiddle().getRight(), now);
-					if (actualS == actualT) {
-						if (Objects.equals(s.getMiddle(), t.getMiddle())) {
-							return 0;
-						}
-						if (s.getMiddle() == null) {
-							return 1;
-						}
-						if (t.getMiddle() == null) {
-							return -1;
-						}
-						if (Objects.equals(s.getMiddle().getLeft(), t.getMiddle().getLeft())) {
-							if (s.getMiddle().getRight() == null) {
-								return -1;
-							}
-							if (t.getMiddle().getRight() == null) {
-								return 1;
-							}
-							return s.getMiddle().getRight().isBefore(t.getMiddle().getRight()) ? -1 : 1;
-						}
-						if (s.getMiddle().getLeft() == null) {
-							return -1;
-						}
-						if (t.getMiddle().getLeft() == null) {
-							return 1;
-						}
-						return s.getMiddle().getLeft().isBefore(t.getMiddle().getLeft()) ? -1 : 1;
-					} else {
-						return actualS ? -1 : 1;
-					}
-				}).findFirst() //
+				.sorted(new CompareValues<K, V>(now)).findFirst() //
 				.map(Triple::getRight) //
 				.orElse(null);
 	}
@@ -152,7 +120,7 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 				.collect(Collectors.toList());
 	}
 
-	private boolean isActual(LocalDate from, LocalDate to, LocalDate date) {
+	private static boolean isActual(LocalDate from, LocalDate to, LocalDate date) {
 		return (from == null || !from.isAfter(date)) && (to == null || to.isAfter(date));
 	}
 
@@ -175,6 +143,49 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 
 	public Set<K> getSources() {
 		return new HashSet<K>(values.keySet());
+	}
+
+	static final class CompareValues<K, V> implements Comparator<Triple<K, Pair<LocalDate, LocalDate>, V>> {
+		private final LocalDate now;
+
+		CompareValues(LocalDate now) {
+			this.now = now;
+		}
+
+		@Override
+		public int compare(Triple<K, Pair<LocalDate, LocalDate>, V> s, Triple<K, Pair<LocalDate, LocalDate>, V> t) { // Sort by date with currently active preferred
+			boolean actualS = s.getMiddle() == null || isActual(s.getMiddle().getLeft(), s.getMiddle().getRight(), now);
+			boolean actualT = t.getMiddle() == null || isActual(t.getMiddle().getLeft(), t.getMiddle().getRight(), now);
+			if (actualS == actualT) {
+				if (Objects.equals(s.getMiddle(), t.getMiddle())) {
+					return 0;
+				}
+				if (s.getMiddle() == null) {
+					return 1;
+				}
+				if (t.getMiddle() == null) {
+					return -1;
+				}
+				if (Objects.equals(s.getMiddle().getLeft(), t.getMiddle().getLeft())) {
+					if (s.getMiddle().getRight() == null) {
+						return -1;
+					}
+					if (t.getMiddle().getRight() == null) {
+						return 1;
+					}
+					return s.getMiddle().getRight().isBefore(t.getMiddle().getRight()) ? -1 : 1;
+				}
+				if (s.getMiddle().getLeft() == null) {
+					return -1;
+				}
+				if (t.getMiddle().getLeft() == null) {
+					return 1;
+				}
+				return s.getMiddle().getLeft().isBefore(t.getMiddle().getLeft()) ? -1 : 1;
+			} else {
+				return actualS ? -1 : 1;
+			}
+		}
 	}
 
 	public abstract static class AlternativesBuilder<K, V, A extends Alternatives<K, V, A>, C extends Alternatives<K, V, A>, B extends AlternativesBuilder<K, V, A, C, B>> {
