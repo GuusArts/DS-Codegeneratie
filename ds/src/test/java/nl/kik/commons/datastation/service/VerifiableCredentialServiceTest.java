@@ -53,7 +53,7 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 		service = new VerifiableCredentialService();
 	}
 
-	public JWSObject sign(final JWSObject o, final JWSSigner s) {
+	JWSObject sign(final JWSObject o, final JWSSigner s) {
 		try {
 			o.sign(s);
 			return o;

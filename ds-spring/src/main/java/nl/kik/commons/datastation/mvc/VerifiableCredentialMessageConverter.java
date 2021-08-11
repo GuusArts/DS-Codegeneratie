@@ -2,6 +2,7 @@ package nl.kik.commons.datastation.mvc;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -19,7 +20,7 @@ import nl.kik.commons.datastation.service.ValidationService;
 import nl.kik.commons.datastation.service.VerifiableCredentialService;
 
 public class VerifiableCredentialMessageConverter extends AbstractHttpMessageConverter<VerifiableBase> {
-	private static final Charset UTF8 = Charset.forName("UTF-8");
+	private static final Charset UTF8 = StandardCharsets.UTF_8;
 	private final VerifiableCredentialService service;
 	private final KeyService keys;
 	private final ValidationService validator;
@@ -34,7 +35,7 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 
 	@Override
 	protected VerifiableBase readInternal(final Class<? extends VerifiableBase> clazz,
-			final HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
+			final HttpInputMessage inputMessage) throws IOException {
 		final String s = StreamUtils.copyToString(inputMessage.getBody(), VerifiableCredentialMessageConverter.UTF8);
 		try {
 			return service.unwrapVerifiable(s, validator::validate);
@@ -49,13 +50,12 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 	}
 
 	@Override
-	protected void writeInternal(final VerifiableBase t, final HttpOutputMessage outputMessage)
-			throws IOException, HttpMessageNotWritableException {
+	protected void writeInternal(final VerifiableBase t, final HttpOutputMessage outputMessage) throws IOException {
 		try {
 			final JWSObject o = service.wrap(t,
 					(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())));
 			validator.sign(o, keys.getSigner(o.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
-			StreamUtils.copy(o.serialize(), Charset.forName("UTF-8"), outputMessage.getBody());
+			StreamUtils.copy(o.serialize(), StandardCharsets.UTF_8, outputMessage.getBody());
 		} catch (final Exception e) {
 			throw new HttpMessageNotWritableException("Unable to sign/serialize VC", e);
 		}

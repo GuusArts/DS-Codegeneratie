@@ -14,10 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import com.nimbusds.jose.JOSEException;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.async.Request;
