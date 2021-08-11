@@ -1,5 +1,6 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +34,7 @@ public class Organisation extends GidsObject
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 
 	@Override
-	public Organisation project(Source key, ZonedDateTime date) {
+	public Organisation project(Source key, LocalDate date) {
 		return Organisation.builder() //
 				.id(getId()) //
 				.address(address == null ? null : address.project(key, date)) //

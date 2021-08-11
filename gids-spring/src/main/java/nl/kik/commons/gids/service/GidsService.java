@@ -1,6 +1,6 @@
 package nl.kik.commons.gids.service;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -453,7 +453,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <U extends GidsObject> U getGidsObject(GraphOrRemote graph, MultiValuedMap<Property, RDFNode> properties,
 			Resource resource, Class<GidsObject> t) {
-		MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources = getSources(
+		MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources = getSources(
 				graph, resource);
 		if (Address.class.isAssignableFrom(t))
 			return (U) getAddress(graph, properties, sources, resource, Address.builder()).build();
@@ -470,7 +470,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		throw new IllegalArgumentException("Cannot load Gids objects of type " + t.getSimpleName());
 	}
 
-	private MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> getSources(
+	private MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> getSources(
 			GraphOrRemote graph, Resource resource) {
 		Query q = new SelectBuilder() //
 				.setDistinct(true) //
@@ -490,11 +490,11 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return search(graph, q) //
 				.collect(HashSetValuedHashMap::new, (b,
 						s) -> b.put(Pair.of(new PropertyImpl(s.get("?p").asResource().getURI()), s.get("?o")), Triple
-								.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())),
+								.of(getDate(s.get("?f")), getDate(s.get("?t")), s.get("?so").asResource())),
 						HashSetValuedHashMap::putAll); //
 	}
 
-	private MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(GraphOrRemote graph,
+	private MultiValuedMap<Resource, Triple<LocalDate, LocalDate, Resource>> getRootSources(GraphOrRemote graph,
 			Resource resource) {
 		Query q = new SelectBuilder() //
 				.setDistinct(true) //
@@ -511,11 +511,11 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.build();
 		return search(graph, q) //
 				.collect(ArrayListValuedHashMap::new, (m, s) -> m.put(resource,
-						Triple.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())),
+						Triple.of(getDate(s.get("?f")), getDate(s.get("?t")), s.get("?so").asResource())),
 						(a, b) -> a.putAll(b));
 	}
 
-	private MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> getRootSources(
+	private MultiValuedMap<Resource, Triple<LocalDate, LocalDate, Resource>> getRootSources(
 			GraphOrRemote graph) {
 		Query q = new SelectBuilder() //
 				.setDistinct(true) //
@@ -534,7 +534,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return search(graph, q) //
 				.collect(
 						ArrayListValuedHashMap::new, (m, s) -> m.put(s.get("?o").asResource(), Triple
-								.of(getDateTime(s.get("?f")), getDateTime(s.get("?t")), s.get("?so").asResource())),
+								.of(getDate(s.get("?f")), getDate(s.get("?t")), s.get("?so").asResource())),
 						(a, b) -> a.putAll(b));
 	}
 
@@ -547,7 +547,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends Address.AddressBuilder<?, ?>> B getAddress(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.houseNumber(getAlternatives(graph, resource, properties, sources, Vocabulary.houseNumber,
@@ -565,7 +565,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	private <T> GidsAttribute<T> getAlternatives(GraphOrRemote graph, Resource resource,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources, Property p,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, Property p,
 			Function<RDFNode, T> mapper) {
 		Collection<RDFNode> all = properties.get(p);
 		var builder = GidsAttribute.<T>builder();
@@ -586,7 +586,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	private <T> List<GidsAttribute<T>> getAlternativesList(GraphOrRemote graph, Resource resource,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources, Property p,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, Property p,
 			Function<RDFNode, T> mapper) {
 		Collection<RDFNode> all = properties.get(p);
 		List<GidsAttribute<T>> result = new ArrayList<>();
@@ -611,7 +611,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends CareOffice.CareOfficeBuilder<?, ?>> B getCareOffice(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.code(getAlternatives(graph, resource, properties, sources, Vocabulary.code, RDFService::getString)) //
@@ -626,7 +626,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends Concessionaire.ConcessionaireBuilder<?, ?>> B getConcessionaire(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
@@ -636,7 +636,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends Location.LocationBuilder<?, ?>> B getLocation(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
@@ -650,7 +650,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends Organisation.OrganisationBuilder<?, ?>> B getOrganisation(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.address(getAlternatives(graph, resource, properties, sources, Vocabulary.address,
@@ -677,7 +677,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <B extends Region.RegionBuilder<?, ?>> B getRegion(GraphOrRemote graph,
 			MultiValuedMap<Property, RDFNode> properties,
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<ZonedDateTime, ZonedDateTime, Resource>> sources,
+			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			Resource resource, B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
 				.code(getAlternatives(graph, resource, properties, sources, Vocabulary.code, RDFService::getString)) //
@@ -751,7 +751,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					}) //
 					.collect(Collectors.toList());
 		} else {
-			MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> rootSources = getRootSources(
+			MultiValuedMap<Resource, Triple<LocalDate, LocalDate, Resource>> rootSources = getRootSources(
 					graph);
 			return (List) attributes.stream() //
 					.map(o -> addAlternatives(graph, rootSources, o)) //
@@ -771,7 +771,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	}
 
 	private <U extends GidsObject> GidsAttribute<U> addAlternatives(GraphOrRemote graph,
-			MultiValuedMap<Resource, Triple<ZonedDateTime, ZonedDateTime, Resource>> rootSources, U object) {
+			MultiValuedMap<Resource, Triple<LocalDate, LocalDate, Resource>> rootSources, U object) {
 		var builder = GidsAttribute.<U>builder();
 		Resource resource = graph.getResource(object.getId());
 		rootSources.get(resource).stream()

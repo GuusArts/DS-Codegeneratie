@@ -1,6 +1,6 @@
 package nl.kik.commons.gids.dto;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,7 +26,7 @@ public class Location extends GidsObject implements HasName, HasAgb, HasAddress,
 	private GidsAttribute<Address> address;
 
 	@Override
-	public Location project(Source key, ZonedDateTime date) {
+	public Location project(Source key, LocalDate date) {
 		return Location.builder() //
 				.id(getId()) //
 				.name(name == null ? null : name.project(key, date)) //

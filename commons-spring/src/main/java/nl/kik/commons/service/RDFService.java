@@ -182,6 +182,32 @@ public class RDFService {
 			return null;
 		}
 	}
+	
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public static LocalDate getDate(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		try {
+			return getDate(properties.get(p).iterator().next());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public static LocalDate getDate(RDFNode n) {
+		try {
+			return LocalDate.parse(n.asLiteral().getString());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
 
 	public static Double getDouble(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {

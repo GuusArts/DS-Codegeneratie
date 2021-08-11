@@ -1,6 +1,6 @@
 package nl.kik.commons.gids.dto;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -23,7 +23,7 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 	private GidsAttribute<String> name;
 
 	@Override
-	public CareOffice project(Source key, ZonedDateTime date) {
+	public CareOffice project(Source key, LocalDate date) {
 		return CareOffice.builder() //
 				.id(getId()) //
 				.code(code == null ? null : code.project(key, date)) //

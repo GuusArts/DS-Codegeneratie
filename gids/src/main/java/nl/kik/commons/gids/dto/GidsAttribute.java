@@ -1,6 +1,7 @@
 package nl.kik.commons.gids.dto;
 
-import java.time.ZonedDateTime;
+
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -23,14 +24,14 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> 
 				.build();
 	}
 
-	public static <V> GidsAttribute<V> of(Source s, ZonedDateTime from, ZonedDateTime to, V value) {
+	public static <V> GidsAttribute<V> of(Source s, LocalDate from, LocalDate to, V value) {
 		return GidsAttribute.<V>builder() //
 				.alternative(s, from, to, value) //
 				.build();
 	}
 
 	@Override
-	public GidsAttribute<V> project(Source key, ZonedDateTime date) {
+	public GidsAttribute<V> project(Source key, LocalDate date) {
 		return GidsAttribute.<V>builder() //
 			.alternatives(getAll(key, date)) //
 			.build();

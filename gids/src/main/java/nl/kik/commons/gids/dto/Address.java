@@ -1,6 +1,6 @@
 package nl.kik.commons.gids.dto;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -24,7 +24,7 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 	private GidsAttribute<String> postalcode;
 	private GidsAttribute<String> street;
 
-	public Address project(Source key, ZonedDateTime date) {
+	public Address project(Source key, LocalDate date) {
 		return Address.builder() //
 				.id(getId()) //
 				.houseNumber(houseNumber == null ? null : houseNumber.project(key, date)) //
