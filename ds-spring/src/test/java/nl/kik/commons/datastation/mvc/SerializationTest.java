@@ -15,12 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest(classes = SerializationController.class)
 @AutoConfigureMockMvc
 @Slf4j
-public class SerializationTest {
+class SerializationTest {
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Test
-	public void ask() throws Exception {
+	void ask() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/ask")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -45,7 +45,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void construct() throws Exception {
+	void construct() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/construct")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -70,7 +70,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void error() throws Exception {
+	void error() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/error")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -95,7 +95,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void request() throws Exception {
+	void request() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/request")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -114,7 +114,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void select() throws Exception {
+	void select() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/select")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -139,7 +139,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void vc() throws Exception {
+	void vc() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/vc")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
@@ -158,7 +158,7 @@ public class SerializationTest {
 	}
 
 	@Test
-	public void vp() throws Exception {
+	void vp() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/vp")) //
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //

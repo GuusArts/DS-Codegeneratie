@@ -39,8 +39,7 @@ public class RemoteDatastationService {
 		this.requestConverter = requestConverter;
 	}
 
-	public void request(final String url, final Request<VerifiablePresentation> request)
-			throws RestClientException, JOSEException, Exception {
+	public void request(final String url, final Request<VerifiablePresentation> request) throws Exception {
 		RemoteDatastationService.log.trace("Sending request {} to {}", request, url);
 		final ResponseEntity<Void> result = rest.postForEntity(url, requestConverter.encode(request), Void.class);
 		RemoteDatastationService.log.trace("Received for request {}", result.getStatusCode());
@@ -49,8 +48,7 @@ public class RemoteDatastationService {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void response(final String url, final ReturnMessage<? extends Object> response)
-			throws RestClientException, JOSEException, Exception {
+	public void response(final String url, final ReturnMessage<? extends Object> response) throws Exception {
 		RemoteDatastationService.log.trace("Sending response {} to {}", response, url);
 		final ResponseEntity<Void> result = rest.postForEntity(url,
 				responseConverter.encode((ReturnMessage<Object>) response), Void.class);

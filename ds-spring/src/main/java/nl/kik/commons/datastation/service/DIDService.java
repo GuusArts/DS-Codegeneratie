@@ -48,13 +48,13 @@ public class DIDService {
 	private Map<String, String> resolveOptions;
 
 	@Value("${nl.kik.commons.datastation.did.web.enable:false}")
-	private final boolean enableDIDweb = true;
+	private boolean enableDIDweb = true;
 	@Value("${nl.kik.commons.datastation.did.web.localhost:false}")
-	private final boolean allowLocalhost = true;
+	private boolean allowLocalhost = true;
 	@Value("${nl.kik.commons.datastation.did.web.localhost.port:8280}")
-	private final int localhostPort = 8280;
+	private int localhostPort = 8280;
 
-	private final Set<String> SUPPORTED_KEYS = Set.of(DIDService.JSON_WEB_KEY2020,
+	private static final Set<String> SUPPORTED_KEYS = Set.of(DIDService.JSON_WEB_KEY2020,
 			DIDService.ED25519_VERIFICATION_KEY2018);
 
 	/**

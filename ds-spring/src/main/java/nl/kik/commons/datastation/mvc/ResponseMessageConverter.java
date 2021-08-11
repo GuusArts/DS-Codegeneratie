@@ -72,7 +72,7 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected JWSObject encodeMessage(final ReturnMessage<Object> t, final HttpOutputMessage outputMessage)
-			throws Exception, JOSEException {
+			throws Exception {
 		JWSObject wrapped;
 		if (t instanceof ErrorReport<?> && t.getBody() instanceof String) {
 			wrapped = service.wrap((ErrorReport<String>) (ErrorReport) t, s -> Map.of(MessageService.MESSAGE, s));

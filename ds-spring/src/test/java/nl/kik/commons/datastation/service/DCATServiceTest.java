@@ -17,7 +17,7 @@ import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.service.RDFService;
 
 @Slf4j
-public class DCATServiceTest extends AbstractDCATTest {
+class DCATServiceTest extends AbstractDCATTest {
 	private DCATService service;
 
 	@BeforeEach
