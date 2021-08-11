@@ -25,12 +25,10 @@ public class CatalogService {
 		Objects.requireNonNull(catalog, "catalog must be given");
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(catalog.getDataset(), Collections.<Dataset>emptySet()).stream() //
-				.filter(dataset -> Objects
-						.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet()).stream() //
+				.filter(dataset -> Objects.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet())
+						.stream() //
 						.anyMatch(distribution -> Objects
-								.requireNonNullElse(distribution.getAccessService(),
-										Collections.<DataService>emptySet())
-								.stream() //
+								.requireNonNullElse(distribution.getAccessService(), Collections.<DataService>emptySet()).stream() //
 								.anyMatch(dataservice -> provides.equals(dataservice.getConformsTo())) //
 						) //
 				) //
@@ -61,8 +59,7 @@ public class CatalogService {
 		Objects.requireNonNull(provides, "provides must be given");
 		return Objects.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet()).stream() //
 				.flatMap(distribution -> Objects
-						.requireNonNullElse(distribution.getAccessService(), Collections.<DataService>emptySet())
-						.stream() //
+						.requireNonNullElse(distribution.getAccessService(), Collections.<DataService>emptySet()).stream() //
 						.filter(dataservice -> provides.equals(dataservice.getConformsTo())) //
 				) //
 				.collect(Collectors.toList());

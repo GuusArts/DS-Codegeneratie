@@ -120,8 +120,8 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 			model.add(nodeResource, toProperty(SHACL.severity), toProperty(nodeShape.getSeverity().level()));
 		}
 		nodeShape.getMessages().forEach(m -> model.add(nodeResource, toProperty(SHACL.message), toLiteral(m)));
-		nodeShape.getTargets().forEach(
-				t -> model.add(nodeResource, toProperty(t.getTargetType().predicate), toResource(t.getObject())));
+		nodeShape.getTargets()
+				.forEach(t -> model.add(nodeResource, toProperty(t.getTargetType().predicate), toResource(t.getObject())));
 
 		nodeShape.getConstraints().forEach(c -> c.visit(this));
 		nodeShape.getPropertyShapes().forEach(p -> p.visit(this));
@@ -152,11 +152,9 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	private Literal toLiteral(final Node n) {
-		if (!(n instanceof Node_Concrete))
+		if (!(n instanceof Node_Concrete) || (n instanceof Node_Blank))
 			throw new IllegalArgumentException();
-		if (n instanceof Node_Blank)
-			throw new IllegalArgumentException();
-		else if (n instanceof Node_Literal) {
+		if (n instanceof Node_Literal) {
 			final Node_Literal ni = (Node_Literal) n;
 			Literal value;
 			if (ni.getLiteralDatatype() != null) {
@@ -178,11 +176,9 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	private Property toProperty(final Node n) {
 		if (properties.containsKey(n))
 			return properties.get(n);
-		if (!(n instanceof Node_Concrete))
+		if (!(n instanceof Node_Concrete) || (n instanceof Node_Blank))
 			throw new IllegalArgumentException();
-		if (n instanceof Node_Blank)
-			throw new IllegalArgumentException();
-		else if (n instanceof Node_Literal)
+		if (n instanceof Node_Literal)
 			throw new IllegalArgumentException();
 		else if (n instanceof Node_URI) {
 			final Node_URI ni = (Node_URI) n;
@@ -199,11 +195,12 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		if (!(n instanceof Node_Concrete))
 			throw new IllegalArgumentException();
 		if (n instanceof Node_Blank) {
-			final Resource resource = model.createResource(
-					n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
+			final Resource resource = model
+					.createResource(n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
 			resources.put(n, resource);
 			return resource;
-		} else if (n instanceof Node_Literal)
+		}
+		if (n instanceof Node_Literal)
 			throw new IllegalArgumentException();
 		else if (n instanceof Node_URI) {
 			final Node_URI ni = (Node_URI) n;

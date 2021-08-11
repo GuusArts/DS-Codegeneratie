@@ -19,20 +19,18 @@ import nl.kik.commons.dto.Projectable;
 public class Concessionaire extends GidsObject implements HasName, Projectable<Source, Concessionaire> {
 	private GidsAttribute<String> name;
 
+	public Concessionaire orNull() {
+		if (name == null)
+			return null;
+		return this;
+	}
+
 	@Override
-	public Concessionaire project(Source key, LocalDate date) {
+	public Concessionaire project(final Source key, final LocalDate date) {
 		return Concessionaire.builder() //
 				.id(getId()) //
 				.name(name == null ? null : name.project(key, date)) //
 				.build().orNull();
-	}
-
-	public Concessionaire orNull() {
-		if (name == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 
 }

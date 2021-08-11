@@ -1,9 +1,8 @@
 package nl.kik.commons.datastation.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import java.text.ParseException;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +20,21 @@ class DIDServiceTest {
 	}
 
 	@Test
+	void testInvalidKey() throws JOSEException, ResolutionException {
+		Assertions.assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor:alice", "farts"));
+	}
+
+	@Test
+	void testLocal() throws JOSEException, ResolutionException {
+		Assertions.assertThrows(ResolutionException.class, () -> service.getVerifier("did:web:localhost:britney", null));
+	}
+
+	@Test
+	void testNotFound() throws JOSEException, ResolutionException {
+		Assertions.assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor:britney", null));
+	}
+
+	@Test
 	void testOk() throws JOSEException, ResolutionException, ParseException {
 		service.getVerifier("did:web:did.actor:alice", "z6MkrmNwty5ajKtFqc1U48oL2MMLjWjartwc5sf2AihZwXDN");
 		service.getVerifier("did:web:did.actor:alice",
@@ -29,23 +43,8 @@ class DIDServiceTest {
 	}
 
 	@Test
-	void testNotFound() throws JOSEException, ResolutionException {
-		assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor:britney", null));
-	}
-
-	@Test
 	void testRaw() throws JOSEException, ResolutionException {
-		assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor", null));
-	}
-
-	@Test
-	void testLocal() throws JOSEException, ResolutionException {
-		assertThrows(ResolutionException.class, () -> service.getVerifier("did:web:localhost:britney", null));
-	}
-
-	@Test
-	void testInvalidKey() throws JOSEException, ResolutionException {
-		assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor:alice", "farts"));
+		Assertions.assertThrows(JOSEException.class, () -> service.getVerifier("did:web:did.actor", null));
 	}
 
 }

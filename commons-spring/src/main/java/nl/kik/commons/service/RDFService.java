@@ -46,6 +46,25 @@ public class RDFService {
 	public static final String GRAPH = "graph";
 	public static final String COLON = ":";
 
+	public static void addAllURLs(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Collection<? extends URL> list) {
+		for (final URL value : CollectionUtils.emptyIfNull(list)) {
+			RDFService.addURL(g, resource, property, value);
+		}
+	}
+
+	/**
+	 * @param g
+	 * @param resource
+	 * @param object
+	 */
+	public static void addURL(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final URL url) {
+		if (url != null) {
+			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
+		}
+	}
+
 	/**
 	 * @param model
 	 */
@@ -78,77 +97,6 @@ public class RDFService {
 		}
 	}
 
-	/**
-	 * @return
-	 */
-	public static String getGraphId(@NotNull final String id) {
-		return RDFService.getId(RDFService.GRAPH, id);
-	}
-
-	/**
-	 * @return
-	 */
-	public static String getId(@NotNull final String prefix, @NotNull final String id) {
-		return prefix + RDFService.COLON + id;
-	}
-
-	/**
-	 * Removes the "graph" prefix from the provided ID
-	 *
-	 * @return the
-	 */
-	public static String removeGraphId(@NotNull final String id) {
-		return RDFService.removeId(RDFService.GRAPH, id);
-	}
-
-	/**
-	 * @return
-	 */
-	public static String removeId(@NotNull final String prefix, @NotNull final String id) {
-		RDFService.log.trace("Resolving {} id {}", prefix, id);
-		if (!id.startsWith(prefix + RDFService.COLON))
-			throw new IllegalArgumentException(prefix + " id must start with `" + prefix + RDFService.COLON + "'");
-		return StringUtils.trimToEmpty(id.substring(prefix.length() + RDFService.COLON.length()));
-	}
-
-	protected static <K, V> Map<V, K> reverse(final Map<K, V> input) {
-		return input.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-	}
-
-	public static void snapshot(final Graph<? extends Model> m, final boolean raw, final Predicate<Statement> filter) {
-		m.beginRead();
-		RDFService.log.trace("Stored statements");
-		Model model = m.getModel();
-		if (raw && model instanceof InfModel) {
-			model = ((InfModel) model).getRawModel();
-		}
-		model.listStatements().forEachRemaining(s -> {
-			if (filter == null || filter.test(s)) {
-				RDFService.log.info(" - ({}, {}, {})", s.getSubject(), s.getPredicate(), s.getObject());
-			}
-		});
-		m.end();
-	}
-
-	public static void addAllURLs(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final Collection<? extends URL> list) {
-		for (final URL value : CollectionUtils.emptyIfNull(list)) {
-			addURL(g, resource, property, value);
-		}
-	}
-
-	/**
-	 * @param g
-	 * @param resource
-	 * @param object
-	 */
-	public static void addURL(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final URL url) {
-		if (url != null) {
-			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
-		}
-	}
-
 	public static Boolean getBoolean(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
 			return properties.get(p).iterator().next().asLiteral().getBoolean();
@@ -162,35 +110,9 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public static ZonedDateTime getDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
-		try {
-			return getDateTime(properties.get(p).iterator().next());
-		} catch (final Exception e) {
-			return null;
-		}
-	}
-
-	/**
-	 * @param r
-	 * @param description
-	 * @return
-	 */
-	public static ZonedDateTime getDateTime(RDFNode n) {
-		try {
-			return ZonedDateTime.parse(n.asLiteral().getString());
-		} catch (final Exception e) {
-			return null;
-		}
-	}
-	
-	/**
-	 * @param r
-	 * @param description
-	 * @return
-	 */
 	public static LocalDate getDate(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
-			return getDate(properties.get(p).iterator().next());
+			return RDFService.getDate(properties.get(p).iterator().next());
 		} catch (final Exception e) {
 			return null;
 		}
@@ -201,9 +123,35 @@ public class RDFService {
 	 * @param description
 	 * @return
 	 */
-	public static LocalDate getDate(RDFNode n) {
+	public static LocalDate getDate(final RDFNode n) {
 		try {
 			return LocalDate.parse(n.asLiteral().getString());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public static ZonedDateTime getDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		try {
+			return RDFService.getDateTime(properties.get(p).iterator().next());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	/**
+	 * @param r
+	 * @param description
+	 * @return
+	 */
+	public static ZonedDateTime getDateTime(final RDFNode n) {
+		try {
+			return ZonedDateTime.parse(n.asLiteral().getString());
 		} catch (final Exception e) {
 			return null;
 		}
@@ -254,14 +202,15 @@ public class RDFService {
 
 	public static <U extends Enum<U>> U getEnum(final Graph<? extends Model> g, final Resource r, final Property p,
 			final Map<Resource, U> values) {
-		final U result = getEnum(search(g, r, p, null, Statement::getResource).collect(Collectors.toList()), values);
+		final U result = RDFService
+				.getEnum(RDFService.search(g, r, p, null, Statement::getResource).collect(Collectors.toList()), values);
 		RDFService.log.trace("Get enum {} for {} -> {}", p, r, result);
 		return result;
 	}
 
 	public static <U extends Enum<U>> U getEnum(final MultiValuedMap<Property, RDFNode> map, final Property p,
 			final Map<Resource, U> values) {
-		final U result = getEnum(map.get(p).stream() //
+		final U result = RDFService.getEnum(map.get(p).stream() //
 				.filter(Resource.class::isInstance) //
 				.map(Resource.class::cast) //
 				.collect(Collectors.toList()), values);
@@ -280,6 +229,20 @@ public class RDFService {
 		} catch (final Exception e) {
 			return null;
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	public static String getGraphId(@NotNull final String id) {
+		return RDFService.getId(RDFService.GRAPH, id);
+	}
+
+	/**
+	 * @return
+	 */
+	public static String getId(@NotNull final String prefix, @NotNull final String id) {
+		return prefix + RDFService.COLON + id;
 	}
 
 	/**
@@ -309,7 +272,7 @@ public class RDFService {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static MultiValuedMap<Property, RDFNode> getProperties(final Graph<? extends Model> g, final Resource r) {
-		return (MultiValuedMap) search(g, r, null, null, s -> s) //
+		return (MultiValuedMap) RDFService.search(g, r, null, null, s -> s) //
 				.collect(HashSetValuedHashMap::new, (b, s) -> b.put(s.getPredicate(), s.getObject()),
 						HashSetValuedHashMap::putAll); //
 	}
@@ -370,7 +333,7 @@ public class RDFService {
 	public static String getString(final Graph<? extends Model> g, final Resource r, final Property p) {
 		g.beginRead();
 		try {
-			return getString(g.getModel().getProperty(r, p).getObject());
+			return RDFService.getString(g.getModel().getProperty(r, p).getObject());
 		} catch (final Exception e) {
 			return null;
 		} finally {
@@ -385,7 +348,7 @@ public class RDFService {
 	 */
 	public static String getString(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
-			return getString(properties.get(p).iterator().next());
+			return RDFService.getString(properties.get(p).iterator().next());
 		} catch (final Exception e) {
 			return null;
 		}
@@ -399,9 +362,8 @@ public class RDFService {
 		}
 	}
 
-	public static Set<String> getStringSet(final MultiValuedMap<Property, RDFNode> properties,
-			final Property property) {
-		return getSet(properties, property, RDFService::getString);
+	public static Set<String> getStringSet(final MultiValuedMap<Property, RDFNode> properties, final Property property) {
+		return RDFService.getSet(properties, property, RDFService::getString);
 	}
 
 	/**
@@ -427,7 +389,7 @@ public class RDFService {
 	 */
 	public static URL getURL(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
-			return getURL(properties.get(p).iterator().next());
+			return RDFService.getURL(properties.get(p).iterator().next());
 		} catch (final Exception e) {
 			return null;
 		}
@@ -446,7 +408,30 @@ public class RDFService {
 	}
 
 	public static Set<URL> getURLSet(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
-		return getSet(properties, p, RDFService::getURL);
+		return RDFService.getSet(properties, p, RDFService::getURL);
+	}
+
+	/**
+	 * Removes the "graph" prefix from the provided ID
+	 *
+	 * @return the
+	 */
+	public static String removeGraphId(@NotNull final String id) {
+		return RDFService.removeId(RDFService.GRAPH, id);
+	}
+
+	/**
+	 * @return
+	 */
+	public static String removeId(@NotNull final String prefix, @NotNull final String id) {
+		RDFService.log.trace("Resolving {} id {}", prefix, id);
+		if (!id.startsWith(prefix + RDFService.COLON))
+			throw new IllegalArgumentException(prefix + " id must start with `" + prefix + RDFService.COLON + "'");
+		return StringUtils.trimToEmpty(id.substring(prefix.length() + RDFService.COLON.length()));
+	}
+
+	protected static <K, V> Map<V, K> reverse(final Map<K, V> input) {
+		return input.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 	}
 
 	/**
@@ -508,6 +493,21 @@ public class RDFService {
 		} finally {
 			graph.end();
 		}
+	}
+
+	public static void snapshot(final Graph<? extends Model> m, final boolean raw, final Predicate<Statement> filter) {
+		m.beginRead();
+		RDFService.log.trace("Stored statements");
+		Model model = m.getModel();
+		if (raw && model instanceof InfModel) {
+			model = ((InfModel) model).getRawModel();
+		}
+		model.listStatements().forEachRemaining(s -> {
+			if (filter == null || filter.test(s)) {
+				RDFService.log.info(" - ({}, {}, {})", s.getSubject(), s.getPredicate(), s.getObject());
+			}
+		});
+		m.end();
 	}
 
 }

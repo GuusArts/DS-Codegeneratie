@@ -31,10 +31,10 @@ import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.async.Message;
 import nl.kik.commons.datastation.dto.vc.ValidatedQuery;
+import nl.kik.commons.datastation.dto.vc.ValidatedQuery.ValidatedQueryBuilder;
 import nl.kik.commons.datastation.dto.vc.VerifiableBase;
 import nl.kik.commons.datastation.dto.vc.VerifiableCredential;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
-import nl.kik.commons.datastation.dto.vc.ValidatedQuery.ValidatedQueryBuilder;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation.VerifiablePresentationBuilder;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 import nl.kik.commons.datastation.util.FunctionWrapper.BiConsumerWithException;
@@ -175,8 +175,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		if (CollectionUtils.isEmpty(credential)) {
 			try {
 				credential = CollectionUtils.emptyIfNull(m.getCredential()).stream() //
-						.map(FunctionWrapper.wrapper((final VerifiableCredential vc) -> credentialSigner.apply(vc,
-								wrap(vc, credentialSigner)))) //
+						.map(FunctionWrapper
+								.wrapper((final VerifiableCredential vc) -> credentialSigner.apply(vc, wrap(vc, credentialSigner)))) //
 						.collect(Collectors.toList());
 			} catch (final RuntimeException e) {
 				throw (E) e.getCause();
@@ -226,8 +226,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	private <E extends Exception> VerifiableCredential.VerifiableCredentialBuilder<?, ?> unwrapCredential(
-			final Map<String, Object> vc,
-			final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
+			final Map<String, Object> vc, final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
+			throws ParseException {
 		final Set<String> types = getTypes(vc);
 		final Set<String> contexts = getContexts(vc);
 		final boolean vcType = !types.remove(VerifiableCredentialService.VERIFIABLE_CREDENTIAL_TYPE);
@@ -260,8 +260,7 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	@SuppressWarnings("unchecked")
 	private <E extends Exception> VerifiablePresentation.VerifiablePresentationBuilder<?, ?> unwrapPresentation(
-			final Map<String, Object> vp,
-			final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
+			final Map<String, Object> vp, final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator)
 			throws ParseException, MalformedURLException, E {
 		final Set<String> types = getTypes(vp);
 		final Set<String> contexts = getContexts(vp);
@@ -269,18 +268,16 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		final boolean vpContext = !contexts.remove(VerifiableCredentialService.CREDENTIALS_CONTEXT);
 		if (vpType && vpContext)
 			throw new ParseException(
-					"Expecting VC to contain type " + VerifiableCredentialService.VERIFIABLE_PRESENTATION_TYPE
-							+ " and context " + VerifiableCredentialService.CREDENTIALS_CONTEXT,
+					"Expecting VC to contain type " + VerifiableCredentialService.VERIFIABLE_PRESENTATION_TYPE + " and context "
+							+ VerifiableCredentialService.CREDENTIALS_CONTEXT,
 					0);
 		try {
 			return makePresentation() //
 					.credential(CollectionUtils
-							.emptyIfNull(JSONObjectUtils.getStringList(vp,
-									VerifiableCredentialService.VERIFIABLE_CREDENTIAL))
+							.emptyIfNull(JSONObjectUtils.getStringList(vp, VerifiableCredentialService.VERIFIABLE_CREDENTIAL))
 							.stream() //
 							.map(FunctionWrapper.wrapper((final String s) -> unwrapVerifiable(s, credentialValidator))) //
-							.map(FunctionWrapper
-									.wrapper((final VerifiableBase vc) -> requireType(vc, VerifiableCredential.class))) //
+							.map(FunctionWrapper.wrapper((final VerifiableBase vc) -> requireType(vc, VerifiableCredential.class))) //
 							.collect(Collectors.toList())) //
 			;
 		} catch (final RuntimeException e) {
@@ -297,8 +294,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 			final Map<String, Object> vc, final Set<String> types, final Set<String> contexts,
 			final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
 		if (!contexts.remove(VerifiableCredentialService.VALIDATED_QUERY_CONTEXT))
-			throw new ParseException("Expecting validated query to contain context "
-					+ VerifiableCredentialService.VALIDATED_QUERY_CONTEXT, 0);
+			throw new ParseException(
+					"Expecting validated query to contain context " + VerifiableCredentialService.VALIDATED_QUERY_CONTEXT, 0);
 		final Map<String, Object> subject = getRequiredJSONObject(vc, VerifiableCredentialService.CREDENTIAL_SUBJECT);
 		return makeValidatedQuery() //
 				.subjectId(getRequiredString(subject, VerifiableCredentialService.ID)) //
@@ -326,11 +323,9 @@ public class VerifiableCredentialService extends AbstractTokenService {
 						: claims.getExpirationTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
 				.creation(claims.getIssueTime() == null ? null
-						: claims.getIssueTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
-								.toZonedDateTime()) //
+						: claims.getIssueTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(claims.getNotBeforeTime() == null ? null
-						: claims.getNotBeforeTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
-								.toZonedDateTime()) //
+						: claims.getNotBeforeTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime().toZonedDateTime()) //
 				.build();
 		credentialValidator.accept(object, result);
 		return result;
@@ -468,8 +463,8 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	public <E extends Exception> JWSObject wrap(VerifiableBase m,
 			final BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
 		m = fillDefaults(m);
-		final JWSHeader header = new JWSHeader(JWSAlgorithm.EdDSA, JOSEObjectType.JWT, null, null, null, null, null,
-				null, null, null, m.getKeyId(), true, null, null);
+		final JWSHeader header = new JWSHeader(JWSAlgorithm.EdDSA, JOSEObjectType.JWT, null, null, null, null, null, null,
+				null, null, m.getKeyId(), true, null, null);
 
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //
 				.jwtID(m.getId()) //

@@ -10,8 +10,7 @@ public class Constants {
 	public static final URL STANDARD_SPARQL = Constants.url("https://www.w3.org/TR/sparql11-protocol/");
 	public static final URL STANDARD_GRAPHSTORE = Constants
 			.url("https://www.w3.org/TR/2013/REC-sparql11-http-rdf-update-20130321/");
-	public static final URL STANDARD_SHACL = Constants
-			.url("https://verwijzing-naar-de-gepubliceerde-specificatie/shacl");
+	public static final URL STANDARD_SHACL = Constants.url("https://verwijzing-naar-de-gepubliceerde-specificatie/shacl");
 
 	public static final URL FREQUENCY_CONTINUOUS = Constants.url("http://purl.org/cld/freq/continuous");
 	public static final URL FREQUENCY_DAILY = Constants.url("http://purl.org/cld/freq/daily");

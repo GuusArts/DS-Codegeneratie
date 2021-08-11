@@ -19,20 +19,18 @@ import nl.kik.commons.dto.Projectable;
 public class Region extends GidsObject implements Projectable<Source, Region> {
 	private GidsAttribute<String> code;
 
+	public Region orNull() {
+		if (code == null)
+			return null;
+		return this;
+	}
+
 	@Override
-	public Region project(Source key, LocalDate date) {
+	public Region project(final Source key, final LocalDate date) {
 		return Region.builder() //
 				.id(getId()) //
 				.code(code == null ? null : code.project(key, date)) //
 				.build().orNull();
-	}
-
-	public Region orNull() {
-		if (code == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 
 }

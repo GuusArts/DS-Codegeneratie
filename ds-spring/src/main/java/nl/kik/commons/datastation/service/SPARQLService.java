@@ -98,7 +98,8 @@ public class SPARQLService {
 					.type(RDFType.bnode) //
 					.value(resource.getId().getLabelString()) //
 					.build();
-		} else if (rdfNode.isURIResource()) {
+		}
+		if (rdfNode.isURIResource()) {
 			final Resource resource = rdfNode.asResource();
 			return Binding.builder() //
 					.type(RDFType.uri) //

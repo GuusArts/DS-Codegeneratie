@@ -25,8 +25,8 @@ import uniresolver.result.ResolveResult;
 public class DIDWeb implements Driver {
 	public static final String MIME_TYPES = DIDDocument.MIME_TYPE_JSON_LD + "," + "application/ld+json";
 
-	private HttpClient httpClient = HttpClients.createDefault();
-	private Pattern pattern = Pattern.compile("^(did:web:)([^:]+)(:.+)?$");
+	private final HttpClient httpClient = HttpClients.createDefault();
+	private final Pattern pattern = Pattern.compile("^(did:web:)([^:]+)(:.+)?$");
 	private boolean allowLocalhost = false;
 	private int localhostPort = 8280;
 
@@ -34,24 +34,38 @@ public class DIDWeb implements Driver {
 
 	}
 
+	public int getLocalhostPort() {
+		return localhostPort;
+	}
+
+	public boolean isAllowLocalhost() {
+		return allowLocalhost;
+	}
+
 	@Override
-	public ResolveResult resolve(String identifier) throws ResolutionException {
+	public Map<String, Object> properties() throws ResolutionException {
+		final Map<String, Object> httpProperties = new HashMap<>();
+		httpProperties.put("pattern", pattern.toString());
+		final Map<String, Object> properties = new HashMap<>();
+		properties.put("http", httpProperties);
+		return properties;
+	}
+
+	@Override
+	public ResolveResult resolve(final String identifier) throws ResolutionException {
 		// match identifier
-		Matcher matcher = pattern.matcher(identifier);
+		final Matcher matcher = pattern.matcher(identifier);
 		if (!matcher.matches()) {
-			log.debug("Skipping identifier {} - does not match pattern {}", identifier, pattern);
+			DIDWeb.log.debug("Skipping identifier {} - does not match pattern {}", identifier, pattern);
 			return null;
-		} else {
-			log.debug("Identifier {} matches pattern {} with {} groups", identifier, pattern, matcher.groupCount());
 		}
+		DIDWeb.log.debug("Identifier {} matches pattern {} with {} groups", identifier, pattern, matcher.groupCount());
 
 		String url;
 		if ("localhost".equals(matcher.group(2))) {
-			if (allowLocalhost) {
-				url = "http://localhost:" + getLocalhostPort();
-			} else {
+			if (!allowLocalhost)
 				return null;
-			}
+			url = "http://localhost:" + getLocalhostPort();
 		} else {
 			url = "https://" + matcher.group(2);
 		}
@@ -62,72 +76,54 @@ public class DIDWeb implements Driver {
 		}
 		url = url + "/did.json";
 
-		HttpGet httpGet = new HttpGet(URI.create(url));
-		httpGet.addHeader("Accept", MIME_TYPES);
+		final HttpGet httpGet = new HttpGet(URI.create(url));
+		httpGet.addHeader("Accept", DIDWeb.MIME_TYPES);
 
 		// execute HTTP request
 
 		ResolveResult resolveResult;
 
-		log.debug("Request for identifier {} to: ", identifier, url);
+		DIDWeb.log.debug("Request for identifier {} to: ", identifier, url);
 
 		try (CloseableHttpResponse httpResponse = (CloseableHttpResponse) httpClient.execute(httpGet)) {
-			int statusCode = httpResponse.getStatusLine().getStatusCode();
-			String statusMessage = httpResponse.getStatusLine().getReasonPhrase();
+			final int statusCode = httpResponse.getStatusLine().getStatusCode();
+			final String statusMessage = httpResponse.getStatusLine().getReasonPhrase();
 
-			log.debug("Response status from {}: {} {}", url, statusCode, statusMessage);
+			DIDWeb.log.debug("Response status from {}: {} {}", url, statusCode, statusMessage);
 			if (statusCode == 404)
 				return null;
 
-			HttpEntity httpEntity = httpResponse.getEntity();
-			String httpBody = EntityUtils.toString(httpEntity);
+			final HttpEntity httpEntity = httpResponse.getEntity();
+			final String httpBody = EntityUtils.toString(httpEntity);
 			EntityUtils.consume(httpEntity);
 
-			log.debug("Response body from {}: {}", url, httpBody);
+			DIDWeb.log.debug("Response body from {}: {}", url, httpBody);
 
 			if (httpResponse.getStatusLine().getStatusCode() > 200) {
-				log.warn("Cannot retrieve RESOLVE RESULT for {} from {}: {}", identifier, url, httpBody);
+				DIDWeb.log.warn("Cannot retrieve RESOLVE RESULT for {} from {}: {}", identifier, url, httpBody);
 				throw new ResolutionException(httpBody);
 			}
 
 			resolveResult = ResolveResult.build(DIDDocument.fromJson(httpBody));
 			if (resolveResult.getDidDocument() == null
-					|| !identifier.equals(resolveResult.getDidDocument().getId().toString())) {
+					|| !identifier.equals(resolveResult.getDidDocument().getId().toString()))
 				throw new ResolutionException("Result does not match requested identifier " + identifier + " != "
 						+ resolveResult.getDidDocument().getId());
-			}
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			throw new ResolutionException(
 					"Cannot retrieve RESOLVE RESULT for " + identifier + " from " + url + ": " + ex.getMessage(), ex);
 		}
 
-		log.debug("Retrieved RESOLVE RESULT for {} ({}): {}", identifier, url, resolveResult);
+		DIDWeb.log.debug("Retrieved RESOLVE RESULT for {} ({}): {}", identifier, url, resolveResult);
 
 		return resolveResult;
 	}
 
-	@Override
-	public Map<String, Object> properties() throws ResolutionException {
-		Map<String, Object> httpProperties = new HashMap<String, Object>();
-		httpProperties.put("pattern", pattern.toString());
-		Map<String, Object> properties = new HashMap<String, Object>();
-		properties.put("http", httpProperties);
-		return properties;
-	}
-
-	public boolean isAllowLocalhost() {
-		return allowLocalhost;
-	}
-
-	public void setAllowLocalhost(boolean allowLocalhost) {
+	public void setAllowLocalhost(final boolean allowLocalhost) {
 		this.allowLocalhost = allowLocalhost;
 	}
 
-	public int getLocalhostPort() {
-		return localhostPort;
-	}
-
-	public void setLocalhostPort(int localhostPort) {
+	public void setLocalhostPort(final int localhostPort) {
 		this.localhostPort = localhostPort;
 	}
 

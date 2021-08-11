@@ -85,8 +85,7 @@ public class SerializationController {
 				model.createResource("http://example.com/world"));
 		model.add(model.createResource("http://example.com/girls"), model.createProperty("http://example.com/rule"),
 				model.createResource("http://example.com/world"));
-		model.add(model.createResource("http://example.com/girls"),
-				model.createProperty("http://example.com/just_wanna"),
+		model.add(model.createResource("http://example.com/girls"), model.createProperty("http://example.com/just_wanna"),
 				model.createResource("http://example.com/have_fun"));
 
 		final ConstructResult construct = sparql.wrap(model);
@@ -205,11 +204,8 @@ public class SerializationController {
 						.bindings(List.of( //
 								Map.of("a", Binding.builder().value("1").type(RDFType.literal).build()), //
 								Map.of("a", Binding.builder().value("http://example.com").type(RDFType.uri).build()), //
-								Map.of("b",
-										Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
-								Map.of("a",
-										Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string")
-												.build(), //
+								Map.of("b", Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
+								Map.of("a", Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string").build(), //
 										"b", Binding.builder().value("b23").type(RDFType.bnode).build()) //
 						)) //
 						.build())//

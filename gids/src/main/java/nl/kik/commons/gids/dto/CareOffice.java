@@ -22,8 +22,14 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 	private GidsAttribute<Concessionaire> concessionaire;
 	private GidsAttribute<String> name;
 
+	public CareOffice orNull() {
+		if (code == null && region == null && concessionaire == null && name == null)
+			return null;
+		return this;
+	}
+
 	@Override
-	public CareOffice project(Source key, LocalDate date) {
+	public CareOffice project(final Source key, final LocalDate date) {
 		return CareOffice.builder() //
 				.id(getId()) //
 				.code(code == null ? null : code.project(key, date)) //
@@ -31,14 +37,6 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 				.concessionaire(concessionaire == null ? null : concessionaire.project(key, date)) //
 				.name(name == null ? null : name.project(key, date)) //
 				.build().orNull();
-	}
-
-	public CareOffice orNull() {
-		if (code == null && region == null && concessionaire == null && name == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 
 }

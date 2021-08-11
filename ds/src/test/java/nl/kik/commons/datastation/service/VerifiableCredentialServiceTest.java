@@ -94,17 +94,17 @@ class VerifiableCredentialServiceTest extends AbstractVerifiableCredentialTest {
 				.body(presentation) //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
-						.toOffsetDateTime().toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE)
-						.toOffsetDateTime().toZonedDateTime()) //
+				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, AbstractVerifiableCredentialTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.replyUrl(new URL("http://example.com/service/reply")) //
 				.build();
 		final MessageService messageService = new MessageService();
 
-		final JWSObject wrapped = messageService.wrap(message, messageService
-				.base64Wrapper(service.wrapAndSign(this::sign, c -> signer, (c, w) -> sign(w, centralSigner))));
+		final JWSObject wrapped = messageService.wrap(message,
+				messageService.base64Wrapper(service.wrapAndSign(this::sign, c -> signer, (c, w) -> sign(w, centralSigner))));
 		wrapped.sign(signer);
 		System.out.println(wrapped.serialize());
 	}

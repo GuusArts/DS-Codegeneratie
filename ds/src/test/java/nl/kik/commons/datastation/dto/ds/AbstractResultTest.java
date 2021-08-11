@@ -27,11 +27,8 @@ public abstract class AbstractResultTest {
 						.bindings(List.of( //
 								Map.of("a", Binding.builder().value("1").type(RDFType.literal).build()), //
 								Map.of("a", Binding.builder().value("http://example.com").type(RDFType.uri).build()), //
-								Map.of("b",
-										Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
-								Map.of("a",
-										Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string")
-												.build(), //
+								Map.of("b", Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
+								Map.of("a", Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string").build(), //
 										"b", Binding.builder().value("b23").type(RDFType.bnode).build()) //
 						)) //
 						.build())//

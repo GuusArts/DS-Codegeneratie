@@ -1,69 +1,41 @@
 package nl.kik.commons.datastation.service;
 
+import java.util.Arrays;
+
 public class Base58 {
 	private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
-	private static final int BASE_58 = ALPHABET.length;
+	private static final int BASE_58 = Base58.ALPHABET.length;
 	private static final int BASE_256 = 256;
 
 	private static final int[] INDEXES = new int[128];
 	static {
-		for (int i = 0; i < INDEXES.length; i++) {
-			INDEXES[i] = -1;
-		}
-		for (int i = 0; i < ALPHABET.length; i++) {
-			INDEXES[ALPHABET[i]] = i;
+		Arrays.fill(Base58.INDEXES, -1);
+		for (int i = 0; i < Base58.ALPHABET.length; i++) {
+			Base58.INDEXES[Base58.ALPHABET[i]] = i;
 		}
 	}
 
-	public static String encode(byte[] input) {
-		if (input.length == 0) {
-			return "";
-		}
-		input = copyOfRange(input, 0, input.length);
-		int zeroCount = 0;
-		while (zeroCount < input.length && input[zeroCount] == 0) {
-			++zeroCount;
-		}
-		byte[] temp = new byte[input.length * 2];
-		int j = temp.length;
-		int startAt = zeroCount;
-		while (startAt < input.length) {
-			byte mod = divmod58(input, startAt);
-			if (input[startAt] == 0) {
-				++startAt;
-			}
+	private static byte[] copyOfRange(final byte[] source, final int from, final int to) {
+		final byte[] range = new byte[to - from];
+		System.arraycopy(source, from, range, 0, range.length);
 
-			temp[--j] = (byte) ALPHABET[mod];
-		}
-
-		while (j < temp.length && temp[j] == ALPHABET[0]) {
-			++j;
-		}
-
-		while (--zeroCount >= 0) {
-			temp[--j] = (byte) ALPHABET[0];
-		}
-
-		byte[] output = copyOfRange(temp, j, temp.length);
-		return new String(output);
+		return range;
 	}
 
-	public static byte[] decode(String input) {
-		if (input.length() == 0) {
+	public static byte[] decode(final String input) {
+		if (input.length() == 0)
 			return new byte[0];
-		}
 
-		byte[] input58 = new byte[input.length()];
+		final byte[] input58 = new byte[input.length()];
 		for (int i = 0; i < input.length(); ++i) {
-			char c = input.charAt(i);
+			final char c = input.charAt(i);
 
 			int digit58 = -1;
 			if (c >= 0 && c < 128) {
-				digit58 = INDEXES[c];
+				digit58 = Base58.INDEXES[c];
 			}
-			if (digit58 < 0) {
+			if (digit58 < 0)
 				throw new RuntimeException("Not a Base58 input: " + input);
-			}
 
 			input58[i] = (byte) digit58;
 		}
@@ -73,12 +45,12 @@ public class Base58 {
 			++zeroCount;
 		}
 
-		byte[] temp = new byte[input.length()];
+		final byte[] temp = new byte[input.length()];
 		int j = temp.length;
 
 		int startAt = zeroCount;
 		while (startAt < input58.length) {
-			byte mod = divmod256(input58, startAt);
+			final byte mod = Base58.divmod256(input58, startAt);
 			if (input58[startAt] == 0) {
 				++startAt;
 			}
@@ -90,41 +62,66 @@ public class Base58 {
 			++j;
 		}
 
-		return copyOfRange(temp, j - zeroCount, temp.length);
+		return Base58.copyOfRange(temp, j - zeroCount, temp.length);
 	}
 
-	private static byte divmod58(byte[] number, int startAt) {
-		int remainder = 0;
-		for (int i = startAt; i < number.length; i++) {
-			int digit256 = (int) number[i] & 0xFF;
-			int temp = remainder * BASE_256 + digit256;
-
-			number[i] = (byte) (temp / BASE_58);
-
-			remainder = temp % BASE_58;
-		}
-
-		return (byte) remainder;
-	}
-
-	private static byte divmod256(byte[] number58, int startAt) {
+	private static byte divmod256(final byte[] number58, final int startAt) {
 		int remainder = 0;
 		for (int i = startAt; i < number58.length; i++) {
-			int digit58 = (int) number58[i] & 0xFF;
-			int temp = remainder * BASE_58 + digit58;
+			final int digit58 = number58[i] & 0xFF;
+			final int temp = remainder * Base58.BASE_58 + digit58;
 
-			number58[i] = (byte) (temp / BASE_256);
+			number58[i] = (byte) (temp / Base58.BASE_256);
 
-			remainder = temp % BASE_256;
+			remainder = temp % Base58.BASE_256;
 		}
 
 		return (byte) remainder;
 	}
 
-	private static byte[] copyOfRange(byte[] source, int from, int to) {
-		byte[] range = new byte[to - from];
-		System.arraycopy(source, from, range, 0, range.length);
+	private static byte divmod58(final byte[] number, final int startAt) {
+		int remainder = 0;
+		for (int i = startAt; i < number.length; i++) {
+			final int digit256 = number[i] & 0xFF;
+			final int temp = remainder * Base58.BASE_256 + digit256;
 
-		return range;
+			number[i] = (byte) (temp / Base58.BASE_58);
+
+			remainder = temp % Base58.BASE_58;
+		}
+
+		return (byte) remainder;
+	}
+
+	public static String encode(byte[] input) {
+		if (input.length == 0)
+			return "";
+		input = Base58.copyOfRange(input, 0, input.length);
+		int zeroCount = 0;
+		while (zeroCount < input.length && input[zeroCount] == 0) {
+			++zeroCount;
+		}
+		final byte[] temp = new byte[input.length * 2];
+		int j = temp.length;
+		int startAt = zeroCount;
+		while (startAt < input.length) {
+			final byte mod = Base58.divmod58(input, startAt);
+			if (input[startAt] == 0) {
+				++startAt;
+			}
+
+			temp[--j] = (byte) Base58.ALPHABET[mod];
+		}
+
+		while (j < temp.length && temp[j] == Base58.ALPHABET[0]) {
+			++j;
+		}
+
+		while (--zeroCount >= 0) {
+			temp[--j] = (byte) Base58.ALPHABET[0];
+		}
+
+		final byte[] output = Base58.copyOfRange(temp, j, temp.length);
+		return new String(output);
 	}
 }

@@ -25,25 +25,22 @@ public class Location extends GidsObject implements HasName, HasAgb, HasAddress,
 	private List<GidsAttribute<String>> agb;
 	private GidsAttribute<Address> address;
 
+	public Location orNull() {
+		if (name == null && number == null && (agb == null || agb.isEmpty()) && address == null)
+			return null;
+		return this;
+	}
+
 	@Override
-	public Location project(Source key, LocalDate date) {
+	public Location project(final Source key, final LocalDate date) {
 		return Location.builder() //
 				.id(getId()) //
 				.name(name == null ? null : name.project(key, date)) //
 				.number(number == null ? null : number.project(key, date)) //
 				.agb(agb == null ? null
-						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
-								.collect(Collectors.toList())) //
+						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull).collect(Collectors.toList())) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
-	}
-
-	public Location orNull() {
-		if (name == null && number == null && (agb == null || agb.isEmpty()) && address == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 
 }

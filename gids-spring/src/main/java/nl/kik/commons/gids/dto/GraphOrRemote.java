@@ -14,43 +14,35 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 	private final String remote;
 	private final String auth;
 
-	public GraphOrRemote(Graph<? extends Model> graph) {
+	public GraphOrRemote(final Graph<? extends Model> graph) {
 		Objects.requireNonNull(graph);
 		this.graph = graph;
-		this.remote = null;
-		this.auth = null;
+		remote = null;
+		auth = null;
 	}
 
-	public GraphOrRemote(String remote) {
+	public GraphOrRemote(final String remote) {
 		this(remote, null);
 	}
 
-	public GraphOrRemote(String remote, String auth) {
+	public GraphOrRemote(final String remote, final String auth) {
 		Objects.requireNonNull(remote);
-		this.graph = null;
+		graph = null;
 		this.remote = remote;
 		this.auth = StringUtils.trimToNull(auth);
-	}
-
-	public boolean isGraph() {
-		return graph != null;
-	}
-
-	public boolean isRemote() {
-		return remote != null;
-	}
-
-	@Override
-	public void beginWrite() {
-		if (isGraph()) {
-			getGraph().beginWrite();
-		}
 	}
 
 	@Override
 	public void beginRead() {
 		if (isGraph()) {
 			getGraph().beginRead();
+		}
+	}
+
+	@Override
+	public void beginWrite() {
+		if (isGraph()) {
+			getGraph().beginWrite();
 		}
 	}
 
@@ -68,31 +60,37 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		}
 	}
 
-	@Override
-	public Resource getResource(String uri) {
-		if (isGraph()) {
-			return getGraph().getResource(uri);
-		}
-		if (isRemote()) {
-			return new ResourceImpl(uri);
-		}
-		throw new IllegalArgumentException(); // Should never reach here
-	}
-
-	public String getRemote() {
-		return remote;
+	public String getAuth() {
+		return auth;
 	}
 
 	public Graph<? extends Model> getGraph() {
 		return graph;
 	}
 
-	public String getAuth() {
-		return auth;
+	public String getRemote() {
+		return remote;
+	}
+
+	@Override
+	public Resource getResource(final String uri) {
+		if (isGraph())
+			return getGraph().getResource(uri);
+		if (isRemote())
+			return new ResourceImpl(uri);
+		throw new IllegalArgumentException(); // Should never reach here
 	}
 
 	public boolean hasAuth() {
 		return auth != null;
+	}
+
+	public boolean isGraph() {
+		return graph != null;
+	}
+
+	public boolean isRemote() {
+		return remote != null;
 	}
 
 }

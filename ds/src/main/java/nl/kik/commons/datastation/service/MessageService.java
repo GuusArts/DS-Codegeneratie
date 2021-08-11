@@ -27,11 +27,11 @@ import com.nimbusds.jwt.SignedJWT;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.async.ErrorReport;
+import nl.kik.commons.datastation.dto.ds.async.ErrorReport.ErrorReportBuilder;
 import nl.kik.commons.datastation.dto.ds.async.Message;
 import nl.kik.commons.datastation.dto.ds.async.Request;
-import nl.kik.commons.datastation.dto.ds.async.Response;
-import nl.kik.commons.datastation.dto.ds.async.ErrorReport.ErrorReportBuilder;
 import nl.kik.commons.datastation.dto.ds.async.Request.RequestBuilder;
+import nl.kik.commons.datastation.dto.ds.async.Response;
 import nl.kik.commons.datastation.dto.ds.async.Response.ResponseBuilder;
 import nl.kik.commons.datastation.util.FunctionWrapper.BiConsumerWithException;
 import nl.kik.commons.datastation.util.FunctionWrapper.FunctionWithException;
@@ -104,8 +104,7 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	private <T, E extends Exception> Message.MessageBuilder<T, ?, ?> unwrap(final JWTClaimsSet claims,
-			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder)
-			throws ParseException, MalformedURLException {
+			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder) throws ParseException, MalformedURLException {
 		final String type = getRequiredString(claims, MessageService.TYPE);
 		switch (type) {
 		case REQUEST:
@@ -119,9 +118,8 @@ public class MessageService extends AbstractTokenService {
 		}
 	}
 
-	private <T, E extends Exception> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(
-			final JWTClaimsSet claims, final FunctionWithException<Map<String, Object>, T, E> bodyDecoder)
-			throws MalformedURLException, ParseException {
+	private <T, E extends Exception> ErrorReport.ErrorReportBuilder<T, ?, ?> unwrapErrorReport(final JWTClaimsSet claims,
+			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return makeErrorReport() //
 		;
 	}
@@ -163,11 +161,9 @@ public class MessageService extends AbstractTokenService {
 						: claims.getExpirationTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
 								.toZonedDateTime()) //
 				.creation(claims.getIssueTime() == null ? null
-						: claims.getIssueTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
-								.toZonedDateTime()) //
+						: claims.getIssueTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime().toZonedDateTime()) //
 				.validFrom(claims.getNotBeforeTime() == null ? null
-						: claims.getNotBeforeTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime()
-								.toZonedDateTime()) //
+						: claims.getNotBeforeTime().toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime().toZonedDateTime()) //
 				.threadId(claims.getStringClaim(MessageService.THREAD)) //
 				.body(bodyDecoder.apply(claims.getJSONObjectClaim(MessageService.BODY))) //
 				.build();
@@ -176,16 +172,14 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	private <T, E extends Exception> Request.RequestBuilder<T, ?, ?> unwrapRequest(final JWTClaimsSet claims,
-			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder)
-			throws MalformedURLException, ParseException {
+			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return this.<T>makeRequest() //
 				.replyUrl(new URL(getRequiredString(claims, MessageService.REPLY_URL))) //
 		;
 	}
 
 	private <T, E extends Exception> Response.ResponseBuilder<T, ?, ?> unwrapResponse(final JWTClaimsSet claims,
-			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder)
-			throws MalformedURLException, ParseException {
+			final FunctionWithException<Map<String, Object>, T, E> bodyDecoder) throws MalformedURLException, ParseException {
 		return makeResponse() //
 		;
 	}
@@ -326,8 +320,8 @@ public class MessageService extends AbstractTokenService {
 	public <T, E extends Exception> JWSObject wrap(Message<T> m,
 			final FunctionWithException<T, Map<String, Object>, E> bodyEncoder) throws E {
 		m = fillDefaults(m);
-		final JWSHeader header = new JWSHeader(JWSAlgorithm.EdDSA, MessageService.JWM, null, null, null, null, null,
-				null, null, null, m.getKeyId(), true, null, null);
+		final JWSHeader header = new JWSHeader(JWSAlgorithm.EdDSA, MessageService.JWM, null, null, null, null, null, null,
+				null, null, m.getKeyId(), true, null, null);
 
 		final Collection<String> recipient = CollectionUtils.emptyIfNull(m.getTo());
 		JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder() //

@@ -13,8 +13,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 public abstract class AbstractTokenService {
 	protected <T> T checkEquals(final String name, final T expected, final T actual) throws ParseException {
 		if (!Objects.equals(expected, actual))
-			throw new ParseException(
-					name + " does not match expectation (expected " + expected + ", got " + actual + ")", 0);
+			throw new ParseException(name + " does not match expectation (expected " + expected + ", got " + actual + ")", 0);
 		return actual;
 	}
 

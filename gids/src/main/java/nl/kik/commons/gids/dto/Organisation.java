@@ -33,8 +33,16 @@ public class Organisation extends GidsObject
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 
+	public Organisation orNull() {
+		if (address == null && office == null && name == null && tradeName == null && careProviderName == null
+				&& lastModified == null && (agb == null || agb.isEmpty()) && kvk == null
+				&& (location == null || location.isEmpty()) && deliveryMethod == null)
+			return null;
+		return this;
+	}
+
 	@Override
-	public Organisation project(Source key, LocalDate date) {
+	public Organisation project(final Source key, final LocalDate date) {
 		return Organisation.builder() //
 				.id(getId()) //
 				.address(address == null ? null : address.project(key, date)) //
@@ -44,24 +52,12 @@ public class Organisation extends GidsObject
 				.careProviderName(careProviderName == null ? null : careProviderName.project(key, date)) //
 				.lastModified(lastModified == null ? null : lastModified.project(key, date)) //
 				.agb(agb == null ? null
-						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
-								.collect(Collectors.toList())) //
+						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull).collect(Collectors.toList())) //
 				.kvk(kvk == null ? null : kvk.project(key, date)) //
 				.location(location == null ? null
-						: location.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
-								.collect(Collectors.toList())) //
+						: location.stream().map(l -> l.project(key, date)).filter(Objects::nonNull).collect(Collectors.toList())) //
 				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build().orNull();
-	}
-
-	public Organisation orNull() {
-		if (address == null && office == null && name == null && tradeName == null && careProviderName == null
-				&& lastModified == null && (agb == null || agb.isEmpty()) && kvk == null
-				&& (location == null || location.isEmpty()) && deliveryMethod == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 
 }

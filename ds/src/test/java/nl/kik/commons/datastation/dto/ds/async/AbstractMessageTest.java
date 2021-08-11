@@ -22,12 +22,12 @@ public abstract class AbstractMessageTest {
 				.issuer("did:sender") //
 				.from("did:sender") //
 				.to(Collections.singletonList("did:recipient")) //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
+				.expiration(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.replyUrl(new URL("http://example.com/service/reply")) //
 				.body("Ping") //
@@ -37,12 +37,12 @@ public abstract class AbstractMessageTest {
 				.issuer("did:recipient") //
 				.to(Collections.singletonList("did:sender")) //
 				.from("did:recipient") //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
+				.expiration(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.body("Pong") //
 				.build();
@@ -51,12 +51,12 @@ public abstract class AbstractMessageTest {
 				.issuer("did:recipient") //
 				.to(Collections.singletonList("did:sender")) //
 				.from("did:recipient") //
-				.expiration(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.creation(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
-				.validFrom(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime()
-						.toZonedDateTime()) //
+				.expiration(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.creation(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.validFrom(
+						ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractMessageTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
 				.threadId("urn:thread") //
 				.body("Wrong") //
 				.build();

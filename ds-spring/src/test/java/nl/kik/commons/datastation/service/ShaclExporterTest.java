@@ -168,15 +168,7 @@ class ShaclExporterTest {
 				return;
 			}
 			final QualifiedValueShape o = (QualifiedValueShape) other;
-			if (constraint.qMin() != o.qMin()) {
-				result = false;
-				return;
-			}
-			if (constraint.qMax() != o.qMax()) {
-				result = false;
-				return;
-			}
-			if (constraint.qDisjoint() != o.qDisjoint()) {
+			if ((constraint.qMin() != o.qMin()) || (constraint.qMax() != o.qMax()) || (constraint.qDisjoint() != o.qDisjoint())) {
 				result = false;
 				return;
 			}
@@ -314,8 +306,7 @@ class ShaclExporterTest {
 			return false;
 		}
 		if (!compare(a.getPropertyShapes(), b.getPropertyShapes(), this::compare)) {
-			ShaclExporterTest.log.info("getPropertyShapes failing {} != {}", a.getPropertyShapes(),
-					b.getPropertyShapes());
+			ShaclExporterTest.log.info("getPropertyShapes failing {} != {}", a.getPropertyShapes(), b.getPropertyShapes());
 			return false;
 		}
 		if (!compare(a.getTargets(), b.getTargets(), DeepEquals::deepEquals)) {

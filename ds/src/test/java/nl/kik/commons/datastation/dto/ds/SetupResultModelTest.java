@@ -2,7 +2,7 @@ package nl.kik.commons.datastation.dto.ds;
 
 import org.junit.jupiter.api.Test;
 
-public class SetupResultModelTest extends AbstractResultTest {
+class SetupResultModelTest extends AbstractResultTest {
 
 	@Test
 	void test() {

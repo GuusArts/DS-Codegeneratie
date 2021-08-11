@@ -52,8 +52,8 @@ public class VerifiableCredentialMessageConverter extends AbstractHttpMessageCon
 	protected void writeInternal(final VerifiableBase t, final HttpOutputMessage outputMessage)
 			throws IOException, HttpMessageNotWritableException {
 		try {
-			final JWSObject o = service.wrap(t, (c, w) -> validator.sign(w,
-					keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())));
+			final JWSObject o = service.wrap(t,
+					(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId())));
 			validator.sign(o, keys.getSigner(o.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 			StreamUtils.copy(o.serialize(), Charset.forName("UTF-8"), outputMessage.getBody());
 		} catch (final Exception e) {

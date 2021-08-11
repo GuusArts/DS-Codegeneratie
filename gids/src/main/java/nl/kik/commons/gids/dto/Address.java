@@ -24,7 +24,15 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 	private GidsAttribute<String> postalcode;
 	private GidsAttribute<String> street;
 
-	public Address project(Source key, LocalDate date) {
+	public Address orNull() {
+		if (houseNumber == null && houseLetter == null && town == null && province == null && postalcode == null
+				&& street == null)
+			return null;
+		return this;
+	}
+
+	@Override
+	public Address project(final Source key, final LocalDate date) {
 		return Address.builder() //
 				.id(getId()) //
 				.houseNumber(houseNumber == null ? null : houseNumber.project(key, date)) //
@@ -34,14 +42,5 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 				.postalcode(postalcode == null ? null : postalcode.project(key, date)) //
 				.street(street == null ? null : street.project(key, date)) //
 				.build().orNull();
-	}
-
-	public Address orNull() {
-		if (houseNumber == null && houseLetter == null && town == null && province == null && postalcode == null
-				&& street == null) {
-			return null;
-		} else {
-			return this;
-		}
 	}
 }

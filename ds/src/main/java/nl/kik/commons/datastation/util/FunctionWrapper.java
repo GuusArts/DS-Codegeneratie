@@ -18,16 +18,6 @@ public class FunctionWrapper {
 	}
 
 	@FunctionalInterface
-	public interface TriFunction<T, U, V, R> {
-		R apply(T t, U u, V v);
-	}
-
-	@FunctionalInterface
-	public interface TriFunctionWithException<T, U, V, R, E extends Exception> {
-		R apply(T t, U u, V v) throws E;
-	}
-
-	@FunctionalInterface
 	public interface ConsumerWithException<T, E extends Exception> {
 		void accept(T t) throws E;
 	}
@@ -45,6 +35,16 @@ public class FunctionWrapper {
 	@FunctionalInterface
 	public interface TriConsumerWithException<T, U, V, E extends Exception> {
 		void accept(T t, U u, V v) throws E;
+	}
+
+	@FunctionalInterface
+	public interface TriFunction<T, U, V, R> {
+		R apply(T t, U u, V v);
+	}
+
+	@FunctionalInterface
+	public interface TriFunctionWithException<T, U, V, R, E extends Exception> {
+		R apply(T t, U u, V v) throws E;
 	}
 
 	public static <T, U, R, E extends Exception> BiConsumer<T, U> wrapper(final BiConsumerWithException<T, U, E> fe) {

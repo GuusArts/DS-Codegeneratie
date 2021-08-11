@@ -46,8 +46,8 @@ public class RequestMessageConverter
 		final BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, Exception> signer = //
 				(c, w) -> validator.sign(w, keys.getSigner(w.getHeader().getAlgorithm(), c.getIssuer(), c.getKeyId()));
 		final FunctionWithException<VerifiablePresentation, JWSObject, Exception> wrapper = //
-				vcService.wrapAndSign(validator::sign,
-						v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()), signer);
+				vcService.wrapAndSign(validator::sign, v -> keys.getSigner(JWSAlgorithm.EdDSA, v.getIssuer(), v.getKeyId()),
+						signer);
 		return service.base64Wrapper(wrapper);
 	}
 

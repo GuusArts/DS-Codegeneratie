@@ -33,9 +33,8 @@ public class DefaultValidationService<T> implements ValidationService {
 
 	protected <U> void validate(final JWSObject jws, final Message<U> t, final JWTClaimsSet claims, final T aux)
 			throws Exception {
-		validateSignature(
-				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
-				claims);
+		validateSignature(keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()),
+				jws, claims);
 		messageService.validateFields(t);
 		messageService.validateIntegrity(t, (m, b) -> validationDelegate(m, b, aux));
 	}
@@ -59,9 +58,8 @@ public class DefaultValidationService<T> implements ValidationService {
 
 	protected void validate(final JWSObject jws, final VerifiableBase t, final JWTClaimsSet claims, final T aux)
 			throws Exception {
-		validateSignature(
-				keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()), jws,
-				claims);
+		validateSignature(keys.getVerifier(jws.getHeader().getAlgorithm(), claims.getIssuer(), jws.getHeader().getKeyID()),
+				jws, claims);
 		vcService.validateFields(t);
 		vcService.validateIntegrity(t);
 	}

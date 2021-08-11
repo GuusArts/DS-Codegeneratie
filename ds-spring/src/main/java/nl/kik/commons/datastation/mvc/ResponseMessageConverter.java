@@ -45,11 +45,9 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 			final String type = StringUtils.trimToEmpty(claims.getStringClaim(MessageService.TYPE));
 			switch (type) {
 			case MessageService.RESPONSE: {
-				final Message<Map<String, Result>> message = service
-						.unwrapMessage(s, validator::validate,
-								o -> resultService.<Result, Exception>unwrapResultSet(
-										JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE),
-										resultService::unwrap));
+				final Message<Map<String, Result>> message = service.unwrapMessage(s, validator::validate,
+						o -> resultService.<Result, Exception>unwrapResultSet(
+								JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE), resultService::unwrap));
 				if (!Response.class.isInstance(message))
 					throw new ParseException("Message must be Response and body must be result set of Result", 0);
 				return (Response) message;

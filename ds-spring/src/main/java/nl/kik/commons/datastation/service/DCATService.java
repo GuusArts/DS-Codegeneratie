@@ -21,34 +21,34 @@ import org.apache.jena.vocabulary.VCARD4;
 import org.springframework.stereotype.Service;
 
 import nl.kik.commons.datastation.dto.dcat.Catalog;
+import nl.kik.commons.datastation.dto.dcat.Catalog.CatalogBuilder;
 import nl.kik.commons.datastation.dto.dcat.CatalogRecord;
+import nl.kik.commons.datastation.dto.dcat.CatalogRecord.CatalogRecordBuilder;
 import nl.kik.commons.datastation.dto.dcat.DCATObject;
+import nl.kik.commons.datastation.dto.dcat.DCATObject.DCATObjectBuilder;
 import nl.kik.commons.datastation.dto.dcat.DataService;
+import nl.kik.commons.datastation.dto.dcat.DataService.DataServiceBuilder;
 import nl.kik.commons.datastation.dto.dcat.Dataset;
+import nl.kik.commons.datastation.dto.dcat.Dataset.DatasetBuilder;
 import nl.kik.commons.datastation.dto.dcat.Distribution;
+import nl.kik.commons.datastation.dto.dcat.Distribution.DistributionBuilder;
 import nl.kik.commons.datastation.dto.dcat.Kind;
 import nl.kik.commons.datastation.dto.dcat.PeriodOfTime;
-import nl.kik.commons.datastation.dto.dcat.Relationship;
-import nl.kik.commons.datastation.dto.dcat.Role;
-import nl.kik.commons.datastation.dto.dcat.Catalog.CatalogBuilder;
-import nl.kik.commons.datastation.dto.dcat.CatalogRecord.CatalogRecordBuilder;
-import nl.kik.commons.datastation.dto.dcat.DCATObject.DCATObjectBuilder;
-import nl.kik.commons.datastation.dto.dcat.DataService.DataServiceBuilder;
-import nl.kik.commons.datastation.dto.dcat.Dataset.DatasetBuilder;
-import nl.kik.commons.datastation.dto.dcat.Distribution.DistributionBuilder;
 import nl.kik.commons.datastation.dto.dcat.PeriodOfTime.PeriodOfTimeBuilder;
+import nl.kik.commons.datastation.dto.dcat.Relationship;
 import nl.kik.commons.datastation.dto.dcat.Relationship.RelationshipBuilder;
 import nl.kik.commons.datastation.dto.dcat.Resource.ResourceBuilder;
+import nl.kik.commons.datastation.dto.dcat.Role;
 import nl.kik.commons.datastation.dto.dcat.Role.RoleBuilder;
 import nl.kik.commons.datastation.dto.foaf.Agent;
-import nl.kik.commons.datastation.dto.foaf.FOAFObject;
-import nl.kik.commons.datastation.dto.foaf.Group;
-import nl.kik.commons.datastation.dto.foaf.Organization;
-import nl.kik.commons.datastation.dto.foaf.Person;
 import nl.kik.commons.datastation.dto.foaf.Agent.AgentBuilder;
+import nl.kik.commons.datastation.dto.foaf.FOAFObject;
 import nl.kik.commons.datastation.dto.foaf.FOAFObject.FOAFObjectBuilder;
+import nl.kik.commons.datastation.dto.foaf.Group;
 import nl.kik.commons.datastation.dto.foaf.Group.GroupBuilder;
+import nl.kik.commons.datastation.dto.foaf.Organization;
 import nl.kik.commons.datastation.dto.foaf.Organization.OrganizationBuilder;
+import nl.kik.commons.datastation.dto.foaf.Person;
 import nl.kik.commons.datastation.dto.foaf.Person.PersonBuilder;
 import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;
@@ -114,7 +114,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	}
 
 	public Collection<? extends Catalog> getAllCatalogs(final Graph<Model> graph) {
-		return search(graph, null, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog, Statement::getSubject) //
+		return RDFService.search(graph, null, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog, Statement::getSubject) //
 				.map(r -> Pair.of(r, getProperties(graph, r))) //
 				.map(p -> getObject(graph, p.getRight(), p.getLeft())) //
 				.filter(Catalog.class::isInstance) //
@@ -126,8 +126,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends CatalogBuilder<?, ?>> B getCatalog(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDataset(graph, properties, resource, builder) //
-				.themeTaxonomy(
-						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.themeTaxonomy, RDFObject.class)) //
+				.themeTaxonomy(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.themeTaxonomy, RDFObject.class)) //
 				.hasPart(getSet(graph, properties, DCTerms.hasPart, nl.kik.commons.datastation.dto.dcat.Resource.class)) //
 				.dataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.dataset, Dataset.class)) //
 				.service(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.service, DataService.class)) //
@@ -140,11 +139,11 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends CatalogRecordBuilder<?, ?>> B getCatalogRecord(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
+				.conformsTo(RDFService.getURL(properties, DCTerms.conformsTo)) //
+				.description(RDFService.getString(properties, DCTerms.description)) //
+				.title(RDFService.getString(properties, DCTerms.title)) //
+				.issued(RDFService.getDateTime(properties, DCTerms.issued)) //
+				.modified(RDFService.getDateTime(properties, DCTerms.modified)) //
 		;
 	}
 
@@ -152,7 +151,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends DataServiceBuilder<?, ?>> B getDataService(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getResource(graph, properties, resource, builder) //
-				.endpointURL(getURL(properties, org.apache.jena.vocabulary.DCAT.endpointURL)) //
+				.endpointURL(RDFService.getURL(properties, org.apache.jena.vocabulary.DCAT.endpointURL)) //
 				.endpointDescription(
 						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.endpointDescription, RDFObject.class)) //
 				.servesDataset(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.servesDataset, Dataset.class)) //
@@ -163,13 +162,12 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends DatasetBuilder<?, ?>> B getDataset(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getResource(graph, properties, resource, builder) //
-				.distribution(
-						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.distribution, Distribution.class)) //
-				.accrualPeriodicity(getURL(properties, DCTerms.accrualPeriodicity)) //
-				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
+				.distribution(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.distribution, Distribution.class)) //
+				.accrualPeriodicity(RDFService.getURL(properties, DCTerms.accrualPeriodicity)) //
+				.temporalResolution(RDFService.getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
 				.temporal(getObject(graph, properties, DCTerms.temporal, PeriodOfTime.class)) //
 				.spatialResolutionInMeters(
-						getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
+						RDFService.getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
 		;
 	}
 
@@ -186,10 +184,11 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			return (U) getCatalog(graph, properties, resource, Catalog.builder()).build();
 		if (Dataset.class.isAssignableFrom(t))
 			return (U) getDataset(graph, properties, resource, Dataset.builder()).build();
-		else if (DataService.class.isAssignableFrom(t))
+		if (DataService.class.isAssignableFrom(t))
 			return (U) getDataService(graph, properties, resource, DataService.builder()).build();
 		else if (nl.kik.commons.datastation.dto.dcat.Resource.class.isAssignableFrom(t))
-			return (U) getResource(graph, properties, resource, nl.kik.commons.datastation.dto.dcat.Resource.builder()).build();
+			return (U) getResource(graph, properties, resource, nl.kik.commons.datastation.dto.dcat.Resource.builder())
+					.build();
 		else if (CatalogRecord.class.isAssignableFrom(t))
 			return (U) getCatalogRecord(graph, properties, resource, CatalogRecord.builder()).build();
 		else if (Distribution.class.isAssignableFrom(t))
@@ -207,19 +206,18 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends DistributionBuilder<?, ?>> B getDistribution(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
-				.accessURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.accessURL)) //
-				.accessService(
-						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.accessService, DataService.class)) //
-				.downloadURL(getURLSet(properties, org.apache.jena.vocabulary.DCAT.downloadURL)) //
-				.byteSize(getDouble(properties, org.apache.jena.vocabulary.DCAT.byteSize)) //
-				.temporalResolution(getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
+				.conformsTo(RDFService.getURL(properties, DCTerms.conformsTo)) //
+				.description(RDFService.getString(properties, DCTerms.description)) //
+				.title(RDFService.getString(properties, DCTerms.title)) //
+				.issued(RDFService.getDateTime(properties, DCTerms.issued)) //
+				.modified(RDFService.getDateTime(properties, DCTerms.modified)) //
+				.accessURL(RDFService.getURLSet(properties, org.apache.jena.vocabulary.DCAT.accessURL)) //
+				.accessService(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.accessService, DataService.class)) //
+				.downloadURL(RDFService.getURLSet(properties, org.apache.jena.vocabulary.DCAT.downloadURL)) //
+				.byteSize(RDFService.getDouble(properties, org.apache.jena.vocabulary.DCAT.byteSize)) //
+				.temporalResolution(RDFService.getDuration(properties, org.apache.jena.vocabulary.DCAT.temporalResolution))
 				.spatialResolutionInMeters(
-						getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
+						RDFService.getFloat(properties, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters)) //
 		;
 	}
 
@@ -236,7 +234,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			return (U) getGroup(graph, properties, resource, Group.builder()).build();
 		if (Organization.class.isAssignableFrom(t))
 			return (U) getOrganization(graph, properties, resource, Organization.builder()).build();
-		else if (Person.class.isAssignableFrom(t))
+		if (Person.class.isAssignableFrom(t))
 			return (U) getPerson(graph, properties, resource, Person.builder()).build();
 		throw new IllegalArgumentException("Cannot load FOAF objects of type " + t.getSimpleName());
 	}
@@ -269,8 +267,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends OrganizationBuilder<?, ?>> B getOrganization(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getAgent(graph, properties, resource, builder) //
-				.name(getString(properties, Vocabulary.name)) //
-				.type(getURL(properties, DCTerms.type)) //
+				.name(RDFService.getString(properties, Vocabulary.name)) //
+				.type(RDFService.getURL(properties, DCTerms.type)) //
 		;
 	}
 
@@ -278,8 +276,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends PeriodOfTimeBuilder<?, ?>> B getPeriodOfTime(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.startDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.startDate)) //
-				.endDate(getDateTime(properties, org.apache.jena.vocabulary.DCAT.endDate)) //
+				.startDate(RDFService.getDateTime(properties, org.apache.jena.vocabulary.DCAT.startDate)) //
+				.endDate(RDFService.getDateTime(properties, org.apache.jena.vocabulary.DCAT.endDate)) //
 		;
 	}
 
@@ -307,21 +305,21 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends ResourceBuilder<?, ?>> B getResource(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(getURL(properties, DCTerms.conformsTo)) //
+				.conformsTo(RDFService.getURL(properties, DCTerms.conformsTo)) //
 				.contactPoint(
-						getEnum(properties, org.apache.jena.vocabulary.DCAT.contactPoint, DCATService.reverseKinds)) //
+						RDFService.getEnum(properties, org.apache.jena.vocabulary.DCAT.contactPoint, DCATService.reverseKinds)) //
 				.creator(getObject(graph, properties, DCTerms.creator, Agent.class)) //
-				.description(getString(properties, DCTerms.description)) //
-				.title(getString(properties, DCTerms.title)) //
-				.issued(getDateTime(properties, DCTerms.issued)) //
-				.modified(getDateTime(properties, DCTerms.modified)) //
+				.description(RDFService.getString(properties, DCTerms.description)) //
+				.title(RDFService.getString(properties, DCTerms.title)) //
+				.issued(RDFService.getDateTime(properties, DCTerms.issued)) //
+				.modified(RDFService.getDateTime(properties, DCTerms.modified)) //
 				.publisher(getObject(graph, properties, DCTerms.publisher, Agent.class)) //
-				.identifier(getString(properties, DCTerms.identifier)) //
+				.identifier(RDFService.getString(properties, DCTerms.identifier)) //
 				.relation(getSet(graph, properties, DCTerms.relation, RDFObject.class)) //
-				.qualifiedRelation(getSet(graph, properties, org.apache.jena.vocabulary.DCAT.qualifiedRelation,
-						Relationship.class)) //
-				.keyword(getStringSet(properties, org.apache.jena.vocabulary.DCAT.keyword)) //
-				.license(getURL(properties, DCTerms.license)) //
+				.qualifiedRelation(
+						getSet(graph, properties, org.apache.jena.vocabulary.DCAT.qualifiedRelation, Relationship.class)) //
+				.keyword(RDFService.getStringSet(properties, org.apache.jena.vocabulary.DCAT.keyword)) //
+				.license(RDFService.getURL(properties, DCTerms.license)) //
 				.isReferencedBy(getSet(graph, properties, DCTerms.isReferencedBy, RDFObject.class)) //
 		;
 	}
@@ -338,7 +336,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			saveFOAFObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, Vocabulary.Agent);
 			addProperty(g, resource, Vocabulary.name, object.getName());
-			addURL(g, resource, DCTerms.type, object.getType());
+			RDFService.addURL(g, resource, DCTerms.type, object.getType());
 			g.commit();
 		} finally {
 			g.end();
@@ -351,9 +349,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			saveDataset(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog);
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.themeTaxonomy, object.getThemeTaxonomy());// This will
-																											// fail with
-																											// the
-																											// default
+			// fail with
+			// the
+			// default
 			// implementation; must be
 			// handled in a subclass if used
 			addAll(g, resource, DCTerms.hasPart, object.getHasPart());
@@ -373,7 +371,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.CatalogRecord);
-			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			RDFService.addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
 			addProperty(g, resource, DCTerms.description, object.getDescription());
 			addProperty(g, resource, DCTerms.title, object.getTitle());
 			addProperty(g, resource, DCTerms.issued, object.getIssued());
@@ -389,7 +387,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		try {
 			saveResource(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.DataService);
-			addURL(g, resource, org.apache.jena.vocabulary.DCAT.endpointURL, object.getEndpointURL());
+			RDFService.addURL(g, resource, org.apache.jena.vocabulary.DCAT.endpointURL, object.getEndpointURL());
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.endpointDescription, object.getEndpointDescription());
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.servesDataset, object.getServesDataset());
 			g.commit();
@@ -404,18 +402,17 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			saveResource(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Dataset);
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.distribution, object.getDistribution());
-			addURL(g, resource, DCTerms.accrualPeriodicity, object.getAccrualPeriodicity());
+			RDFService.addURL(g, resource, DCTerms.accrualPeriodicity, object.getAccrualPeriodicity());
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
 			addObject(g, resource, DCTerms.temporal, object.getTemporal());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
-					object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();
 		}
 	}
-	
+
 	protected void saveDCATObject(final Graph<? extends Model> g, final Resource resource, final DCATObject object) {
 		saveRDFObject(g, resource, object);
 	}
@@ -466,25 +463,23 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			throw new IllegalArgumentException("Cannot save RDF objects of type " + object.getClass().getSimpleName());
 	}
 
-	protected void saveDistribution(final Graph<? extends Model> g, final Resource resource,
-			final Distribution object) {
+	protected void saveDistribution(final Graph<? extends Model> g, final Resource resource, final Distribution object) {
 		g.beginWrite();
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Distribution);
-			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			RDFService.addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
 			addProperty(g, resource, DCTerms.description, object.getDescription());
 			addProperty(g, resource, DCTerms.title, object.getTitle());
 			addProperty(g, resource, DCTerms.issued, object.getIssued());
 			addProperty(g, resource, DCTerms.modified, object.getModified());
-			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.accessURL, object.getAccessURL());
+			RDFService.addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.accessURL, object.getAccessURL());
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.accessService, object.getAccessService());
-			addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.downloadURL, object.getDownloadURL());
+			RDFService.addAllURLs(g, resource, org.apache.jena.vocabulary.DCAT.downloadURL, object.getDownloadURL());
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.byteSize, object.getByteSize());
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
-					object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();
@@ -507,8 +502,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		}
 	}
 
-	protected void saveOrganization(final Graph<? extends Model> g, final Resource resource,
-			final Organization object) {
+	protected void saveOrganization(final Graph<? extends Model> g, final Resource resource, final Organization object) {
 		g.beginWrite();
 		try {
 			saveAgent(g, resource, object);
@@ -519,8 +513,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		}
 	}
 
-	protected void savePeriodOfTime(final Graph<? extends Model> g, final Resource resource,
-			final PeriodOfTime object) {
+	protected void savePeriodOfTime(final Graph<? extends Model> g, final Resource resource, final PeriodOfTime object) {
 		g.beginWrite();
 		try {
 			saveDCATObject(g, resource, object);
@@ -544,8 +537,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		}
 	}
 
-	protected void saveRelationship(final Graph<? extends Model> g, final Resource resource,
-			final Relationship object) {
+	protected void saveRelationship(final Graph<? extends Model> g, final Resource resource, final Relationship object) {
 		g.beginWrite();
 		try {
 			saveDCATObject(g, resource, object);
@@ -564,7 +556,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Resource);
-			addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			RDFService.addURL(g, resource, DCTerms.conformsTo, object.getConformsTo());
 			if (object.getContactPoint() != null) {
 				g.getModel().add(resource, org.apache.jena.vocabulary.DCAT.contactPoint,
 						DCATService.kinds.get(object.getContactPoint()));
@@ -579,7 +571,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			addAll(g, resource, DCTerms.relation, object.getRelation());
 			addAll(g, resource, org.apache.jena.vocabulary.DCAT.qualifiedRelation, object.getQualifiedRelation());
 			addAllProperties(g, resource, org.apache.jena.vocabulary.DCAT.keyword, object.getKeyword());
-			addURL(g, resource, DCTerms.license, object.getLicense());
+			RDFService.addURL(g, resource, DCTerms.license, object.getLicense());
 			addAll(g, resource, DCTerms.isReferencedBy, object.getIsReferencedBy());
 			g.commit();
 		} finally {
