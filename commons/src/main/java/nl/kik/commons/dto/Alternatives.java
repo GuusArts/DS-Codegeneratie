@@ -67,20 +67,28 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 					&& !value.getLeft().isBefore(value.getMiddle()))
 				throw new IllegalArgumentException("Value " + value + " has end date before or equal to start date");
 			if (key != null && value != null && value.getRight() != null) {
-				final List<Triple<LocalDate, LocalDate, V>> overlapping = this.values.get(key).stream() //
+				List<Triple<LocalDate, LocalDate, V>> overlapping = this.values.get(key).stream() //
 						.filter(v -> {
-							if (v.getMiddle() != null && value.getLeft() != null && value.getLeft().isAfter(v.getMiddle()))
+							if (v.getMiddle() != null && value.getLeft() != null && value.getLeft().isAfter(v.getMiddle())) {
 								return false;
-							if (value.getMiddle() != null && v.getLeft() != null && v.getLeft().isAfter(value.getMiddle()))
+							}
+							if (value.getMiddle() != null && v.getLeft() != null && v.getLeft().isAfter(value.getMiddle())) {
 								return false;
+							}
 							return true;
 						}) //
 						.collect(Collectors.toList());
 				Alternatives.log.debug("overlapping {}", overlapping);
-				if (!overlapping.stream().allMatch(v -> Objects.equals(value.getRight(), v.getRight())))
+				if (!overlapping.stream() // We allow overlap if it is at most one day or if they have the same value
+						.allMatch(v -> (v.getMiddle() != null && value.getLeft() != null && v.getMiddle().equals(value.getLeft()))
+								|| Objects.equals(value.getRight(), v.getRight())))
 					throw new IllegalArgumentException("Trying to add value " + value + " for source " + key
 							+ " overlapping with incompatible values " + overlapping);
-				overlapping.forEach(v -> this.values.removeMapping(key, v));
+				overlapping = overlapping.stream() //
+						.filter(v -> Objects.equals(value.getRight(), v.getRight())) //
+						.collect(Collectors.toList());
+				overlapping.stream() //
+						.forEach(v -> this.values.removeMapping(key, v));
 				this.values.put(key,
 						overlapping.isEmpty() ? value
 								: Triple.of(Alternatives.extreme(overlapping, value, Triple::getLeft, LocalDate::compareTo),

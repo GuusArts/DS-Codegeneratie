@@ -73,12 +73,11 @@ class GidsAttributeTest {
 		Assertions.assertEquals(2, v.getAll(Source.KIK_STARTER).size());
 
 		GidsAttributeTest.log.info("Adjacent");
-		Assertions.assertThrows(IllegalArgumentException.class, () -> {
-			GidsAttribute.<String>builder() //
+		v = GidsAttribute.<String>builder() //
 					.alternative(Source.KIK_STARTER, date(12, 2), date(12, 3), "A")//
 					.alternative(Source.KIK_STARTER, date(12, 3), date(12, 4), "B")//
 					.build();
-		});
+			Assertions.assertEquals(2, v.getAll(Source.KIK_STARTER).size());
 
 		GidsAttributeTest.log.info("Overlapping");
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
