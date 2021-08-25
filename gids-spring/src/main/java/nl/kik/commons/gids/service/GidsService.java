@@ -807,6 +807,16 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	public void save(final Graph<? extends Model> g, final GidsAttribute<? extends GidsObject> object) {
 		addObject(g, Vocabulary.Root, Vocabulary.root, object, true);
 	}
+	
+	public void save(final Graph<? extends Model> g, final Collection<? extends GidsAttribute<? extends GidsObject>> objects) {
+		g.beginWrite();
+		try {
+			CollectionUtils.emptyIfNull(objects).forEach(o -> save(g, o));
+			g.commit();
+		} finally {
+			g.end();
+		}
+	}
 
 	public void save(final String remote, final String auth, final GidsAttribute<? extends GidsObject> object) {
 		final Model model = ModelFactory.createDefaultModel();
