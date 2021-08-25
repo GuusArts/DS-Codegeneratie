@@ -2,6 +2,7 @@ package nl.kik.commons.service;
 
 import java.net.URL;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.datatypes.xsd.impl.XSDDateTimeType;
+import org.apache.jena.datatypes.xsd.impl.XSDDateType;
 import org.apache.jena.datatypes.xsd.impl.XSDDurationType;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -208,6 +210,9 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 			} else if (value instanceof ZonedDateTime) {
 				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(
 						((ZonedDateTime) value).toOffsetDateTime().toString(), new XSDDateTimeType("dateTime")));
+			} else if (value instanceof LocalDate) {
+				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(
+						value.toString(), new XSDDateType("date")));
 			} else {
 				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(value));
 			}
