@@ -28,6 +28,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
+import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -45,6 +46,8 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
+import org.apache.jena.update.Update;
+import org.apache.jena.update.UpdateAction;
 import org.apache.jena.vocabulary.RDF;
 import org.springframework.stereotype.Service;
 
@@ -430,21 +433,22 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		g.beginWrite();
 		try {
 			final Resource resource = g.getModel().createResource(object.getId());
-			g.getModel().listStatements(resource, null, (RDFNode) null).forEach(s -> {
-				g.getModel().listReifiedStatements(s).forEach(r -> {
-					g.getModel().removeAll(r, null, null);
-				});
-				g.getModel().removeAllReifications(s);
-			});
+			// Manually remove reifications because using Jena's library function absolutely kills performance
+			Update clearReifications = new UpdateBuilder() //
+					.addWhere("?r", RDF.type, RDF.Statement) //
+					.addWhere("?r", RDF.subject, resource) //
+					.addDelete("?r", null, null) //
+					.build();
+			UpdateAction.execute(clearReifications, g.getModel());
 			deleteDetails(g, resource, object, purge);
 			if (purge) {
 				g.getModel().removeAll(null, null, resource);
-				g.getModel().listStatements(null, null, resource).forEach(s -> {
-					g.getModel().listReifiedStatements(s).forEach(r -> {
-						g.getModel().removeAll(r, null, null);
-					});
-					g.getModel().removeAllReifications(s);
-				});
+				Update purgeReifications = new UpdateBuilder() //
+						.addWhere("?r", RDF.type, RDF.Statement) //
+						.addWhere("?r", RDF.object, resource) //
+						.addDelete("?r", null, null) //
+						.build();
+				UpdateAction.execute(purgeReifications, g.getModel());
 			}
 			g.commit();
 		} finally {
@@ -807,8 +811,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	public void save(final Graph<? extends Model> g, final GidsAttribute<? extends GidsObject> object) {
 		addObject(g, Vocabulary.Root, Vocabulary.root, object, true);
 	}
-	
-	public void save(final Graph<? extends Model> g, final Collection<? extends GidsAttribute<? extends GidsObject>> objects) {
+
+	public void save(final Graph<? extends Model> g,
+			final Collection<? extends GidsAttribute<? extends GidsObject>> objects) {
 		g.beginWrite();
 		try {
 			CollectionUtils.emptyIfNull(objects).forEach(o -> save(g, o));
