@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.datatypes.xsd.impl.XSDDateTimeType;
 import org.apache.jena.datatypes.xsd.impl.XSDDateType;
 import org.apache.jena.datatypes.xsd.impl.XSDDurationType;
@@ -174,8 +175,7 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 		}
 	}
 
-	protected void addAllProperties(Graph<? extends Model> g, Resource resource, Property property,
-			Collection<?> list) {
+	protected void addAllProperties(Graph<? extends Model> g, Resource resource, Property property, Collection<?> list) {
 		for (Object value : CollectionUtils.emptyIfNull(list)) {
 			addProperty(g, resource, property, value);
 		}
@@ -205,16 +205,19 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 			}
 			Statement s;
 			if (value instanceof Duration) {
-				s = g.getModel().createStatement(resource, property,
+				s = g.getModel().createLiteralStatement(resource, property,
 						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
 			} else if (value instanceof ZonedDateTime) {
-				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(
-						((ZonedDateTime) value).toOffsetDateTime().toString(), new XSDDateTimeType("dateTime")));
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
+						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
 			} else if (value instanceof LocalDate) {
-				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(
-						value.toString(), new XSDDateType("date")));
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdate));
+			} else if (value instanceof Resource) {
+				log.warn("Resources should not be added using addProperty for {}", property);
+				s = g.getModel().createStatement(resource, property, (Resource) value);
 			} else {
-				s = g.getModel().createStatement(resource, property, g.getModel().createTypedLiteral(value));
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(value));
 			}
 			g.getModel().add(s);
 			return s;
@@ -241,8 +244,8 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 		return getSet(properties, property, n -> getObject(graph, n, clazz));
 	}
 
-	protected <T extends RDFObject> T getObject(L graph, MultiValuedMap<Property, RDFNode> properties,
-			Property property, Class<T> clazz) {
+	protected <T extends RDFObject> T getObject(L graph, MultiValuedMap<Property, RDFNode> properties, Property property,
+			Class<T> clazz) {
 		List<T> result = properties.get(property).stream() //
 				.map(n -> getObject(graph, n, clazz)) //
 				.filter(Objects::nonNull) //

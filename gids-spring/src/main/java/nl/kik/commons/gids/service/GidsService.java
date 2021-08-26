@@ -433,20 +433,24 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		g.beginWrite();
 		try {
 			final Resource resource = g.getModel().createResource(object.getId());
-			// Manually remove reifications because using Jena's library function absolutely kills performance
+			deleteDetails(g, resource, object, purge);
+			// Manually remove reifications because using Jena's library function absolutely
+			// kills performance
 			Update clearReifications = new UpdateBuilder() //
 					.addWhere("?r", RDF.type, RDF.Statement) //
 					.addWhere("?r", RDF.subject, resource) //
-					.addDelete("?r", null, null) //
+					.addWhere("?r", "?p", "?o") //
+					.addDelete("?r", "?p", "?o") //
 					.build();
 			UpdateAction.execute(clearReifications, g.getModel());
-			deleteDetails(g, resource, object, purge);
+			g.getModel().removeAll(resource, null, null);
 			if (purge) {
 				g.getModel().removeAll(null, null, resource);
 				Update purgeReifications = new UpdateBuilder() //
 						.addWhere("?r", RDF.type, RDF.Statement) //
 						.addWhere("?r", RDF.object, resource) //
-						.addDelete("?r", null, null) //
+						.addDelete("?r", "?p", "?o") //
+						.addDelete("?r", "?p", "?o") //
 						.build();
 				UpdateAction.execute(purgeReifications, g.getModel());
 			}
