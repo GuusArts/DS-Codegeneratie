@@ -1,9 +1,16 @@
 package nl.kik.commons.gids.dto;
 
+import java.time.LocalDate;
+import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 
@@ -13,12 +20,27 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 	private final Graph<? extends Model> graph;
 	private final String remote;
 	private final String auth;
+	private final Map<Resource, MultiValuedMap<Property, RDFNode>> cache;
+	private final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources;
+
+	public GraphOrRemote(final Map<Resource, MultiValuedMap<Property, RDFNode>> cache,
+			Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources) {
+		this.sources = sources;
+		Objects.requireNonNull(cache);
+		Objects.requireNonNull(sources);
+		this.cache = cache;
+		remote = null;
+		auth = null;
+		graph = null;
+	}
 
 	public GraphOrRemote(final Graph<? extends Model> graph) {
 		Objects.requireNonNull(graph);
 		this.graph = graph;
 		remote = null;
 		auth = null;
+		cache = null;
+		sources = null;
 	}
 
 	public GraphOrRemote(final String remote) {
@@ -30,6 +52,8 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		graph = null;
 		this.remote = remote;
 		this.auth = StringUtils.trimToNull(auth);
+		this.cache = null;
+		sources = null;
 	}
 
 	@Override
@@ -76,7 +100,7 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 	public Resource getResource(final String uri) {
 		if (isGraph())
 			return getGraph().getResource(uri);
-		if (isRemote())
+		if (isRemote() || isCache())
 			return new ResourceImpl(uri);
 		throw new IllegalArgumentException(); // Should never reach here
 	}
@@ -91,6 +115,18 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 
 	public boolean isRemote() {
 		return remote != null;
+	}
+
+	public boolean isCache() {
+		return getCache() != null;
+	}
+
+	public Map<Resource, MultiValuedMap<Property, RDFNode>> getCache() {
+		return cache;
+	}
+
+	public Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> getSources() {
+		return sources;
 	}
 
 }

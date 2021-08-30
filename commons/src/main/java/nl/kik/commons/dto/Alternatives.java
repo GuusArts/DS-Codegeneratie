@@ -78,7 +78,7 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 							return true;
 						}) //
 						.collect(Collectors.toList());
-				Alternatives.log.debug("overlapping {}", overlapping);
+				Alternatives.log.trace("overlapping {}", overlapping);
 				if (!overlapping.stream() // We allow overlap if it is at most one day or if they have the same value
 						.allMatch(v -> (v.getMiddle() != null && value.getLeft() != null && v.getMiddle().equals(value.getLeft()))
 								|| Objects.equals(value.getRight(), v.getRight())))

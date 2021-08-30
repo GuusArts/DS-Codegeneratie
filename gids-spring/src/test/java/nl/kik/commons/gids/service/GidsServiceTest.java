@@ -13,6 +13,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.sparql.core.DatasetGraphOne;
+import org.apache.jena.sparql.lang.sparql_11.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ class GidsServiceTest {
 	private Address address;
 	private CareOffice careOffice;
 	private Region region;
-	private Concessionaire concessionaire;
+	private Concessionaire concessionaire, concessionaire2;
 	private Location location;
 	private Organisation organisation;
 	private List<GidsObject> model;
@@ -67,6 +68,10 @@ class GidsServiceTest {
 
 		concessionaire = Concessionaire.builder() //
 				.name(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "CZ").build()) //
+				.build();
+
+		concessionaire2 = Concessionaire.builder() //
+				.name(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "VGZ").build()) //
 				.build();
 
 		careOffice = CareOffice.builder() //
@@ -111,7 +116,7 @@ class GidsServiceTest {
 						GidsAttribute.<DeliveryMethod>builder().alternative(Source.KIK_STARTER, DeliveryMethod.KIKStarter).build()) //
 				.build();
 
-		model = List.of(region, concessionaire, careOffice, organisation);
+		model = List.of(region, concessionaire, concessionaire2, careOffice, organisation);
 	}
 
 	/**
@@ -220,8 +225,9 @@ class GidsServiceTest {
 
 	/**
 	 * @param g
+	 * @throws ParseException 
 	 */
-	protected void testQueries(final GraphOrRemote g) {
+	protected void testQueries(final GraphOrRemote g) throws ParseException {
 		// Illegal query type
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {
 			final Query query = new AskBuilder() //
@@ -337,17 +343,17 @@ class GidsServiceTest {
 		final List<GidsAttribute<Address>> addresses = service.query(g, query, Address.class); // Cannot look up non-roots
 		Assertions.assertEquals(0, addresses.size());
 		final List<GidsAttribute<GidsObject>> objects = service.query(g, query, GidsObject.class);
-		Assertions.assertEquals(4, objects.size()); // We save more, but only roots count
+		Assertions.assertEquals(5, objects.size()); // We save more, but only roots count
 	}
 
 	@Test
-	void testQueryLocal() {
+	void testQueryLocal() throws ParseException {
 		final Graph<Model> g = getLoadedModel();
 		testQueries(new GraphOrRemote(g));
 	}
 
 	@Test
-	void testQueryRemote() {
+	void testQueryRemote() throws ParseException {
 		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
 			testQueries(new GraphOrRemote(GidsServiceTest.SERVER_URL));
