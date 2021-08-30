@@ -633,8 +633,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			// Manually remove reifications because using Jena's library function absolutely
 			// kills performance
 			final Update clearReifications = new UpdateBuilder() //
-					.addWhere("?r", RDF.type, RDF.Statement) //
 					.addWhere("?r", RDF.subject, resource) //
+					.addWhere("?r", RDF.type, RDF.Statement) //
 					.addWhere("?r", "?p", "?o") //
 					.addDelete("?r", "?p", "?o") //
 					.build();
@@ -643,8 +643,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			if (purge) {
 				g.getModel().removeAll(null, null, resource);
 				final Update purgeReifications = new UpdateBuilder() //
-						.addWhere("?r", RDF.type, RDF.Statement) //
 						.addWhere("?r", RDF.object, resource) //
+						.addWhere("?r", RDF.type, RDF.Statement) //
 						.addDelete("?r", "?p", "?o") //
 						.addDelete("?r", "?p", "?o") //
 						.build();
@@ -683,17 +683,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		;
 	}
 
-	@SuppressWarnings("unchecked")
 	private <T> GidsAttribute<T> getAlternatives(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
 			final Function<RDFNode, T> mapper) {
-		final Pair<Resource, Property> pair = Pair.of(resource, p);
-		if (graph.isCache()) {
-			final GidsAttribute<?> result = graph.getAlternativesCache().get(pair);
-			if (result != null)
-				return (GidsAttribute<T>) result;
-		}
 		final Collection<RDFNode> all = properties.get(p);
 		final var builder = GidsAttribute.<T>builder();
 		for (final RDFNode n : all) {
@@ -709,11 +702,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				// Mask error
 			}
 		}
-		final GidsAttribute<T> result = builder.build();
-		if (graph.isCache()) {
-			graph.getAlternativesCache().put(pair, result);
-		}
-		return result;
+		return builder.build();
 	}
 
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
@@ -813,21 +802,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		if (GidsObject.class.isAssignableFrom(t))
 			return (U) getGidsObject(graph, properties, resource, (Class<GidsObject>) t);
 		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected <T extends RDFObject> T getObject(final GraphOrRemote graph, final RDFNode n, final Class<T> clazz) {
-		if (graph.isCache()) {
-			final Object result = graph.getObjectCache().get(n);
-			if (result != null)
-				return (T) result;
-		}
-		final T result = super.getObject(graph, n, clazz);
-		if (graph.isCache()) {
-			graph.getObjectCache().put(n, result);
-		}
-		return result;
 	}
 
 	@Override
@@ -1052,14 +1026,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.filter(oo -> clazz == null || clazz.isInstance(oo)) //
 				.collect(Collectors.toList());
 
-		final List result = attributes.stream() //
+		return (List) attributes.stream() //
 				.map(oo -> addAlternatives(g, oo)) //
 				.filter(Objects::nonNull) //
 				.collect(Collectors.toList());
-
-		GidsService.log.trace("Cached objects {} {}", g.getObjectCache().size(), g.getAlternativesCache().size());
-
-		return result;
 	}
 
 	public <U extends GidsObject> List<GidsAttribute<U>> query(final String remote, final Query q, final Class<U> clazz)
