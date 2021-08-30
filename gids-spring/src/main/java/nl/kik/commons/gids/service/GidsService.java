@@ -194,9 +194,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @return
 	 */
 	protected static QueryExecution getQueryExecution(final GraphOrRemote graph, final Query q) {
-		if (graph.isCache()) {
+		if (graph.isCache())
 			throw new IllegalArgumentException("Cannot query cache");
-		}
 		if (graph.isGraph())
 			return QueryExecutionFactory.create(q, graph.getGraph().getModel());
 		if (graph.isRemote())
@@ -278,9 +277,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 */
 	public static <U> Stream<U> search(final GraphOrRemote graph, final Resource r, final Property p, final Resource o,
 			final Function<Statement, U> extract) {
-		if (graph.isCache()) {
+		if (graph.isCache())
 			throw new IllegalArgumentException("Cannot search cache");
-		}
 		GidsService.log.trace("Search for ({}, {}, {})", r, p, o);
 		if (graph.isGraph())
 			return RDFService.search(graph.getGraph(), r, p, o, extract);
@@ -302,6 +300,16 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			;
 		}
 		throw new IllegalArgumentException(); // Should never be reachable
+	}
+
+	private static String unique(final String value, final String... blocks) {
+		if (blocks == null)
+			return value;
+		for (final String block : blocks) {
+			if (Objects.equals(block, value))
+				return value + "1";
+		}
+		return value;
 	}
 
 	/**
@@ -326,8 +334,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	private <U extends GidsObject> GidsAttribute<U> addAlternatives(final GraphOrRemote graph,
 			final Collection<Triple<LocalDate, LocalDate, Resource>> sources, final U object) {
 		final var builder = GidsAttribute.<U>builder();
-		sources.stream()
-				.map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
+		sources.stream().map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
 				.filter(t -> t.getRight() != null) //
 				.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), object));
 		return builder.build();
@@ -427,6 +434,187 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return null;
 	}
 
+	/**
+	 * @param r
+	 * @param p
+	 * @param o
+	 * @param resourceList
+	 * @param variableName
+	 * @param q
+	 * @return
+	 */
+	protected SelectBuilder createCache(final String r, final String p, final String o,
+			final SelectBuilder resourceList) {
+		final SelectBuilder cb = new SelectBuilder() //
+				.addVar(r).addVar(p).addVar(o) //
+				.addSubQuery(resourceList) //
+				.addWhere(r, p, o) //
+		;
+		return cb;
+	}
+
+	/**
+	 * @param <U>
+	 * @param q
+	 * @param clazz
+	 * @param variableName
+	 * @param r
+	 * @return
+	 */
+	protected <U extends GidsObject> SelectBuilder createCompleteResourceList(final Query q, final Class<U> clazz,
+			final String variableName, final String r) {
+		final SelectBuilder ob = new SelectBuilder() // A
+				.addVar(new ExprVar(variableName.substring(1)), r) //
+		;
+		final Query qq = q.cloneQuery();
+		qq.getPrefixMapping().clearNsPrefixMap();
+		q.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> {
+			ob.addPrefix(e.getKey(), e.getValue()); // This is safe because we never add our own prefixes
+		});
+		ob.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+
+		if (clazz != null) {
+			if (Address.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.Address);
+			}
+			if (CareOffice.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.CareOffice);
+			}
+			if (Concessionaire.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.Concessionaire);
+			}
+			if (Location.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.Location);
+			}
+			if (Organisation.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.Organisation);
+			}
+			if (Region.class.isAssignableFrom(clazz)) {
+				ob.addWhere(variableName, RDF.type, Vocabulary.Region);
+			}
+		}
+
+		SelectBuilder b = new SelectBuilder() //
+				.addVar(r) //
+				.setDistinct(true) //
+				.addSubQuery(ob) //
+		;
+
+//			if (clazz == null || clazz.isAssignableFrom(Address.class)) {
+//			}
+		if (clazz == null || clazz.isAssignableFrom(CareOffice.class)) {
+			final var rb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.region, r) //
+			;
+			rb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b.addUnion(rb);
+
+			final var cb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.concessionaire, r) //
+			;
+			cb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b.addUnion(cb);
+		}
+//		if (clazz == null || clazz.isAssignableFrom(Concessionaire.class)) {
+//
+//		}
+		if (clazz == null || clazz.isAssignableFrom(Location.class)) {
+			final var ab = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.address, r) //
+			;
+			ab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(ab);
+		}
+		if (clazz == null || clazz.isAssignableFrom(Organisation.class)) {
+			final var ab = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.address, r) //
+			;
+			ab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(ab);
+
+			final String c = GidsService.unique("?c", variableName);
+
+			final var cb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.office, r) //
+			;
+			cb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(cb);
+			final var crb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.office, c) //
+					.addWhere(c, Vocabulary.region, r) //
+			;
+			crb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(crb);
+			final var ccb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.office, c) //
+					.addWhere(c, Vocabulary.concessionaire, r) //
+			;
+			ccb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(ccb);
+
+			final String a = GidsService.unique("?a", variableName);
+
+			final var lb = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.location, r) //
+			;
+			lb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(lb);
+			final var lab = new SelectBuilder() //
+					.addVar(r) //
+					.addWhere(variableName, Vocabulary.location, a) //
+					.addWhere(a, Vocabulary.address, r) //
+			;
+			lab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
+			b = b.addUnion(lab);
+		}
+//			if (clazz == null || clazz.isAssignableFrom(Region.class)) {
+//
+//			}
+
+		b = b.addUnion(new SelectBuilder() //
+				.addVar(r) //
+				.setDistinct(true) //
+				.addBind(new NodeValueNode(Vocabulary.Root.asNode()), r) //
+				.addWhere(r, GidsService.unique("?x", variableName), GidsService.unique("?y", variableName)) //
+		);
+
+		return b;
+	}
+
+	/**
+	 * @param r
+	 * @param p
+	 * @param o
+	 * @param cb
+	 * @return
+	 */
+	protected SelectBuilder createSource(final String r, final String p, final String o, final SelectBuilder cb) {
+		final SelectBuilder qs = new SelectBuilder() //
+				.setDistinct(true) //
+				.addVar(r).addVar(p).addVar(o) //
+				.addVar("?so") //
+				.addVar("?f") //
+				.addVar("?t") //
+				.addSubQuery(cb) //
+				.addWhere("?st", RDF.subject, r) //
+				.addWhere("?st", RDF.type, RDF.Statement) //
+				.addWhere("?st", RDF.predicate, p) //
+				.addWhere("?st", RDF.object, o) //
+				.addWhere("?st", Vocabulary.source, "?so") //
+				.addOptional("?st", Vocabulary.from, "?f") //
+				.addOptional("?st", Vocabulary.to, "?t") //
+		;
+		return qs;
+	}
+
 	protected void delete(final Graph<? extends Model> g, final GidsAttribute<? extends RDFObject> child,
 			final boolean purge) {
 		if (child != null && child.getValues() != null) {
@@ -444,7 +632,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			deleteDetails(g, resource, object, purge);
 			// Manually remove reifications because using Jena's library function absolutely
 			// kills performance
-			Update clearReifications = new UpdateBuilder() //
+			final Update clearReifications = new UpdateBuilder() //
 					.addWhere("?r", RDF.type, RDF.Statement) //
 					.addWhere("?r", RDF.subject, resource) //
 					.addWhere("?r", "?p", "?o") //
@@ -454,7 +642,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			g.getModel().removeAll(resource, null, null);
 			if (purge) {
 				g.getModel().removeAll(null, null, resource);
-				Update purgeReifications = new UpdateBuilder() //
+				final Update purgeReifications = new UpdateBuilder() //
 						.addWhere("?r", RDF.type, RDF.Statement) //
 						.addWhere("?r", RDF.object, resource) //
 						.addDelete("?r", "?p", "?o") //
@@ -495,10 +683,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		;
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> GidsAttribute<T> getAlternatives(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
 			final Function<RDFNode, T> mapper) {
+		final Pair<Resource, Property> pair = Pair.of(resource, p);
+		if (graph.isCache()) {
+			final GidsAttribute<?> result = graph.getAlternativesCache().get(pair);
+			if (result != null)
+				return (GidsAttribute<T>) result;
+		}
 		final Collection<RDFNode> all = properties.get(p);
 		final var builder = GidsAttribute.<T>builder();
 		for (final RDFNode n : all) {
@@ -514,7 +709,11 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				// Mask error
 			}
 		}
-		return builder.build();
+		final GidsAttribute<T> result = builder.build();
+		if (graph.isCache()) {
+			graph.getAlternativesCache().put(pair, result);
+		}
+		return result;
 	}
 
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
@@ -616,6 +815,21 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	protected <T extends RDFObject> T getObject(final GraphOrRemote graph, final RDFNode n, final Class<T> clazz) {
+		if (graph.isCache()) {
+			final Object result = graph.getObjectCache().get(n);
+			if (result != null)
+				return (T) result;
+		}
+		final T result = super.getObject(graph, n, clazz);
+		if (graph.isCache()) {
+			graph.getObjectCache().put(n, result);
+		}
+		return result;
+	}
+
 	@Override
 	protected Map<Resource, Class<? extends RDFObject>> getObjectTypes() {
 		return GidsService.objectTypes;
@@ -656,9 +870,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected MultiValuedMap<Property, RDFNode> getProperties(final GraphOrRemote g, final Resource r) {
-		if (g.isCache()) {
+		if (g.isCache())
 			return g.getCache().get(r);
-		}
 		if (g.isGraph())
 			return RDFService.getProperties(g.getGraph(), r);
 		if (g.isRemote())
@@ -681,11 +894,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	private Collection<Triple<LocalDate, LocalDate, Resource>> getRootSources(final GraphOrRemote graph,
 			final Resource resource) {
 		if (graph.isCache()) {
-			MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> map = graph.getSources()
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> map = graph.getSources()
 					.get(Vocabulary.Root);
-			if (map != null) {
+			if (map != null)
 				return map.get(Pair.of(Vocabulary.root, resource));
-			}
 			return Collections.emptyList();
 		}
 		final Query q = new SelectBuilder() //
@@ -693,9 +905,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.addVar("?so") //
 				.addVar("?f") //
 				.addVar("?t") //
-				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", RDF.subject, Vocabulary.Root) //
 				.addWhere("?st", RDF.predicate, Vocabulary.root) //
+				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", RDF.object, resource) //
 				.addWhere("?st", Vocabulary.source, "?so") //
 				.addOptional("?st", Vocabulary.from, "?f") //
@@ -709,9 +921,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	private MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> getSources(
 			final GraphOrRemote graph, final Resource resource) {
-		if (graph.isCache()) {
+		if (graph.isCache())
 			return graph.getSources().get(resource);
-		}
 		final Query q = new SelectBuilder() //
 				.setDistinct(true) //
 				.addVar("?so") //
@@ -719,8 +930,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.addVar("?t") //
 				.addVar("?p") //
 				.addVar("?o") //
-				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", RDF.subject, resource) //
+				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", RDF.predicate, "?p") //
 				.addWhere("?st", RDF.object, "?o") //
 				.addWhere("?st", Vocabulary.source, "?so") //
@@ -748,29 +959,59 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return lookupById(g, id).map(o -> addAlternatives(g, (U) o));
 	}
 
+	/**
+	 * @param graph
+	 * @param qq
+	 * @param variableName
+	 * @param p
+	 * @param o
+	 * @return
+	 */
+	protected Map<Resource, MultiValuedMap<Property, RDFNode>> prefetchCache(final GraphOrRemote graph, final Query qq,
+			final String r, final String p, final String o) {
+		return GidsService.search(graph, qq) //
+				.map(s -> Triple.of(s.getResource(r), s.getResource(p), s.get(o))) //
+				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
+				.filter(t -> t.getMiddle() != null && t.getMiddle().isURIResource()) //
+				.map(t -> Triple.of(t.getLeft(), ResourceFactory.createProperty(t.getMiddle().getURI()), t.getRight())) //
+				.collect(Collectors.groupingBy(Triple::getLeft,
+						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
+							m.putAll(n);
+							return m;
+						})));
+	}
+
+	/**
+	 * @param graph
+	 * @param qs
+	 * @param r
+	 * @param p
+	 * @param o
+	 */
+	protected Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> prefetchSources(
+			final GraphOrRemote graph, final Query qs, final String r, final String p, final String o) {
+		return GidsService.search(graph, qs) //
+				.map(s -> Triple.of(s.getResource(r),
+						Pair.of(ResourceFactory.createProperty(s.getResource(p).getURI()), s.get(o)),
+						Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")), s.getResource("?so")))) //
+				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
+				.collect(Collectors.groupingBy(Triple::getLeft,
+						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
+							m.putAll(n);
+							return m;
+						})));
+	}
+
 	public <U extends GidsObject> List<GidsAttribute<U>> query(final Graph<? extends Model> graph, final Query q,
 			final Class<U> clazz) throws ParseException {
 		return query(new GraphOrRemote(graph), q, clazz);
 	}
 
-	private static String unique(String value, String... blocks) {
-		if (blocks == null) {
-			return value;
-		}
-		for (String block : blocks) {
-			if (Objects.equals(block, value)) {
-				return value + "1";
-			}
-		}
-		return value;
-	}
-
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <U extends GidsObject> List<GidsAttribute<U>> query(final GraphOrRemote graph, final Query q,
 			final Class<U> clazz) throws ParseException {
-		if (graph.isCache()) {
+		if (graph.isCache())
 			throw new IllegalArgumentException("Please do not call with a cache direcly");
-		}
 		if (q == null || !q.isSelectType())
 			throw new IllegalArgumentException("Exactly one SELECT query must be given");
 		if (q.getProjectVars().size() != 1)
@@ -778,20 +1019,21 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		final String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
 		GidsService.log.trace("Exceuting with variable {} class {} query {}", variableName, clazz, q);
 
-		String r = unique("?r", variableName);
-		String p = unique("?p", variableName);
-		String o = unique("?o", variableName);
-		SelectBuilder resourceList = createCompleteResourceList(q, clazz, variableName, r);
-		SelectBuilder cb = createCache(r, p, o, resourceList);
-		Map<Resource, MultiValuedMap<Property, RDFNode>> cache = prefetchCache(graph, cb.build(), r, p, o);
-		log.debug("Cache {} {}", cache.size(), cache.values().stream().mapToLong(m -> m.size()).sum());
+		final String r = GidsService.unique("?r", variableName);
+		final String p = GidsService.unique("?p", variableName);
+		final String o = GidsService.unique("?o", variableName);
+		final SelectBuilder resourceList = createCompleteResourceList(q, clazz, variableName, r);
+		final SelectBuilder cb = createCache(r, p, o, resourceList);
+		final Map<Resource, MultiValuedMap<Property, RDFNode>> cache = prefetchCache(graph, cb.build(), r, p, o);
+		GidsService.log.debug("Cache {} {}", cache.size(), cache.values().stream().mapToLong(MultiValuedMap::size).sum());
 
-		final SelectBuilder qs = createSource(r, p, o, cb);
-		Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources = prefetchSources(
+		final SelectBuilder qs = createSource(r, p, o, resourceList);
+		final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources = prefetchSources(
 				graph, qs.build(), r, p, o);
-		log.debug("Sources {} {}", sources.size(), sources.values().stream().mapToLong(m -> m.size()).sum());
+		GidsService.log.debug("Sources {} {}", sources.size(),
+				sources.values().stream().mapToLong(MultiValuedMap::size).sum());
 
-		GraphOrRemote g = new GraphOrRemote(cache, sources);
+		final GraphOrRemote g = new GraphOrRemote(cache, sources);
 		final List<GidsObject> attributes = GidsService.search(graph, q) //
 				.map(s -> {
 					try {
@@ -810,231 +1052,14 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.filter(oo -> clazz == null || clazz.isInstance(oo)) //
 				.collect(Collectors.toList());
 
-		return (List) attributes.stream() //
-				.map(oo -> addAlternatives(graph, oo)) //
+		final List result = attributes.stream() //
+				.map(oo -> addAlternatives(g, oo)) //
 				.filter(Objects::nonNull) //
 				.collect(Collectors.toList());
-	}
 
-	/**
-	 * @param r
-	 * @param p
-	 * @param o
-	 * @param resourceList
-	 * @return
-	 */
-	protected SelectBuilder createCache(String r, String p, String o, SelectBuilder resourceList) {
-		SelectBuilder cb = new SelectBuilder() //
-				.addVar(r).addVar(p).addVar(o) //
-				.addSubQuery(resourceList) //
-				.addWhere(r, p, o) //
-				.addUnion(new SelectBuilder() //
-						.addVar(r).addVar(p).addVar(o) //
-						.addBind(new NodeValueNode(Vocabulary.Root.asNode()), r) //
-						.addBind(new NodeValueNode(Vocabulary.root.asNode()), p) //
-						.addWhere(r, p, o) //
-				);
-		return cb;
-	}
+		GidsService.log.trace("Cached objects {} {}", g.getObjectCache().size(), g.getAlternativesCache().size());
 
-	/**
-	 * @param r
-	 * @param p
-	 * @param o
-	 * @param cb
-	 * @return
-	 */
-	protected SelectBuilder createSource(String r, String p, String o, SelectBuilder cb) {
-		final SelectBuilder qs = new SelectBuilder() //
-				.setDistinct(true) //
-				.addVar(r) //
-				.addVar("?so") //
-				.addVar("?f") //
-				.addVar("?t") //
-				.addVar(p) //
-				.addVar(o) //
-				.addWhere("?st", RDF.type, RDF.Statement) //
-				.addWhere("?st", RDF.subject, r) //
-				.addWhere("?st", RDF.predicate, p) //
-				.addWhere("?st", RDF.object, o) //
-				.addWhere("?st", Vocabulary.source, "?so") //
-				.addOptional("?st", Vocabulary.from, "?f") //
-				.addOptional("?st", Vocabulary.to, "?t") //
-				.addSubQuery(cb) //
-		;
-		return qs;
-	}
-
-	/**
-	 * @param graph
-	 * @param qs
-	 * @param r
-	 * @param p
-	 * @param o
-	 */
-	protected Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> prefetchSources(
-			final GraphOrRemote graph, final Query qs, String r, String p, String o) {
-		return search(graph, qs) //
-				.map(s -> Triple.of(s.getResource(r),
-						Pair.of(ResourceFactory.createProperty(s.getResource(p).getURI()), s.get(o)),
-						Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")), s.getResource("?so")))) //
-				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
-				.collect(Collectors.groupingBy(t -> t.getLeft(),
-						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
-							m.putAll(n);
-							return m;
-						})));
-	}
-
-	/**
-	 * @param <U>
-	 * @param q
-	 * @param clazz
-	 * @param variableName
-	 * @param r
-	 * @return
-	 */
-	protected <U extends GidsObject> SelectBuilder createCompleteResourceList(final Query q, final Class<U> clazz,
-			final String variableName, String r) {
-		SelectBuilder ob = new SelectBuilder() // A
-				.addVar(new ExprVar(variableName.substring(1)), r) //
-		;
-		Query qq = q.cloneQuery();
-		qq.getPrefixMapping().clearNsPrefixMap();
-		q.getPrefixMapping().getNsPrefixMap().entrySet().forEach(e -> {
-			ob.addPrefix(e.getKey(), e.getValue()); // This is safe because we never add our own prefixes
-		});
-		ob.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-
-		if (clazz != null) {
-			if (Address.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.Address);
-			}
-			if (CareOffice.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.CareOffice);
-			}
-			if (Concessionaire.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.Concessionaire);
-			}
-			if (Location.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.Location);
-			}
-			if (Organisation.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.Organisation);
-			}
-			if (Region.class.isAssignableFrom(clazz)) {
-				ob.addWhere(variableName, RDF.type, Vocabulary.Region);
-			}
-		}
-
-		SelectBuilder b = new SelectBuilder() //
-				.addVar(r) //
-				.setDistinct(true) //
-				.addSubQuery(ob) //
-		;
-
-//			if (clazz == null || clazz.isAssignableFrom(Address.class)) {
-//			}
-		if (clazz == null || clazz.isAssignableFrom(CareOffice.class)) {
-			var rb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.region, r) //
-			;
-			rb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b.addUnion(rb);
-
-			var cb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.concessionaire, r) //
-			;
-			cb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b.addUnion(cb);
-		}
-//		if (clazz == null || clazz.isAssignableFrom(Concessionaire.class)) { 
-//			
-//		}
-		if (clazz == null || clazz.isAssignableFrom(Location.class)) {
-			var ab = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.address, r) //
-			;
-			ab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(ab);
-		}
-		if (clazz == null || clazz.isAssignableFrom(Organisation.class)) {
-			var ab = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.address, r) //
-			;
-			ab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(ab);
-
-			String c = unique("?c", variableName);
-
-			var cb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.office, r) //
-			;
-			cb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(cb);
-			var crb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.office, c) //
-					.addWhere(c, Vocabulary.region, r) //
-			;
-			crb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(crb);
-			var ccb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.office, c) //
-					.addWhere(c, Vocabulary.concessionaire, r) //
-			;
-			ccb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(ccb);
-
-			String a = unique("?a", variableName);
-
-			var lb = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.location, r) //
-			;
-			lb.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(lb);
-			var lab = new SelectBuilder() //
-					.addVar(r) //
-					.addWhere(variableName, Vocabulary.location, a) //
-					.addWhere(a, Vocabulary.address, r) //
-			;
-			lab.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-			b = b.addUnion(lab);
-		}
-//			if (clazz == null || clazz.isAssignableFrom(Region.class)) {
-//
-//			}
-
-		return b;
-	}
-
-	/**
-	 * @param graph
-	 * @param qq
-	 * @param variableName
-	 * @param p
-	 * @param o
-	 * @return
-	 */
-	protected Map<Resource, MultiValuedMap<Property, RDFNode>> prefetchCache(final GraphOrRemote graph, Query qq,
-			final String r, String p, String o) {
-		return search(graph, qq) //
-				.map(s -> Triple.of(s.getResource(r), s.getResource(p), s.get(o))) //
-				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
-				.filter(t -> t.getMiddle() != null && t.getMiddle().isURIResource()) //
-				.map(t -> Triple.of(t.getLeft(), ResourceFactory.createProperty(t.getMiddle().getURI()), t.getRight())) //
-				.collect(Collectors.groupingBy(t -> t.getLeft(),
-						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
-							m.putAll(n);
-							return m;
-						})));
+		return result;
 	}
 
 	public <U extends GidsObject> List<GidsAttribute<U>> query(final String remote, final Query q, final Class<U> clazz)
@@ -1047,10 +1072,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return query(new GraphOrRemote(remote, auth), q, clazz);
 	}
 
-	public void save(final Graph<? extends Model> g, final GidsAttribute<? extends GidsObject> object) {
-		addObject(g, Vocabulary.Root, Vocabulary.root, object, true);
-	}
-
 	public void save(final Graph<? extends Model> g,
 			final Collection<? extends GidsAttribute<? extends GidsObject>> objects) {
 		g.beginWrite();
@@ -1060,6 +1081,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		} finally {
 			g.end();
 		}
+	}
+
+	public void save(final Graph<? extends Model> g, final GidsAttribute<? extends GidsObject> object) {
+		addObject(g, Vocabulary.Root, Vocabulary.root, object, true);
 	}
 
 	public void save(final String remote, final String auth, final GidsAttribute<? extends GidsObject> object) {

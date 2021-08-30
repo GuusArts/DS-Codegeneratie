@@ -1,6 +1,7 @@
 package nl.kik.commons.gids.dto;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -22,17 +23,8 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 	private final String auth;
 	private final Map<Resource, MultiValuedMap<Property, RDFNode>> cache;
 	private final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources;
-
-	public GraphOrRemote(final Map<Resource, MultiValuedMap<Property, RDFNode>> cache,
-			Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources) {
-		this.sources = sources;
-		Objects.requireNonNull(cache);
-		Objects.requireNonNull(sources);
-		this.cache = cache;
-		remote = null;
-		auth = null;
-		graph = null;
-	}
+	private final Map<RDFNode, Object> objectCache;
+	private final Map<Pair<Resource, Property>, GidsAttribute<?>> alternativesCache;
 
 	public GraphOrRemote(final Graph<? extends Model> graph) {
 		Objects.requireNonNull(graph);
@@ -41,6 +33,21 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		auth = null;
 		cache = null;
 		sources = null;
+		objectCache = null;
+		alternativesCache = null;
+	}
+
+	public GraphOrRemote(final Map<Resource, MultiValuedMap<Property, RDFNode>> cache,
+			final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources) {
+		Objects.requireNonNull(cache);
+		Objects.requireNonNull(sources);
+		this.cache = cache;
+		this.sources = sources;
+		objectCache = new HashMap<>();
+		alternativesCache = new HashMap<>();
+		remote = null;
+		auth = null;
+		graph = null;
 	}
 
 	public GraphOrRemote(final String remote) {
@@ -52,8 +59,10 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		graph = null;
 		this.remote = remote;
 		this.auth = StringUtils.trimToNull(auth);
-		this.cache = null;
+		cache = null;
 		sources = null;
+		objectCache = null;
+		alternativesCache = null;
 	}
 
 	@Override
@@ -84,12 +93,24 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		}
 	}
 
+	public Map<Pair<Resource, Property>, GidsAttribute<?>> getAlternativesCache() {
+		return alternativesCache;
+	}
+
 	public String getAuth() {
 		return auth;
 	}
 
+	public Map<Resource, MultiValuedMap<Property, RDFNode>> getCache() {
+		return cache;
+	}
+
 	public Graph<? extends Model> getGraph() {
 		return graph;
+	}
+
+	public Map<RDFNode, Object> getObjectCache() {
+		return objectCache;
 	}
 
 	public String getRemote() {
@@ -105,8 +126,16 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 		throw new IllegalArgumentException(); // Should never reach here
 	}
 
+	public Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> getSources() {
+		return sources;
+	}
+
 	public boolean hasAuth() {
 		return auth != null;
+	}
+
+	public boolean isCache() {
+		return getCache() != null;
 	}
 
 	public boolean isGraph() {
@@ -115,18 +144,6 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 
 	public boolean isRemote() {
 		return remote != null;
-	}
-
-	public boolean isCache() {
-		return getCache() != null;
-	}
-
-	public Map<Resource, MultiValuedMap<Property, RDFNode>> getCache() {
-		return cache;
-	}
-
-	public Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> getSources() {
-		return sources;
 	}
 
 }
