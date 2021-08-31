@@ -439,32 +439,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @param p
 	 * @param o
 	 * @param resourceList
-	 * @param resourceList2
-	 * @param variableName
 	 * @param variableName
 	 * @param q
 	 * @return
 	 */
-	protected SelectBuilder createCache(final String r, final String p, final String o, final SelectBuilder resourceList,
-			String variableName, Query q) {
-		final SelectBuilder ob = new SelectBuilder() // A
-				.addVar(new ExprVar(variableName.substring(1)), o) //
-		;
-		final Query qq = q.cloneQuery();
-		qq.getPrefixMapping().clearNsPrefixMap();
-		ob.getWhereHandler().getClause().addElement(new ElementSubQuery(qq));
-
+	protected SelectBuilder createCache(final String r, final String p, final String o,
+			final SelectBuilder resourceList) {
 		final SelectBuilder cb = new SelectBuilder() //
 				.addVar(r).addVar(p).addVar(o) //
 				.addSubQuery(resourceList) //
 				.addWhere(r, p, o) //
-				.addUnion(new SelectBuilder() //
-						.addVar(r).addVar(p).addVar(o) //
-						.addSubQuery(ob) //
-						.addBind(new NodeValueNode(Vocabulary.Root.asNode()), r) //
-						.addBind(new NodeValueNode(Vocabulary.root.asNode()), p) //
-						.addWhere(r, p, o) //
-				);
+		;
 		return cb;
 	}
 
@@ -594,6 +579,13 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 //
 //			}
 
+		b = b.addUnion(new SelectBuilder() //
+				.addVar(r) //
+				.setDistinct(true) //
+				.addBind(new NodeValueNode(Vocabulary.Root.asNode()), r) //
+				.addWhere(r, GidsService.unique("?x", variableName), GidsService.unique("?y", variableName)) //
+		);
+
 		return b;
 	}
 
@@ -613,9 +605,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.addVar("?t") //
 				.addSubQuery(cb) //
 				.addWhere("?st", RDF.subject, r) //
+				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", RDF.predicate, p) //
 				.addWhere("?st", RDF.object, o) //
-				.addWhere("?st", RDF.type, RDF.Statement) //
 				.addWhere("?st", Vocabulary.source, "?so") //
 				.addOptional("?st", Vocabulary.from, "?f") //
 				.addOptional("?st", Vocabulary.to, "?t") //
@@ -1004,11 +996,12 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		final String r = GidsService.unique("?r", variableName);
 		final String p = GidsService.unique("?p", variableName);
 		final String o = GidsService.unique("?o", variableName);
-		final SelectBuilder cb = createCache(r, p, o, createCompleteResourceList(q, clazz, variableName, r), variableName, q);
+		final SelectBuilder resourceList = createCompleteResourceList(q, clazz, variableName, r);
+		final SelectBuilder cb = createCache(r, p, o, resourceList);
 		final Map<Resource, MultiValuedMap<Property, RDFNode>> cache = prefetchCache(graph, cb.build(), r, p, o);
 		GidsService.log.debug("Cache {} {}", cache.size(), cache.values().stream().mapToLong(MultiValuedMap::size).sum());
 
-		final SelectBuilder qs = createSource(r, p, o, cb);
+		final SelectBuilder qs = createSource(r, p, o, resourceList);
 		final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources = prefetchSources(
 				graph, qs.build(), r, p, o);
 		GidsService.log.debug("Sources {} {}", sources.size(),
