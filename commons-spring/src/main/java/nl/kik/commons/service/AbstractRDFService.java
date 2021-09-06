@@ -1,9 +1,5 @@
 package nl.kik.commons.service;
 
-import java.net.URL;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +14,6 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.datatypes.xsd.impl.XSDDurationType;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
@@ -173,12 +167,6 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 		}
 	}
 
-	protected void addAllProperties(Graph<? extends Model> g, Resource resource, Property property, Collection<?> list) {
-		for (Object value : CollectionUtils.emptyIfNull(list)) {
-			addProperty(g, resource, property, value);
-		}
-	}
-
 	/**
 	 * @param g
 	 * @param resource
@@ -190,33 +178,6 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 		if (object != null) {
 			Resource r = saveDetails(g, object);
 			Statement s = g.getModel().createStatement(resource, property, r);
-			g.getModel().add(s);
-			return s;
-		}
-		return null;
-	}
-
-	protected Statement addProperty(Graph<? extends Model> g, Resource resource, Property property, Object value) {
-		if (value != null) {
-			if (value instanceof URL) {
-				log.warn("URLs should be added using addURL for {}", property);
-			}
-			Statement s;
-			if (value instanceof Duration) {
-				s = g.getModel().createLiteralStatement(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
-			} else if (value instanceof ZonedDateTime) {
-				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
-						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
-			} else if (value instanceof LocalDate) {
-				s = g.getModel().createLiteralStatement(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdate));
-			} else if (value instanceof Resource) {
-				log.warn("Resources should not be added using addProperty for {}", property);
-				s = g.getModel().createStatement(resource, property, (Resource) value);
-			} else {
-				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(value));
-			}
 			g.getModel().add(s);
 			return s;
 		}

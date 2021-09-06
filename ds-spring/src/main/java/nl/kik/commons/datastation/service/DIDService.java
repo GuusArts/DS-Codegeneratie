@@ -44,18 +44,18 @@ import uniresolver.result.ResolveResult;
 public class DIDService {
 	public static final String ED25519_VERIFICATION_KEY2018 = "Ed25519VerificationKey2018";
 	public static final String JSON_WEB_KEY2020 = "JsonWebKey2020";
-	private LocalUniResolver uniResolver;
-	private Map<String, String> resolveOptions;
-
-	@Value("${nl.kik.commons.datastation.did.web.enable:false}")
-	private boolean enableDIDweb = true;
-	@Value("${nl.kik.commons.datastation.did.web.localhost:false}")
-	private boolean allowLocalhost = true;
-	@Value("${nl.kik.commons.datastation.did.web.localhost.port:8280}")
-	private int localhostPort = 8280;
-
 	private static final Set<String> SUPPORTED_KEYS = Set.of(DIDService.JSON_WEB_KEY2020,
 			DIDService.ED25519_VERIFICATION_KEY2018);
+	private LocalUniResolver uniResolver;
+
+	private Map<String, String> resolveOptions;
+	@Value("${nl.kik.commons.datastation.did.web.enable:false}")
+	private final boolean enableDIDweb = true;
+	@Value("${nl.kik.commons.datastation.did.web.localhost:false}")
+	private final boolean allowLocalhost = true;
+
+	@Value("${nl.kik.commons.datastation.did.web.localhost.port:8280}")
+	private final int localhostPort = 8280;
 
 	/**
 	 * @param issuer
@@ -77,34 +77,33 @@ public class DIDService {
 	public JWSVerifier getVerifier(final String issuer, final String keyId)
 			throws JOSEException, ResolutionException, ParseException {
 		final ResolveResult resolveResult = getDID(issuer);
-		if ((resolveResult == null) || (resolveResult.getDidDocument() == null))
+		if (resolveResult == null || resolveResult.getDidDocument() == null)
 			throw new JOSEException("No DID document found");
 		final List<PublicKey> authentications = getPublicKeys(resolveResult.getDidDocument()).stream() //
-				.filter(k -> CollectionUtils.emptyIfNull(k.getTypes()).stream().anyMatch(SUPPORTED_KEYS::contains)) //
+				.filter(k -> CollectionUtils.emptyIfNull(k.getTypes()).stream().anyMatch(DIDService.SUPPORTED_KEYS::contains)) //
 				.collect(Collectors.toList());
 		if (keyId == null) {
 			if (authentications.size() == 1)
 				return toVerifier(authentications.get(0));
 			else
 				throw new JOSEException("No keyId provided and not exactly one key found");
-		} else {
-			try {
-				final URI keyURI = new URI(keyId);
-				final Optional<PublicKey> key = authentications.stream() //
-						.filter(k -> Objects.equals(k.getId(), keyURI)) //
-						.findFirst();
-				return toVerifier(key.get());
-			} catch (URISyntaxException | NoSuchElementException e) {
-			}
-			try {
-				final URI keyURI = new URI(issuer + "#" + keyId);
-				final Optional<PublicKey> key = authentications.stream().filter(k -> Objects.equals(k.getId(), keyURI))
-						.findFirst();
-				return toVerifier(key.get());
-			} catch (URISyntaxException | NoSuchElementException e) {
-			}
-			throw new JOSEException("Either keyId was not a valid URI or no key with the given id was found");
 		}
+		try {
+			final URI keyURI = new URI(keyId);
+			final Optional<PublicKey> key = authentications.stream() //
+					.filter(k -> Objects.equals(k.getId(), keyURI)) //
+					.findFirst();
+			return toVerifier(key.get());
+		} catch (URISyntaxException | NoSuchElementException e) {
+		}
+		try {
+			final URI keyURI = new URI(issuer + "#" + keyId);
+			final Optional<PublicKey> key = authentications.stream().filter(k -> Objects.equals(k.getId(), keyURI))
+					.findFirst();
+			return toVerifier(key.get());
+		} catch (URISyntaxException | NoSuchElementException e) {
+		}
+		throw new JOSEException("Either keyId was not a valid URI or no key with the given id was found");
 	}
 
 	@PostConstruct
@@ -144,7 +143,7 @@ public class DIDService {
 			return new ECDSAVerifier(publicJWK.toECKey());
 		if (publicJWK.getKeyType() == KeyType.RSA)
 			return new RSASSAVerifier(publicJWK.toRSAKey());
-		else if (publicJWK.getKeyType() == KeyType.OKP)
+		if (publicJWK.getKeyType() == KeyType.OKP)
 			return new Ed25519Verifier(publicJWK.toOctetKeyPair());
 		else
 			throw new IllegalArgumentException("Unsupported key type");

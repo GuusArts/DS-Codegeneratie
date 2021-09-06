@@ -5,10 +5,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +31,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.datatypes.xsd.impl.XSDDurationType;
 import org.apache.jena.rdf.model.InfModel;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
@@ -50,6 +55,43 @@ public class RDFService {
 			final Collection<? extends URI> list) {
 		for (final URI value : CollectionUtils.emptyIfNull(list)) {
 			RDFService.addURI(g, resource, property, value);
+		}
+	}
+
+	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Object value) {
+		if (value != null) {
+			if (value instanceof URL || value instanceof URI) {
+				RDFService.log.warn("URL/URIs should be added using addURL/URI for {}", property);
+			}
+			Statement s;
+			if (value instanceof Duration) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
+			} else if (value instanceof ZonedDateTime) {
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
+						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
+			} else if (value instanceof LocalDateTime || value instanceof OffsetDateTime) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdateTime));
+			} else if (value instanceof LocalDate) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdate));
+			} else if (value instanceof Resource) {
+				RDFService.log.warn("Resources should not be added using addProperty for {}", property);
+				s = g.getModel().createStatement(resource, property, (Resource) value);
+			} else {
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(value));
+			}
+			g.getModel().add(s);
+			return s;
+		}
+		return null;
+	}
+	
+	protected void addAllProperties(Graph<? extends Model> g, Resource resource, Property property, Collection<?> list) {
+		for (Object value : CollectionUtils.emptyIfNull(list)) {
+			addProperty(g, resource, property, value);
 		}
 	}
 
@@ -243,6 +285,14 @@ public class RDFService {
 	 */
 	public static String getId(@NotNull final String prefix, @NotNull final String id) {
 		return prefix + RDFService.COLON + id;
+	}
+
+	public static Object getLiteral(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		try {
+			return properties.get(p).iterator().next().asLiteral().getValue();
+		} catch (final Exception e) {
+			return 0;
+		}
 	}
 
 	/**

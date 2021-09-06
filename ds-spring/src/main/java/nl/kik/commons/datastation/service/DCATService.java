@@ -186,7 +186,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			return (U) getDataset(graph, properties, resource, Dataset.builder()).build();
 		if (DataService.class.isAssignableFrom(t))
 			return (U) getDataService(graph, properties, resource, DataService.builder()).build();
-		else if (nl.kik.commons.datastation.dto.dcat.Resource.class.isAssignableFrom(t))
+		if (nl.kik.commons.datastation.dto.dcat.Resource.class.isAssignableFrom(t))
 			return (U) getResource(graph, properties, resource, nl.kik.commons.datastation.dto.dcat.Resource.builder())
 					.build();
 		else if (CatalogRecord.class.isAssignableFrom(t))
@@ -406,7 +406,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
 			addObject(g, resource, DCTerms.temporal, object.getTemporal());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
+					object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();
@@ -479,7 +480,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.byteSize, object.getByteSize());
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
+					object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();

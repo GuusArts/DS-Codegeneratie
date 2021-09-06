@@ -105,8 +105,8 @@ public class SPARQLService {
 					.type(RDFType.uri) //
 					.value(resource.getURI()) //
 					.build();
-		} else
-			throw new ParseException("Received unexpected node " + rdfNode, 0);
+		}
+		throw new ParseException("Received unexpected node " + rdfNode, 0);
 	}
 
 	protected List<Map<String, Binding>> wrapBindings(final ResultSet result) {

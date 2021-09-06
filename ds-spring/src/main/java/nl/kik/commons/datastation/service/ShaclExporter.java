@@ -152,7 +152,7 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	private Literal toLiteral(final Node n) {
-		if (!(n instanceof Node_Concrete) || (n instanceof Node_Blank))
+		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank)
 			throw new IllegalArgumentException();
 		if (n instanceof Node_Literal) {
 			final Node_Literal ni = (Node_Literal) n;
@@ -167,7 +167,8 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 				value = model.createTypedLiteral(ni.getLiteralValue());
 			}
 			return value;
-		} else if (n instanceof Node_URI)
+		}
+		if (n instanceof Node_URI)
 			throw new IllegalArgumentException();
 		else
 			throw new IllegalArgumentException();
@@ -176,11 +177,9 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	private Property toProperty(final Node n) {
 		if (properties.containsKey(n))
 			return properties.get(n);
-		if (!(n instanceof Node_Concrete) || (n instanceof Node_Blank))
+		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank || (n instanceof Node_Literal))
 			throw new IllegalArgumentException();
-		if (n instanceof Node_Literal)
-			throw new IllegalArgumentException();
-		else if (n instanceof Node_URI) {
+		if (n instanceof Node_URI) {
 			final Node_URI ni = (Node_URI) n;
 			final Property property = model.createProperty(ni.getURI());
 			properties.put(ni, property);
@@ -202,7 +201,7 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		}
 		if (n instanceof Node_Literal)
 			throw new IllegalArgumentException();
-		else if (n instanceof Node_URI) {
+		if (n instanceof Node_URI) {
 			final Node_URI ni = (Node_URI) n;
 			final Resource resource = model.createResource(ni.getURI());
 			resources.put(ni, resource);

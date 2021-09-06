@@ -361,6 +361,27 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		}
 	}
 
+	@Override
+	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Object value) {
+		if (value instanceof GidsAttribute<?>) {
+			GidsAttribute<?> attribute = (GidsAttribute<?>) value;
+			if (attribute.getValues() != null) {
+				attribute.getValues().entries().forEach(e -> {
+					final Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
+					if (s != null) {
+						final Resource rs = g.getModel().createReifiedStatement(s);
+						g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
+						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
+						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
+					}
+				});
+			}
+			return null;
+		}
+		return super.addProperty(g, resource, property, value);
+	}
+
 	/**
 	 * @param g
 	 * @param resource
@@ -412,26 +433,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (final GidsAttribute<? extends RDFObject> object : CollectionUtils.emptyIfNull(list)) {
 			addObject(g, resource, property, object, deep);
 		}
-	}
-
-	@Override
-	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final Object value) {
-		if (!(value instanceof GidsAttribute<?>))
-			return super.addProperty(g, resource, property, value);
-		final GidsAttribute<?> attribute = (GidsAttribute<?>) value;
-		if (attribute.getValues() != null) {
-			attribute.getValues().entries().forEach(e -> {
-				final Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
-				if (s != null) {
-					final Resource rs = g.getModel().createReifiedStatement(s);
-					g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
-					super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
-					super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
-				}
-			});
-		}
-		return null;
 	}
 
 	/**
