@@ -1,9 +1,13 @@
 package nl.kik.commons.dto;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.ontology.OntModel;
+import org.apache.jena.ontology.OntModelSpec;
+import org.apache.jena.ontology.ProfileRegistry;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.Transactional;
@@ -32,6 +36,8 @@ public class Graph<G extends Model> implements Source {
 	private G model;
 	private Transactional transactional;
 	private Graph<? extends Model> delegate;
+	private OntModel ontModel;
+
 
 	@Getter(AccessLevel.NONE)
 	private final ThreadLocal<Integer> nesting = ThreadLocal.withInitial(() -> 0);
@@ -70,6 +76,13 @@ public class Graph<G extends Model> implements Source {
 
 	public static <T extends Model> Graph<T> create(Pair<T, Transactional> p) {
 		return create(p.getLeft(), p.getRight(), null);
+	}
+
+	public OntModel getOntModel() {
+		if (ontModel == null) {
+			ModelFactory.createOntologyModel(OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG), getModel());
+		}
+		return ontModel;
 	}
 
 	public void commit() {

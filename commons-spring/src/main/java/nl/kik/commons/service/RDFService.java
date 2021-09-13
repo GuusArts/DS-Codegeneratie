@@ -138,6 +138,20 @@ public class RDFService {
 			model.end();
 		}
 	}
+	
+	public static <M extends Model, G extends Graph<M>> G emitJSON(final G model, final Path name) {
+		model.beginRead();
+		try {
+			try (OutputStream f = Files.newOutputStream(name)) {
+				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_FLATTEN_PRETTY);
+			} catch (final IOException e) {
+			}
+			return model;
+		} finally {
+			model.end();
+		}
+	}
+
 
 	public static Boolean getBoolean(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
