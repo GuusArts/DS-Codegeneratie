@@ -163,6 +163,7 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 		return result.stream().findFirst().map(Triple::getRight).orElse(null);
 	}
 
+	@JsonIgnore
 	public Collection<V> getAll() {
 		return values.values().stream() //
 				.map(Triple::getRight) //
@@ -194,6 +195,7 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 		return getAll(null, date);
 	}
 
+	@JsonIgnore
 	public V getAny() {
 		final Iterator<Triple<LocalDate, LocalDate, V>> iterator = values.values().iterator();
 		if (iterator.hasNext())
