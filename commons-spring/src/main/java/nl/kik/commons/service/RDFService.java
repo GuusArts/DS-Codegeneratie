@@ -143,7 +143,7 @@ public class RDFService {
 		model.beginRead();
 		try {
 			try (OutputStream f = Files.newOutputStream(name)) {
-				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_FLATTEN_PRETTY);
+				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_EXPAND_PRETTY);
 			} catch (final IOException e) {
 			}
 			return model;
