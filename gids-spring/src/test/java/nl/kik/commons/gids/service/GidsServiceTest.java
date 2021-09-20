@@ -1,5 +1,6 @@
 package nl.kik.commons.gids.service;
 
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,8 +63,8 @@ class GidsServiceTest {
 		service = new GidsService();
 
 		region = Region.builder() //
-				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "772").alternative(Source.LRZA, "772")
-						.build()) //
+				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "772")
+						.alternative(Source.LRZA, "772").build()) //
 				.build();
 
 		concessionaire = Concessionaire.builder() //
@@ -77,15 +78,16 @@ class GidsServiceTest {
 		careOffice = CareOffice.builder() //
 				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "5529").build()) //
 				.name(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "ZUIDOOST-BRABANT").build()) //
-				.concessionaire(GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
+				.concessionaire(
+						GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
 				.region(GidsAttribute.<Region>builder().alternative(Source.TABELBEHEER, region).build()) //
 				.build();
 
 		address = Address.builder() //
-				.houseNumber(
-						GidsAttribute.<String>builder().alternative(Source.LRZA, "2").alternative(Source.TABELBEHEER, "2").build()) //
-				.houseLetter(
-						GidsAttribute.<String>builder().alternative(Source.LRZA, "c").alternative(Source.TABELBEHEER, "C").build()) //
+				.houseNumber(GidsAttribute.<String>builder().alternative(Source.LRZA, "2")
+						.alternative(Source.TABELBEHEER, "2").build()) //
+				.houseLetter(GidsAttribute.<String>builder().alternative(Source.LRZA, "c")
+						.alternative(Source.TABELBEHEER, "C").build()) //
 				.town(GidsAttribute.<String>builder().alternative(Source.LRZA, "Eindhoven").build()) //
 				.province(GidsAttribute.<String>builder().alternative(Source.LRZA, "Noord-Brabant").build()) //
 				.postalcode(GidsAttribute.<String>builder().alternative(Source.LRZA, "5621KA").build()) //
@@ -94,8 +96,8 @@ class GidsServiceTest {
 
 		location = Location.builder() //
 				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build()) //
-				.number(
-						GidsAttribute.<String>builder().alternative(Source.LRZA, "1").alternative(Source.TABELBEHEER, "2").build()) //
+				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
+						.alternative(Source.TABELBEHEER, "2").build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build())) //
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.build();
@@ -104,16 +106,18 @@ class GidsServiceTest {
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.office(GidsAttribute.<CareOffice>builder().alternative(Source.LRZA, careOffice).build()) //
 				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health").build()) //
-				.tradeName(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Intergalactic").build()) //
-				.careProviderName(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Loves You").build()) //
+				.tradeName(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Intergalactic")
+						.build()) //
+				.careProviderName(
+						GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Loves You").build()) //
 				.lastModified(GidsAttribute.<ZonedDateTime>builder()
 						.alternative(Source.LRZA, ZonedDateTime.now().toOffsetDateTime().toZonedDateTime()).build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build(),
 						GidsAttribute.<String>builder().alternative(Source.LRZA, "34567890").build())) //
 				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
-				.deliveryMethod(
-						GidsAttribute.<DeliveryMethod>builder().alternative(Source.KIK_STARTER, DeliveryMethod.KIKStarter).build()) //
+				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()
+						.alternative(Source.KIK_STARTER, DeliveryMethod.KIKStarter).build()) //
 				.build();
 
 		model = List.of(region, concessionaire, concessionaire2, careOffice, organisation);
@@ -177,7 +181,8 @@ class GidsServiceTest {
 		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
 			for (final GidsObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+						m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
@@ -225,7 +230,7 @@ class GidsServiceTest {
 
 	/**
 	 * @param g
-	 * @throws ParseException 
+	 * @throws ParseException
 	 */
 	protected void testQueries(final GraphOrRemote g) throws ParseException {
 		// Illegal query type
@@ -340,7 +345,8 @@ class GidsServiceTest {
 		Assertions.assertEquals(1, organisations.size());
 		Assertions.assertTrue(organisations.iterator().next().isUnique());
 		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-		final List<GidsAttribute<Address>> addresses = service.query(g, query, Address.class); // Cannot look up non-roots
+		final List<GidsAttribute<Address>> addresses = service.query(g, query, Address.class); // Cannot look up
+																								// non-roots
 		Assertions.assertEquals(0, addresses.size());
 		final List<GidsAttribute<GidsObject>> objects = service.query(g, query, GidsObject.class);
 		Assertions.assertEquals(5, objects.size()); // We save more, but only roots count
@@ -364,6 +370,46 @@ class GidsServiceTest {
 	}
 
 	@Test
+	void testLookupById() throws ParseException {
+		Graph<Model> loadedModel = getLoadedModel();
+		RDFService.emitTTL(loadedModel, Paths.get("output.ttl"));
+		final FusekiServer fusekiServer = startFuseki(loadedModel);
+		GraphOrRemote g = new GraphOrRemote(GidsServiceTest.SERVER_URL);
+		try {
+			// Regular search
+			Query query = new SelectBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.setDistinct(true) //
+					.addVar("?test") //
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.addWhere("?test", GidsService.Vocabulary.agb, "'23456789'") //
+					.build();
+
+			List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
+			Assertions.assertEquals(1, organisations.size());
+			Assertions.assertTrue(organisations.iterator().next().isUnique());
+			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+
+			query = new SelectBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.addPrefix("gids:", "gids:") //
+					.setDistinct(true) //
+					.addVar("?test") //
+					.addBind(organisations.get(0).getAny().getId(), "?test")
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.build();
+			
+			organisations = service.query(g, query, Organisation.class);
+			Assertions.assertEquals(1, organisations.size());
+			Assertions.assertTrue(organisations.iterator().next().isUnique());
+			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+		} finally {
+			fusekiServer.stop();
+			fusekiServer.join();
+		}
+	}
+
+	@Test
 	void testSaveLocal() {
 		final Graph<Model> g = getLoadedModel();
 		RDFService.snapshot(g, true, null);
@@ -378,7 +424,8 @@ class GidsServiceTest {
 				service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, m));
 			}
 			for (final RDFObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+						m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
