@@ -17,7 +17,7 @@
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<spring.boot.version>2.5.5</spring.boot.version>
 		<junit.version>5.8.1</junit.version>
-		<jena.version>4.2.0</jena.version>
+		<jena.version>4.1.0</jena.version>
 	</properties>
 
 	<parent>

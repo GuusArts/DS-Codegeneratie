@@ -31,6 +31,10 @@
 			<artifactId>java-util</artifactId>
 			<version>1.64.0</version>
 		</dependency>
+		<dependency>
+			<groupId>javax.json</groupId>
+			<artifactId>javax.json-api</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>decentralized-identity</groupId>
