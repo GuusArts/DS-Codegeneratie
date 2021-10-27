@@ -58,6 +58,7 @@ class GidsAttributeTest {
 		GidsAttribute<Organisation> p = o.project(Source.LRZA);
 		assertNotNull(p);
 		assertEquals(1, p.getAll().size());
+		assertNotNull(p.getAny().getId());
 		assertEquals(1, p.getAny().getPrimaryName().getAll().size());
 		assertNull(o.project(Source.TABELBEHEER));
 	}
