@@ -1,5 +1,8 @@
 package nl.kik.commons.gids.dto;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.time.LocalDate;
 
 import org.apache.commons.lang3.tuple.Triple;
@@ -23,6 +26,36 @@ class GidsAttributeTest {
 
 	private LocalDate date(final int month, final int day) {
 		return LocalDate.of(2021, month, day);
+	}
+
+	@Test
+	void testProject() {
+		final GidsAttribute<String> v = GidsAttribute.<String>builder() //
+				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 4), "A")//
+				.alternative(Source.KIK_STARTER, date(12, 6), date(12, 8), "B")//
+				.alternative(Source.LRZA, date(12, 7), date(12, 9), "C")//
+				.build();
+
+//		assertEquals(3, v.getAll().size());
+//		assertEquals(1, v.project(Source.LRZA).getAll().size());
+//		assertEquals(2, v.project(Source.KIK_STARTER).getAll().size());
+//		assertEquals(2, v.project(date(12, 7)).getAll().size());
+//		assertEquals(1, v.project(date(12, 6)).getAll().size());
+//		assertEquals(1, v.project(date(12, 3)).getAll().size());
+//		assertNull(v.project(date(12, 1)));
+
+		GidsAttribute<Organisation> o = GidsAttribute.<Organisation>builder() //
+				.alternative(Source.LRZA, Organisation.builder() //
+						.id("hello") //
+						.primaryName(GidsAttribute.<String>builder() //
+								.alternative(Source.LRZA, "hello") //
+								.alternative(Source.TABELBEHEER, "world") //
+								.build()) //
+						.build()) //
+				.build();
+		log.info("Org {}", o);
+		log.info("Org {}", o.project(Source.LRZA));
+		log.info("Org {}", o.project(Source.TABELBEHEER));
 	}
 
 	@Test
@@ -74,10 +107,10 @@ class GidsAttributeTest {
 
 		GidsAttributeTest.log.info("Adjacent");
 		v = GidsAttribute.<String>builder() //
-					.alternative(Source.KIK_STARTER, date(12, 2), date(12, 3), "A")//
-					.alternative(Source.KIK_STARTER, date(12, 3), date(12, 4), "B")//
-					.build();
-			Assertions.assertEquals(2, v.getAll(Source.KIK_STARTER).size());
+				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 3), "A")//
+				.alternative(Source.KIK_STARTER, date(12, 3), date(12, 4), "B")//
+				.build();
+		Assertions.assertEquals(2, v.getAll(Source.KIK_STARTER).size());
 
 		GidsAttributeTest.log.info("Overlapping");
 		Assertions.assertThrows(IllegalArgumentException.class, () -> {

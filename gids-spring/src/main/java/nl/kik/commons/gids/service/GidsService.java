@@ -69,6 +69,7 @@ import nl.kik.commons.gids.dto.HasAddress;
 import nl.kik.commons.gids.dto.HasAgb;
 import nl.kik.commons.gids.dto.HasKvk;
 import nl.kik.commons.gids.dto.HasName;
+import nl.kik.commons.gids.dto.HasNames;
 import nl.kik.commons.gids.dto.Location;
 import nl.kik.commons.gids.dto.Organisation;
 import nl.kik.commons.gids.dto.Region;
@@ -101,18 +102,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		//// Data properties
 		public static final Property agb = Vocabulary.property("agb");
 		public static final Property kvk = Vocabulary.property("kvk");
-		public static final Property careProviderName = Vocabulary.property("careProviderName");
 		public static final Property code = Vocabulary.property("code");
 		public static final Property houseLetter = Vocabulary.property("houseLetter");
 		public static final Property houseNumber = Vocabulary.property("houseNumber");
 		public static final Property lastModified = Vocabulary.property("lastModified");
 		public static final Property name = Vocabulary.property("name");
+		public static final Property primaryName = Vocabulary.property("primaryName");
 		public static final Property number = Vocabulary.property("number");
 		public static final Property postalcode = Vocabulary.property("postalcode");
 		public static final Property province = Vocabulary.property("province");
 		public static final Property street = Vocabulary.property("street");
 		public static final Property town = Vocabulary.property("town");
-		public static final Property tradeName = Vocabulary.property("tradeName");
 
 		public static final Property root = Vocabulary.property("root");
 		public static final Property source = Vocabulary.property("source");
@@ -158,7 +158,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			DeliveryMethod.ODB, Vocabulary.ODB //
 	);
 
-	private static Map<Resource, DeliveryMethod> reverseDeliveryMethods = RDFService.reverse(GidsService.deliveryMethods);
+	private static Map<Resource, DeliveryMethod> reverseDeliveryMethods = RDFService
+			.reverse(GidsService.deliveryMethods);
 	private static Map<Source, Resource> sources = Map.of(//
 			Source.LRZA, Vocabulary.LRZA, //
 			Source.TABELBEHEER, Vocabulary.TABELBEHEER, //
@@ -409,13 +410,19 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		addProperty(g, resource, Vocabulary.name, object.getName());
 	}
 
+	protected void addName(final Graph<? extends Model> g, final Resource resource, final HasNames object) {
+		addProperty(g, resource, Vocabulary.primaryName, object.getPrimaryName());
+		addAllProperties(g, resource, Vocabulary.name, object.getName());
+	}
+
 	protected void addObject(final Graph<? extends Model> g, final Resource resource, final Property property,
 			final GidsAttribute<? extends RDFObject> attribute, final boolean deep) {
 		if (attribute != null) {
 			if (attribute.getValues() != null) {
 				attribute.getValues().entries().forEach(e -> {
 					if (!deep && e.getValue().getRight().getId() == null)
-						throw new RuntimeException("Trying to save reference to unsaved object " + e.getValue().getRight());
+						throw new RuntimeException(
+								"Trying to save reference to unsaved object " + e.getValue().getRight());
 					final Statement s = super.addObject(g, resource, property, e.getValue().getRight());
 					if (s != null) {
 						final Resource rs = g.getModel().createReifiedStatement(s);
@@ -673,21 +680,23 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			final Resource resource, final B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
-				.houseNumber(
-						getAlternatives(graph, resource, properties, sources, Vocabulary.houseNumber, RDFService::getString)) //
-				.houseLetter(
-						getAlternatives(graph, resource, properties, sources, Vocabulary.houseLetter, RDFService::getString)) //
+				.houseNumber(getAlternatives(graph, resource, properties, sources, Vocabulary.houseNumber,
+						RDFService::getString)) //
+				.houseLetter(getAlternatives(graph, resource, properties, sources, Vocabulary.houseLetter,
+						RDFService::getString)) //
 				.town(getAlternatives(graph, resource, properties, sources, Vocabulary.town, RDFService::getString)) //
-				.province(getAlternatives(graph, resource, properties, sources, Vocabulary.province, RDFService::getString)) //
-				.postalcode(getAlternatives(graph, resource, properties, sources, Vocabulary.postalcode, RDFService::getString)) //
+				.province(getAlternatives(graph, resource, properties, sources, Vocabulary.province,
+						RDFService::getString)) //
+				.postalcode(getAlternatives(graph, resource, properties, sources, Vocabulary.postalcode,
+						RDFService::getString)) //
 				.street(getAlternatives(graph, resource, properties, sources, Vocabulary.street, RDFService::getString)) //
 		;
 	}
 
 	private <T> GidsAttribute<T> getAlternatives(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
-			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
-			final Function<RDFNode, T> mapper) {
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
+			final Property p, final Function<RDFNode, T> mapper) {
 		final Collection<RDFNode> all = properties.get(p);
 		final var builder = GidsAttribute.<T>builder();
 		for (final RDFNode n : all) {
@@ -695,7 +704,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				final T v = mapper.apply(n);
 				if (v != null) {
 					sources.get(Pair.of(p, n)).stream() //
-							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
+							.map(t -> Triple.of(t.getLeft(), t.getMiddle(),
+									GidsService.reverseSources.get(t.getRight()))) //
 							.filter(t -> t.getRight() != null) //
 							.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v));
 				}
@@ -708,8 +718,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
-			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
-			final Function<RDFNode, T> mapper) {
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
+			final Property p, final Function<RDFNode, T> mapper) {
 		final Collection<RDFNode> all = properties.get(p);
 		final List<GidsAttribute<T>> result = new ArrayList<>();
 		for (final RDFNode n : all) {
@@ -717,7 +727,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				final T v = mapper.apply(n);
 				if (v != null) {
 					sources.get(Pair.of(p, n)).stream() //
-							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
+							.map(t -> Triple.of(t.getLeft(), t.getMiddle(),
+									GidsService.reverseSources.get(t.getRight()))) //
 							.filter(t -> t.getRight() != null) //
 							.map(s -> GidsAttribute.<T>builder() //
 									.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v) //
@@ -765,8 +776,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings("unchecked")
 	private <U extends GidsObject> U getGidsObject(final GraphOrRemote graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<GidsObject> t) {
-		final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources = getSources(graph,
-				resource);
+		final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources = getSources(
+				graph, resource);
 		if (Address.class.isAssignableFrom(t))
 			return (U) getAddress(graph, properties, sources, resource, Address.builder()).build();
 		if (CareOffice.class.isAssignableFrom(t))
@@ -788,7 +799,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources,
 			final Resource resource, final B builder) {
 		return (B) getGidsObject(graph, properties, resource, builder) //
-				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
+				.name(getAlternativesList(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
+				.primaryName(getAlternatives(graph, resource, properties, sources, Vocabulary.primaryName,
+						RDFService::getString)) //
 				.number(getAlternatives(graph, resource, properties, sources, Vocabulary.number, RDFService::getString)) //
 				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
 				.address(getAlternatives(graph, resource, properties, sources, Vocabulary.address,
@@ -820,19 +833,19 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						n -> getObject(graph, n, Address.class))) //
 				.office(getAlternatives(graph, resource, properties, sources, Vocabulary.office,
 						n -> getObject(graph, n, CareOffice.class))) //
-				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
-				.tradeName(getAlternatives(graph, resource, properties, sources, Vocabulary.tradeName, RDFService::getString)) //
-				.careProviderName(
-						getAlternatives(graph, resource, properties, sources, Vocabulary.careProviderName, RDFService::getString)) //
-				.lastModified(
-						getAlternatives(graph, resource, properties, sources, Vocabulary.lastModified, RDFService::getDateTime)) //
+				.name(getAlternativesList(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
+				.primaryName(getAlternatives(graph, resource, properties, sources, Vocabulary.primaryName,
+						RDFService::getString)) //
+				.lastModified(getAlternatives(graph, resource, properties, sources, Vocabulary.lastModified,
+						RDFService::getDateTime)) //
 				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
 				.kvk(getAlternatives(graph, resource, properties, sources, Vocabulary.kvk, RDFService::getString)) //
 				.location(getAlternativesList(graph, resource, properties, sources, Vocabulary.location,
 						n -> getObject(graph, n, Location.class))) //
 				.deliveryMethod(getAlternatives(graph, resource, properties, sources, Vocabulary.deliveryMethod,
 						n -> n.isResource()
-								? RDFService.getEnum(Collections.singletonList(n.asResource()), GidsService.reverseDeliveryMethods)
+								? RDFService.getEnum(Collections.singletonList(n.asResource()),
+										GidsService.reverseDeliveryMethods)
 								: null)) //
 		;
 	}
@@ -869,8 +882,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	private Collection<Triple<LocalDate, LocalDate, Resource>> getRootSources(final GraphOrRemote graph,
 			final Resource resource) {
 		if (graph.isCache()) {
-			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> map = graph.getSources()
-					.get(Vocabulary.Root);
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> map = graph
+					.getSources().get(Vocabulary.Root);
 			if (map != null)
 				return map.get(Pair.of(Vocabulary.root, resource));
 			return Collections.emptyList();
@@ -889,8 +902,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.addOptional("?st", Vocabulary.to, "?t") //
 				.build();
 		return GidsService.search(graph, q) //
-				.map(
-						s -> Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")), s.get("?so").asResource())) //
+				.map(s -> Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")),
+						s.get("?so").asResource())) //
 				.collect(Collectors.toList());
 	}
 
@@ -916,7 +929,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return GidsService.search(graph, q) //
 				.collect(HashSetValuedHashMap::new,
 						(b, s) -> b.put(Pair.of(new PropertyImpl(s.get("?p").asResource().getURI()), s.get("?o")),
-								Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")), s.get("?so").asResource())),
+								Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")),
+										s.get("?so").asResource())),
 						HashSetValuedHashMap::putAll); //
 	}
 
@@ -949,8 +963,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
 				.filter(t -> t.getMiddle() != null && t.getMiddle().isURIResource()) //
 				.map(t -> Triple.of(t.getLeft(), ResourceFactory.createProperty(t.getMiddle().getURI()), t.getRight())) //
-				.collect(Collectors.groupingBy(Triple::getLeft,
-						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
+				.collect(Collectors.groupingBy(Triple::getLeft, Collector.of(HashSetValuedHashMap::new,
+						(m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
 							m.putAll(n);
 							return m;
 						})));
@@ -968,10 +982,11 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return GidsService.search(graph, qs) //
 				.map(s -> Triple.of(s.getResource(r),
 						Pair.of(ResourceFactory.createProperty(s.getResource(p).getURI()), s.get(o)),
-						Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")), s.getResource("?so")))) //
+						Triple.of(RDFService.getDate(s.get("?f")), RDFService.getDate(s.get("?t")),
+								s.getResource("?so")))) //
 				.filter(t -> t.getLeft() != null && t.getLeft().isURIResource()) //
-				.collect(Collectors.groupingBy(Triple::getLeft,
-						Collector.of(HashSetValuedHashMap::new, (m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
+				.collect(Collectors.groupingBy(Triple::getLeft, Collector.of(HashSetValuedHashMap::new,
+						(m, t) -> m.put(t.getMiddle(), t.getRight()), (m, n) -> {
 							m.putAll(n);
 							return m;
 						})));
@@ -1000,7 +1015,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		final SelectBuilder resourceList = createCompleteResourceList(q, clazz, variableName, r);
 		final SelectBuilder cb = createCache(r, p, o, resourceList);
 		final Map<Resource, MultiValuedMap<Property, RDFNode>> cache = prefetchCache(graph, cb.build(), r, p, o);
-		GidsService.log.debug("Cache {} {}", cache.size(), cache.values().stream().mapToLong(MultiValuedMap::size).sum());
+		GidsService.log.debug("Cache {} {}", cache.size(),
+				cache.values().stream().mapToLong(MultiValuedMap::size).sum());
 
 		final SelectBuilder qs = createSource(r, p, o, resourceList);
 		final Map<Resource, MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>>> sources = prefetchSources(
@@ -1158,7 +1174,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		}
 	}
 
-	protected void saveOrganisation(final Graph<? extends Model> g, final Resource resource, final Organisation object) {
+	protected void saveOrganisation(final Graph<? extends Model> g, final Resource resource,
+			final Organisation object) {
 		g.beginWrite();
 		try {
 			saveGidsObject(g, resource, object);
@@ -1166,8 +1183,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			addAddress(g, resource, object, true);
 			addObject(g, resource, Vocabulary.office, object.getOffice(), false);
 			addName(g, resource, object);
-			addProperty(g, resource, Vocabulary.tradeName, object.getTradeName());
-			addProperty(g, resource, Vocabulary.careProviderName, object.getCareProviderName());
 			addLastModified(g, resource, object);
 			addAgb(g, resource, object);
 			addKvk(g, resource, object);

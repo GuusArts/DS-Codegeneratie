@@ -19,14 +19,16 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Location extends GidsObject implements HasName, HasAgb, HasAddress, Projectable<Source, Location> {
-	private GidsAttribute<String> name;
+public class Location extends GidsObject implements HasNames, HasAgb, HasAddress, Projectable<Source, Location> {
+	private GidsAttribute<String> primaryName;
+	private List<GidsAttribute<String>> name;
 	private GidsAttribute<String> number;
 	private List<GidsAttribute<String>> agb;
 	private GidsAttribute<Address> address;
 
 	public Location orNull() {
-		if (name == null && number == null && (agb == null || agb.isEmpty()) && address == null)
+		if ((name == null || name.isEmpty()) && primaryName == null && number == null && (agb == null || agb.isEmpty())
+				&& address == null)
 			return null;
 		return this;
 	}
@@ -35,10 +37,14 @@ public class Location extends GidsObject implements HasName, HasAgb, HasAddress,
 	public Location project(final Source key, final LocalDate date) {
 		return Location.builder() //
 				.id(getId()) //
-				.name(name == null ? null : name.project(key, date)) //
+				.primaryName(primaryName == null ? null : primaryName.project(key, date)) //
+				.name(name == null ? null
+						: name.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+								.collect(Collectors.toList())) //
 				.number(number == null ? null : number.project(key, date)) //
 				.agb(agb == null ? null
-						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull).collect(Collectors.toList())) //
+						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+								.collect(Collectors.toList())) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
 	}

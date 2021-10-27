@@ -1,6 +1,9 @@
 package nl.kik.commons.gids.dto;
 
 import java.time.LocalDate;
+import java.util.Objects;
+
+import org.apache.commons.lang3.tuple.Triple;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -10,6 +13,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import nl.kik.commons.dto.Alternatives;
+import nl.kik.commons.dto.Projectable;
 
 @SuperBuilder(toBuilder = true)
 @Getter
@@ -45,10 +49,19 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>> 
 		return this;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public GidsAttribute<V> project(final Source key, final LocalDate date) {
 		return GidsAttribute.<V>builder() //
-				.alternatives(getAll(key, date)) //
+				.alternatives(getAll(key, date).stream() //
+						.map(v -> {
+							if (v.getRight()instanceof Projectable p) {
+								return Triple.of(v.getLeft(), v.getMiddle(), (V) p.project(key, date));
+							}
+							return v;
+						}) //
+						.filter(Objects::nonNull) //
+						.toList()) //
 				.build();
 	}
 }
