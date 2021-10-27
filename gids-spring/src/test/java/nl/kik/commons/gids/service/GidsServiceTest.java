@@ -95,7 +95,7 @@ class GidsServiceTest {
 				.build();
 
 		location = Location.builder() //
-				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build()) //
+				.name(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build())) //
 				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
 						.alternative(Source.TABELBEHEER, "2").build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build())) //
@@ -105,11 +105,7 @@ class GidsServiceTest {
 		organisation = Organisation.builder() //
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.office(GidsAttribute.<CareOffice>builder().alternative(Source.LRZA, careOffice).build()) //
-				.name(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health").build()) //
-				.tradeName(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Intergalactic")
-						.build()) //
-				.careProviderName(
-						GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health Loves You").build()) //
+				.name(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health").build())) //
 				.lastModified(GidsAttribute.<ZonedDateTime>builder()
 						.alternative(Source.LRZA, ZonedDateTime.now().toOffsetDateTime().toZonedDateTime()).build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build(),

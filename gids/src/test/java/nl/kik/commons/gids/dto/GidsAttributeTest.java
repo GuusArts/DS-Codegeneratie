@@ -1,6 +1,7 @@
 package nl.kik.commons.gids.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDate;
@@ -36,13 +37,13 @@ class GidsAttributeTest {
 				.alternative(Source.LRZA, date(12, 7), date(12, 9), "C")//
 				.build();
 
-//		assertEquals(3, v.getAll().size());
-//		assertEquals(1, v.project(Source.LRZA).getAll().size());
-//		assertEquals(2, v.project(Source.KIK_STARTER).getAll().size());
-//		assertEquals(2, v.project(date(12, 7)).getAll().size());
-//		assertEquals(1, v.project(date(12, 6)).getAll().size());
-//		assertEquals(1, v.project(date(12, 3)).getAll().size());
-//		assertNull(v.project(date(12, 1)));
+		assertEquals(3, v.getAll().size());
+		assertEquals(1, v.project(Source.LRZA).getAll().size());
+		assertEquals(2, v.project(Source.KIK_STARTER).getAll().size());
+		assertEquals(2, v.project(date(12, 7)).getAll().size());
+		assertEquals(1, v.project(date(12, 6)).getAll().size());
+		assertEquals(1, v.project(date(12, 3)).getAll().size());
+		assertNull(v.project(date(12, 1)));
 
 		GidsAttribute<Organisation> o = GidsAttribute.<Organisation>builder() //
 				.alternative(Source.LRZA, Organisation.builder() //
@@ -53,9 +54,12 @@ class GidsAttributeTest {
 								.build()) //
 						.build()) //
 				.build();
-		log.info("Org {}", o);
-		log.info("Org {}", o.project(Source.LRZA));
-		log.info("Org {}", o.project(Source.TABELBEHEER));
+
+		GidsAttribute<Organisation> p = o.project(Source.LRZA);
+		assertNotNull(p);
+		assertEquals(1, p.getAll().size());
+		assertEquals(1, p.getAny().getPrimaryName().getAll().size());
+		assertNull(o.project(Source.TABELBEHEER));
 	}
 
 	@Test
