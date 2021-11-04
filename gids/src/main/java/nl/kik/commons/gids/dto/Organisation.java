@@ -59,7 +59,10 @@ public class Organisation extends GidsObject
 								.collect(Collectors.toList())) //
 				.kvk(kvk == null ? null : kvk.project(key, date)) //
 				.location(location == null ? null
-						: location.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+						: location.stream() //
+								.filter(Objects::nonNull) //
+								.map(l -> l.project(key, date)) //
+								.filter(Objects::nonNull) //
 								.collect(Collectors.toList())) //
 				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build()).orNull();
