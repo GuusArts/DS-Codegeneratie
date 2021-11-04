@@ -16,7 +16,7 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class CareOffice extends GidsObject implements HasName, Projectable<Source, CareOffice> {
+public class CareOffice extends GidsObject implements HasName, Projectable<Source, CareOffice>, Comparable<CareOffice> {
 	private GidsAttribute<String> code;
 	private GidsAttribute<Region> region;
 	private GidsAttribute<Concessionaire> concessionaire;
@@ -37,6 +37,30 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 				.concessionaire(concessionaire == null ? null : concessionaire.project(key, date)) //
 				.name(name == null ? null : name.project(key, date)) //
 				.build().orNull();
+	}
+
+	@Override
+	public int compareTo(CareOffice o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(code, o.code);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(region, o.region);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(concessionaire, o.concessionaire);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(name, o.name);
+		if (result != 0) {
+			return result;
+		}
+		return 0;
 	}
 
 }

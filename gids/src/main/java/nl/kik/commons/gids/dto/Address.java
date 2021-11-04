@@ -16,7 +16,7 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Address extends GidsObject implements Projectable<Source, Address> {
+public class Address extends GidsObject implements Projectable<Source, Address>, Comparable<Address> {
 	private GidsAttribute<String> houseNumber;
 	private GidsAttribute<String> houseLetter;
 	private GidsAttribute<String> town;
@@ -42,5 +42,37 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 				.postalcode(postalcode == null ? null : postalcode.project(key, date)) //
 				.street(street == null ? null : street.project(key, date)) //
 				.build().orNull();
+	}
+
+	@Override
+	public int compareTo(Address o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(houseNumber, o.houseNumber);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(houseLetter, o.houseLetter);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(town, o.town);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(province, o.province);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(postalcode, o.postalcode);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(street, o.street);
+		if (result != 0) {
+			return result;
+		}
+		return 0;
 	}
 }

@@ -19,7 +19,8 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Location extends GidsObject implements HasNames, HasAgb, HasAddress, Projectable<Source, Location> {
+public class Location extends GidsObject
+		implements HasNames, HasAgb, HasAddress, Projectable<Source, Location>, Comparable<Location> {
 	private GidsAttribute<String> primaryName;
 	private List<GidsAttribute<String>> name;
 	private GidsAttribute<String> number;
@@ -50,6 +51,30 @@ public class Location extends GidsObject implements HasNames, HasAgb, HasAddress
 								.collect(Collectors.toList())) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
+	}
+
+	@Override
+	public int compareTo(Location o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(number, o.number);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(name, o.name);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(address, o.address);
+		if (result != 0) {
+			return result;
+		}
+		return 0;
 	}
 
 }

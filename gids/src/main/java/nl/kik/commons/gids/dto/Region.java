@@ -16,7 +16,7 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Region extends GidsObject implements Projectable<Source, Region> {
+public class Region extends GidsObject implements Projectable<Source, Region>, Comparable<Region> {
 	private GidsAttribute<String> code;
 
 	public Region orNull() {
@@ -31,6 +31,18 @@ public class Region extends GidsObject implements Projectable<Source, Region> {
 				.id(getId()) //
 				.code(code == null ? null : code.project(key, date)) //
 				.build().orNull();
+	}
+
+	@Override
+	public int compareTo(Region o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(code, o.code);
+		if (result != 0) {
+			return result;
+		}
+		return 0;
 	}
 
 }

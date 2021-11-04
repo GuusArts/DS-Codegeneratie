@@ -20,8 +20,8 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Organisation extends GidsObject
-		implements HasNames, HasAgb, HasKvk, HasAddress, Changeable, Projectable<Source, Organisation> {
+public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk, HasAddress, Changeable,
+		Projectable<Source, Organisation>, Comparable<Organisation> {
 	private GidsAttribute<Address> address;
 	private GidsAttribute<CareOffice> office;
 	private GidsAttribute<String> primaryName;
@@ -66,6 +66,46 @@ public class Organisation extends GidsObject
 								.collect(Collectors.toList())) //
 				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build()).orNull();
+	}
+
+	@Override
+	public int compareTo(Organisation o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(kvk, o.kvk);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(lastModified, o.lastModified);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(deliveryMethod, o.deliveryMethod);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(name, o.name);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(address, o.address);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(office, o.office);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(location, o.location);
+		if (result != 0) {
+			return result;
+		}
+		return 0;
 	}
 
 }
