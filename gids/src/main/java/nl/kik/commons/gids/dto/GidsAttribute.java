@@ -149,10 +149,10 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>>
 			 * @param d2
 			 */
 			public int compare(LocalDate d1, LocalDate d2) {
-				if (d1 == null && d2 != null) {
-					return 1;
+				if (d1 == null) {
+					return d2 == null ? 0 : 1;
 				}
-				if (d1 != null && d2 == null) {
+				if (d2 == null) {
 					return -1;
 				}
 				if (d1.isBefore(d2)) {
