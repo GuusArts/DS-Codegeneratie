@@ -48,7 +48,11 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 				.office(office == null ? null : office.project(key, date)) //
 				.primaryName(primaryName == null ? null : primaryName.project(key, date)) //
 				.name(name == null ? null
-						: name.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+						: name.stream()//
+								.filter(Objects::nonNull) //
+								.map(l -> l.project(key, date)) //
+								.filter(Objects::nonNull) //
+								.sorted() //
 								.collect(Collectors.toList())) //
 				.lastModified(lastModified == null ? null : lastModified.project(key, date)) //
 				.agb(agb == null ? null
@@ -56,6 +60,7 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 								.filter(Objects::nonNull) //
 								.map(l -> l.project(key, date)) //
 								.filter(Objects::nonNull) //
+								.sorted() //
 								.collect(Collectors.toList())) //
 				.kvk(kvk == null ? null : kvk.project(key, date)) //
 				.location(location == null ? null
@@ -63,6 +68,7 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 								.filter(Objects::nonNull) //
 								.map(l -> l.project(key, date)) //
 								.filter(Objects::nonNull) //
+								.sorted() //
 								.collect(Collectors.toList())) //
 				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build()).orNull();
