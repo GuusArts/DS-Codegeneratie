@@ -40,20 +40,20 @@ public class Location extends GidsObject
 				.id(getId()) //
 				.primaryName(primaryName == null ? null : primaryName.project(key, date)) //
 				.name(name == null ? null
-						: name.stream() //
+						: orNull(name.stream() //
 								.filter(Objects::nonNull)//
 								.map(l -> l.project(key, date)) //
 								.filter(Objects::nonNull) //
 								.sorted() //
-								.collect(Collectors.toList())) //
+								.collect(Collectors.toList()))) //
 				.number(number == null ? null : number.project(key, date)) //
 				.agb(agb == null ? null
-						: agb.stream()//
+						: orNull(agb.stream()//
 								.filter(Objects::nonNull)//
 								.map(l -> l.project(key, date)) //
 								.filter(Objects::nonNull) //
 								.sorted() //
-								.collect(Collectors.toList())) //
+								.collect(Collectors.toList()))) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
 	}

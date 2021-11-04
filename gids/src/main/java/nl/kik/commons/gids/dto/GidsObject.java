@@ -54,4 +54,10 @@ public class GidsObject extends RDFObject {
 		return 0;
 	}
 
+	protected <T> List<T> orNull(List<T> update) {
+		if (update == null || update.isEmpty())
+			return null;
+		return update;
+	}
+
 }
