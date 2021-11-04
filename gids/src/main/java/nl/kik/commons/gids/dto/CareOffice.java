@@ -23,7 +23,7 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 	private GidsAttribute<String> name;
 
 	public CareOffice orNull() {
-		if (code == null && region == null && concessionaire == null && name == null)
+		if (getId() == null && code == null && region == null && concessionaire == null && name == null)
 			return null;
 		return this;
 	}

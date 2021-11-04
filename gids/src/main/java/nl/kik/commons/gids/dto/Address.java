@@ -25,8 +25,8 @@ public class Address extends GidsObject implements Projectable<Source, Address> 
 	private GidsAttribute<String> street;
 
 	public Address orNull() {
-		if (houseNumber == null && houseLetter == null && town == null && province == null && postalcode == null
-				&& street == null)
+		if (getId() == null && houseNumber == null && houseLetter == null && town == null && province == null
+				&& postalcode == null && street == null)
 			return null;
 		return this;
 	}

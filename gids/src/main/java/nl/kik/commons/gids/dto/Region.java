@@ -20,7 +20,7 @@ public class Region extends GidsObject implements Projectable<Source, Region> {
 	private GidsAttribute<String> code;
 
 	public Region orNull() {
-		if (code == null)
+		if (getId() == null && code == null)
 			return null;
 		return this;
 	}

@@ -20,7 +20,7 @@ public class Concessionaire extends GidsObject implements HasName, Projectable<S
 	private GidsAttribute<String> name;
 
 	public Concessionaire orNull() {
-		if (name == null)
+		if (getId() == null && name == null)
 			return null;
 		return this;
 	}

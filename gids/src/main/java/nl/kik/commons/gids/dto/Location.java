@@ -27,8 +27,8 @@ public class Location extends GidsObject implements HasNames, HasAgb, HasAddress
 	private GidsAttribute<Address> address;
 
 	public Location orNull() {
-		if ((name == null || name.isEmpty()) && primaryName == null && number == null && (agb == null || agb.isEmpty())
-				&& address == null)
+		if (getId() == null && (name == null || name.isEmpty()) && primaryName == null && number == null
+				&& (agb == null || agb.isEmpty()) && address == null)
 			return null;
 		return this;
 	}
@@ -43,7 +43,10 @@ public class Location extends GidsObject implements HasNames, HasAgb, HasAddress
 								.collect(Collectors.toList())) //
 				.number(number == null ? null : number.project(key, date)) //
 				.agb(agb == null ? null
-						: agb.stream().map(l -> l.project(key, date)).filter(Objects::nonNull)
+						: agb.stream()//
+								.filter(Objects::nonNull)//
+								.map(l -> l.project(key, date)) //
+								.filter(Objects::nonNull) //
 								.collect(Collectors.toList())) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
