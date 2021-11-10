@@ -20,16 +20,17 @@ import nl.kik.commons.dto.Projectable;
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
 public class Location extends GidsObject
-		implements HasNames, HasAgb, HasAddress, Projectable<Source, Location>, Comparable<Location> {
+		implements HasNames, HasAgb, HasSbi, HasAddress, Projectable<Source, Location>, Comparable<Location> {
 	private GidsAttribute<String> primaryName;
 	private List<GidsAttribute<String>> name;
 	private GidsAttribute<String> number;
 	private List<GidsAttribute<String>> agb;
+	private List<GidsAttribute<String>> sbi;
 	private GidsAttribute<Address> address;
 
 	public Location orNull() {
 		if (getId() == null && (name == null || name.isEmpty()) && primaryName == null && number == null
-				&& (agb == null || agb.isEmpty()) && address == null)
+				&& (agb == null || agb.isEmpty()) && (sbi == null || sbi.isEmpty()) && address == null)
 			return null;
 		return this;
 	}
@@ -54,6 +55,13 @@ public class Location extends GidsObject
 								.filter(Objects::nonNull) //
 								.sorted() //
 								.collect(Collectors.toList()))) //
+				.sbi(sbi == null ? null
+						: orNull(sbi.stream()//
+								.filter(Objects::nonNull)//
+								.map(l -> l.project(key, date)) //
+								.filter(Objects::nonNull) //
+								.sorted() //
+								.collect(Collectors.toList()))) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
 	}
@@ -72,6 +80,10 @@ public class Location extends GidsObject
 			return result;
 		}
 		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(sbi, o.agb);
 		if (result != 0) {
 			return result;
 		}

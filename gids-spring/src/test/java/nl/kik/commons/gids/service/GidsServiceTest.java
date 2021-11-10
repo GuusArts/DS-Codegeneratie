@@ -99,6 +99,7 @@ class GidsServiceTest {
 				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
 						.alternative(Source.TABELBEHEER, "2").build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build())) //
+				.sbi(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "871").build())) //
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
 				.build();
 
@@ -110,6 +111,8 @@ class GidsServiceTest {
 						.alternative(Source.LRZA, ZonedDateTime.now().toOffsetDateTime().toZonedDateTime()).build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "23456789").build(),
 						GidsAttribute.<String>builder().alternative(Source.LRZA, "34567890").build())) //
+				.sbi(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "871").build(),
+						GidsAttribute.<String>builder().alternative(Source.LRZA, "88101").build())) //
 				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
 				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()
@@ -394,7 +397,7 @@ class GidsServiceTest {
 					.addBind(organisations.get(0).getAny().getId(), "?test")
 					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
 					.build();
-			
+
 			organisations = service.query(g, query, Organisation.class);
 			Assertions.assertEquals(1, organisations.size());
 			Assertions.assertTrue(organisations.iterator().next().isUnique());

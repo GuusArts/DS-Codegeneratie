@@ -233,6 +233,15 @@
     
 
 
+    <!-- https://kik-v.nl/ontology/starter/gids#sbi -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#sbi">
+        <rdfs:domain rdf:resource="https://kik-v.nl/ontology/starter/gids#HasSbi"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
     <!-- https://kik-v.nl/ontology/starter/gids#street -->
 
     <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#street">
@@ -366,6 +375,14 @@
     
 
 
+    <!-- https://kik-v.nl/ontology/starter/gids#HasSbi -->
+
+    <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#HasSbi">
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
+    </owl:Class>
+    
+
+
     <!-- https://kik-v.nl/ontology/starter/gids#Interfaces -->
 
     <owl:Class rdf:about="https://kik-v.nl/ontology/starter/gids#Interfaces"/>
@@ -378,6 +395,7 @@
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAddress"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasNames"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasSbi"/>
     </owl:Class>
     
 
@@ -390,6 +408,7 @@
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasAgb"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasKvk"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasNames"/>
+        <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#HasSbi"/>
         <rdfs:subClassOf rdf:resource="https://kik-v.nl/ontology/starter/gids#RootObject"/>
     </owl:Class>
     

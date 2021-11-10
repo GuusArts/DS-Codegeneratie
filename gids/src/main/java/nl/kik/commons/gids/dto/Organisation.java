@@ -20,7 +20,7 @@ import nl.kik.commons.dto.Projectable;
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk, HasAddress, Changeable,
+public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi, HasKvk, HasAddress, Changeable,
 		Projectable<Source, Organisation>, Comparable<Organisation> {
 	private GidsAttribute<Address> address;
 	private GidsAttribute<CareOffice> office;
@@ -28,14 +28,16 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 	private List<GidsAttribute<String>> name;
 	private GidsAttribute<ZonedDateTime> lastModified;
 	private List<GidsAttribute<String>> agb;
+	private List<GidsAttribute<String>> sbi;
 	private GidsAttribute<String> kvk;
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 
 	public Organisation orNull() {
 		if (getId() == null && address == null && office == null && (name == null || name.isEmpty())
-				&& primaryName == null && lastModified == null && (agb == null || agb.isEmpty()) && kvk == null
-				&& (location == null || location.isEmpty()) && deliveryMethod == null)
+				&& primaryName == null && lastModified == null && (agb == null || agb.isEmpty())
+				&& (sbi == null || sbi.isEmpty()) && kvk == null && (location == null || location.isEmpty())
+				&& deliveryMethod == null)
 			return null;
 		return this;
 	}
@@ -57,6 +59,13 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 				.lastModified(lastModified == null ? null : lastModified.project(key, date)) //
 				.agb(agb == null ? null
 						: orNull(agb.stream() //
+								.filter(Objects::nonNull) //
+								.map(l -> l.project(key, date)) //
+								.filter(Objects::nonNull) //
+								.sorted() //
+								.collect(Collectors.toList()))) //
+				.sbi(sbi == null ? null
+						: orNull(sbi.stream() //
 								.filter(Objects::nonNull) //
 								.map(l -> l.project(key, date)) //
 								.filter(Objects::nonNull) //
@@ -96,6 +105,10 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasKvk
 			return result;
 		}
 		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(sbi, o.sbi);
 		if (result != 0) {
 			return result;
 		}

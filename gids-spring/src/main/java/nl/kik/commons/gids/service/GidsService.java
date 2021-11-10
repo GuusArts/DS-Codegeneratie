@@ -70,6 +70,7 @@ import nl.kik.commons.gids.dto.HasAgb;
 import nl.kik.commons.gids.dto.HasKvk;
 import nl.kik.commons.gids.dto.HasName;
 import nl.kik.commons.gids.dto.HasNames;
+import nl.kik.commons.gids.dto.HasSbi;
 import nl.kik.commons.gids.dto.Location;
 import nl.kik.commons.gids.dto.Organisation;
 import nl.kik.commons.gids.dto.Region;
@@ -101,6 +102,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 		//// Data properties
 		public static final Property agb = Vocabulary.property("agb");
+		public static final Property sbi = Vocabulary.property("sbi");
 		public static final Property kvk = Vocabulary.property("kvk");
 		public static final Property code = Vocabulary.property("code");
 		public static final Property houseLetter = Vocabulary.property("houseLetter");
@@ -330,6 +332,15 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 */
 	protected void addAgb(final Graph<? extends Model> g, final Resource resource, final HasAgb object) {
 		addAllProperties(g, resource, Vocabulary.agb, object.getAgb());
+	}
+
+	/**
+	 * @param g
+	 * @param resource
+	 * @param object
+	 */
+	protected void addSbi(final Graph<? extends Model> g, final Resource resource, final HasSbi object) {
+		addAllProperties(g, resource, Vocabulary.sbi, object.getSbi());
 	}
 
 	private <U extends GidsObject> GidsAttribute<U> addAlternatives(final GraphOrRemote graph,
@@ -804,6 +815,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 						RDFService::getString)) //
 				.number(getAlternatives(graph, resource, properties, sources, Vocabulary.number, RDFService::getString)) //
 				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
+				.sbi(getAlternativesList(graph, resource, properties, sources, Vocabulary.sbi, RDFService::getString)) //
 				.address(getAlternatives(graph, resource, properties, sources, Vocabulary.address,
 						n -> getObject(graph, n, Address.class))) //
 		;
@@ -839,6 +851,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.lastModified(getAlternatives(graph, resource, properties, sources, Vocabulary.lastModified,
 						RDFService::getDateTime)) //
 				.agb(getAlternativesList(graph, resource, properties, sources, Vocabulary.agb, RDFService::getString)) //
+				.sbi(getAlternativesList(graph, resource, properties, sources, Vocabulary.sbi, RDFService::getString)) //
 				.kvk(getAlternatives(graph, resource, properties, sources, Vocabulary.kvk, RDFService::getString)) //
 				.location(getAlternativesList(graph, resource, properties, sources, Vocabulary.location,
 						n -> getObject(graph, n, Location.class))) //
@@ -1167,6 +1180,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			addName(g, resource, object);
 			addProperty(g, resource, Vocabulary.number, object.getNumber());
 			addAgb(g, resource, object);
+			addSbi(g, resource, object);
 			addAddress(g, resource, object, true);
 			g.commit();
 		} finally {
@@ -1185,6 +1199,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			addName(g, resource, object);
 			addLastModified(g, resource, object);
 			addAgb(g, resource, object);
+			addSbi(g, resource, object);
 			addKvk(g, resource, object);
 			addObjects(g, resource, Vocabulary.location, object.getLocation(), true);
 			addEnum(g, resource, Vocabulary.deliveryMethod, object.getDeliveryMethod(), GidsService.deliveryMethods);
