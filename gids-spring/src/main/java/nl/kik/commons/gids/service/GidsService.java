@@ -131,6 +131,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		public static final Resource LRZA = Vocabulary.resource("LRZA");
 		public static final Resource TABELBEHEER = Vocabulary.resource("TABELBEHEER");
 		public static final Resource KIK_STARTER = Vocabulary.resource("KIK_STARTER");
+		public static final Resource NONE = Vocabulary.resource("NONE");
 
 		public static final String uri = "https://kik-v.nl/ontology/starter/gids#";
 
@@ -165,7 +166,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	private static Map<Source, Resource> sources = Map.of(//
 			Source.LRZA, Vocabulary.LRZA, //
 			Source.TABELBEHEER, Vocabulary.TABELBEHEER, //
-			Source.KIK_STARTER, Vocabulary.KIK_STARTER //
+			Source.KIK_STARTER, Vocabulary.KIK_STARTER, //
+			Source.NONE, Vocabulary.NONE//
 	);
 
 	private static Map<Resource, Source> reverseSources = RDFService.reverse(GidsService.sources);
