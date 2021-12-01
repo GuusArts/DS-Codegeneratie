@@ -2,6 +2,7 @@ package nl.kik.commons.gids.service;
 
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,7 +55,8 @@ class GidsServiceTest {
 	 */
 	protected Graph<Model> getLoadedModel() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		model.forEach(o -> service.save(g, GidsAttribute.of(Source.LRZA, o)));
+		model.forEach(o -> service.save(g, GidsAttribute.of(Source.TABELBEHEER, o)));
+		service.save(g, GidsAttribute.of(Source.LRZA, organisation));
 		return g;
 	}
 
@@ -63,8 +65,7 @@ class GidsServiceTest {
 		service = new GidsService();
 
 		region = Region.builder() //
-				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "772")
-						.alternative(Source.LRZA, "772").build()) //
+				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "772").build()) //
 				.build();
 
 		concessionaire = Concessionaire.builder() //
@@ -78,16 +79,13 @@ class GidsServiceTest {
 		careOffice = CareOffice.builder() //
 				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "5529").build()) //
 				.name(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "ZUIDOOST-BRABANT").build()) //
-				.concessionaire(
-						GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
+				.concessionaire(GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
 				.region(GidsAttribute.<Region>builder().alternative(Source.TABELBEHEER, region).build()) //
 				.build();
 
 		address = Address.builder() //
-				.houseNumber(GidsAttribute.<String>builder().alternative(Source.LRZA, "2")
-						.alternative(Source.TABELBEHEER, "2").build()) //
-				.houseLetter(GidsAttribute.<String>builder().alternative(Source.LRZA, "c")
-						.alternative(Source.TABELBEHEER, "C").build()) //
+				.houseNumber(GidsAttribute.<String>builder().alternative(Source.LRZA, "2").build()) //
+				.houseLetter(GidsAttribute.<String>builder().alternative(Source.LRZA, "c").build()) //
 				.town(GidsAttribute.<String>builder().alternative(Source.LRZA, "Eindhoven").build()) //
 				.province(GidsAttribute.<String>builder().alternative(Source.LRZA, "Noord-Brabant").build()) //
 				.postalcode(GidsAttribute.<String>builder().alternative(Source.LRZA, "5621KA").build()) //
@@ -96,8 +94,7 @@ class GidsServiceTest {
 
 		location = Location.builder() //
 				.name(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "Britney Health, bv").build())) //
-				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1")
-						.alternative(Source.TABELBEHEER, "2").build()) //
+				.number(GidsAttribute.<String>builder().alternative(Source.LRZA, "1").build()) //
 				.agb(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "12345678").build())) //
 				.sbi(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "871").build())) //
 				.address(GidsAttribute.<Address>builder().alternative(Source.LRZA, address).build()) //
@@ -115,11 +112,9 @@ class GidsServiceTest {
 						GidsAttribute.<String>builder().alternative(Source.LRZA, "88101").build())) //
 				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
-				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()
-						.alternative(Source.KIK_STARTER, DeliveryMethod.KIKStarter).build()) //
 				.build();
 
-		model = List.of(region, concessionaire, concessionaire2, careOffice, organisation);
+		model = List.of(region, concessionaire, concessionaire2, careOffice);
 	}
 
 	/**
@@ -165,9 +160,9 @@ class GidsServiceTest {
 			if (o.isEmpty()) {
 				Assertions.fail("Not found " + m);
 			} else {
-				GidsServiceTest.log.trace("Comparing");
-				GidsServiceTest.log.trace("{}", m);
-				GidsServiceTest.log.trace("{}", o.get());
+				GidsServiceTest.log.info("Comparing");
+				GidsServiceTest.log.info("{}", m);
+				GidsServiceTest.log.info("{}", o.get());
 				Assertions.assertTrue(o.get().isUnique());
 				Assertions.assertEquals(m, o.get().getAny());
 				Assertions.assertNotSame(m, o.get().getAny());
@@ -180,8 +175,7 @@ class GidsServiceTest {
 		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
 			for (final GidsObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
-						m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
@@ -209,22 +203,18 @@ class GidsServiceTest {
 		GidsServiceTest.log.trace("{}", lrza);
 		GidsServiceTest.log.trace("{}", tabelbeheer);
 
-		Assertions.assertNotEquals(address, lrza);
-		Assertions.assertNotEquals(address, tabelbeheer);
-		Assertions.assertNotEquals(tabelbeheer, lrza);
+		Assertions.assertEquals(address, lrza);
+		Assertions.assertNull(tabelbeheer);
 
 		Assertions.assertEquals(address.getHouseNumber().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
 				lrza.getHouseNumber().getAny());
 		Assertions.assertEquals(address.getHouseLetter().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
 				lrza.getHouseLetter().getAny());
-		Assertions.assertNotEquals(address.getHouseLetter().getAny(Source.UNKNOWN, Source.LRZA, Source.TABELBEHEER),
-				tabelbeheer.getHouseLetter().getAny());
 
 		Assertions.assertNotNull(address.getTown());
 		Assertions.assertNotNull(address.getTown().getAny());
 		Assertions.assertNotNull(lrza.getTown());
 		Assertions.assertNotNull(lrza.getTown().getAny());
-		Assertions.assertNull(tabelbeheer.getTown());
 	}
 
 	/**
@@ -291,46 +281,46 @@ class GidsServiceTest {
 		organisations = service.query(g, query, Organisation.class);
 		Assertions.assertEquals(0, organisations.size());
 
-		// Property with two values
-		query = new SelectBuilder() //
-				.addPrefix("", GidsService.Vocabulary.uri) //
-				.setDistinct(true) //
-				.addVar("?test") //
-				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
-				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'c'") //
-				.build();
-
-		organisations = service.query(g, query, null);
-		Assertions.assertEquals(1, organisations.size());
-		Assertions.assertTrue(organisations.iterator().next().isUnique());
-		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-
-		query = new SelectBuilder() //
-				.addPrefix("", GidsService.Vocabulary.uri) //
-				.setDistinct(true) //
-				.addVar("?test") //
-				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
-				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'C'") //
-				.build();
-
-		organisations = service.query(g, query, null);
-		Assertions.assertEquals(1, organisations.size());
-		Assertions.assertTrue(organisations.iterator().next().isUnique());
-		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-
-		query = new SelectBuilder() //
-				.addPrefix("", GidsService.Vocabulary.uri) //
-				.setDistinct(true) //
-				.addVar("?test") //
-				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
-				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'D'") //
-				.build();
-
-		organisations = service.query(g, query, Organisation.class);
-		Assertions.assertEquals(0, organisations.size());
+//		// Property with two values
+//		query = new SelectBuilder() //
+//				.addPrefix("", GidsService.Vocabulary.uri) //
+//				.setDistinct(true) //
+//				.addVar("?test") //
+//				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+//				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+//				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'c'") //
+//				.build();
+//
+//		organisations = service.query(g, query, null);
+//		Assertions.assertEquals(1, organisations.size());
+//		Assertions.assertTrue(organisations.iterator().next().isUnique());
+//		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+//
+//		query = new SelectBuilder() //
+//				.addPrefix("", GidsService.Vocabulary.uri) //
+//				.setDistinct(true) //
+//				.addVar("?test") //
+//				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+//				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+//				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'C'") //
+//				.build();
+//
+//		organisations = service.query(g, query, null);
+//		Assertions.assertEquals(1, organisations.size());
+//		Assertions.assertTrue(organisations.iterator().next().isUnique());
+//		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+//
+//		query = new SelectBuilder() //
+//				.addPrefix("", GidsService.Vocabulary.uri) //
+//				.setDistinct(true) //
+//				.addVar("?test") //
+//				.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+//				.addWhere("?test", GidsService.Vocabulary.address, "?a") //
+//				.addWhere("?a", GidsService.Vocabulary.houseLetter, "'D'") //
+//				.build();
+//
+//		organisations = service.query(g, query, Organisation.class);
+//		Assertions.assertEquals(0, organisations.size());
 
 		// Select all (this is not efficient!)
 		query = new SelectBuilder() //
@@ -345,7 +335,7 @@ class GidsServiceTest {
 		Assertions.assertTrue(organisations.iterator().next().isUnique());
 		Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
 		final List<GidsAttribute<Address>> addresses = service.query(g, query, Address.class); // Cannot look up
-																								// non-roots
+		// non-roots
 		Assertions.assertEquals(0, addresses.size());
 		final List<GidsAttribute<GidsObject>> objects = service.query(g, query, GidsObject.class);
 		Assertions.assertEquals(5, objects.size()); // We save more, but only roots count
@@ -420,11 +410,14 @@ class GidsServiceTest {
 		final FusekiServer fusekiServer = startFuseki(g);
 		try {
 			for (final GidsObject m : model) {
-				service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, m));
+				service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.TABELBEHEER, m));
 			}
-			for (final RDFObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
-						m.getId());
+			service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, organisation));
+
+			List<GidsObject> all = new ArrayList<>(model);
+			all.add(organisation);
+			for (final RDFObject m : all) {
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {

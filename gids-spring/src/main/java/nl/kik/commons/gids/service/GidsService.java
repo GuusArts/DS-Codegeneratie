@@ -1,6 +1,7 @@
 package nl.kik.commons.gids.service;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -351,7 +352,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		final var builder = GidsAttribute.<U>builder();
 		sources.stream().map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
 				.filter(t -> t.getRight() != null) //
-				.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), object));
+				.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(),
+						trim(object, s.getRight(), s.getLeft(), s.getMiddle())));
 		return builder.build();
 	}
 
@@ -708,6 +710,13 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
 			final Function<RDFNode, T> mapper) {
+		return getAlternatives(graph, resource, properties, sources, p, mapper, true);
+	}
+
+	private <T> GidsAttribute<T> getAlternatives(final GraphOrRemote graph, final Resource resource,
+			final MultiValuedMap<Property, RDFNode> properties,
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
+			final Function<RDFNode, T> mapper, boolean trim) {
 		final Collection<RDFNode> all = properties.get(p);
 		final var builder = GidsAttribute.<T>builder();
 		for (final RDFNode n : all) {
@@ -717,7 +726,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					sources.get(Pair.of(p, n)).stream() //
 							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
 							.filter(t -> t.getRight() != null) //
-							.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v));
+							.forEach(s -> builder.alternative(s.getRight(), s.getLeft(), s.getMiddle(),
+									trim ? trim(v, s.getRight(), s.getLeft(), s.getMiddle()) : v));
 				}
 			} catch (final Exception e) {
 				// Mask error
@@ -726,10 +736,96 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return builder.build();
 	}
 
+	@SuppressWarnings("unchecked")
+	private <T> T trim(T object, Source s, LocalDate from, LocalDate to) {
+		if (object instanceof Address a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof CareOffice a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Concessionaire a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Location a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Organisation a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Region a)
+			return (T) trim(a, s, from, to);
+		return object;
+	}
+
+	private <T> GidsAttribute<T> trim(GidsAttribute<T> a, Source s, LocalDate from, LocalDate to) {
+		return a == null ? null : a.project(s);
+	}
+
+	private <T> List<GidsAttribute<T>> trim(List<GidsAttribute<T>> a, Source s, LocalDate from, LocalDate to) {
+		List<GidsAttribute<T>> result = CollectionUtils.emptyIfNull(a).stream().map(g -> trim(g, s, from, to))
+				.filter(Objects::nonNull).toList();
+		return result.isEmpty() ? null : result;
+	}
+
+	private Address trim(Address a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.houseNumber(trim(a.getHouseNumber(), s, from, to)) //
+				.houseLetter(trim(a.getHouseLetter(), s, from, to)) //
+				.town(trim(a.getTown(), s, from, to)) //
+				.province(trim(a.getProvince(), s, from, to)) //
+				.postalcode(trim(a.getPostalcode(), s, from, to)) //
+				.street(trim(a.getStreet(), s, from, to)) //
+				.build();
+	}
+
+	private CareOffice trim(CareOffice a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.code(trim(a.getCode(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.build();
+	}
+
+	private Concessionaire trim(Concessionaire a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.name(trim(a.getName(), s, from, to)) //
+				.build();
+	}
+
+	private Location trim(Location a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.number(trim(a.getNumber(), s, from, to)) //
+				.agb(trim(a.getAgb(), s, from, to)) //
+				.sbi(trim(a.getSbi(), s, from, to)) //
+				.build();
+	}
+
+	private Organisation trim(Organisation a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.lastModified(trim(a.getLastModified(), s, from, to)) //
+				.agb(trim(a.getAgb(), s, from, to)) //
+				.sbi(trim(a.getSbi(), s, from, to)) //
+				.kvk(trim(a.getKvk(), s, from, to)) //
+				.deliveryMethod(trim(a.getDeliveryMethod(), s, from, to)) //
+				.build();
+	}
+
+	private Region trim(Region a, Source s, LocalDate from, LocalDate to) {
+		return a.toBuilder() //
+				.code(trim(a.getCode(), s, from, to)) //
+				.build();
+	}
+
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
 			final Function<RDFNode, T> mapper) {
+		return getAlternativesList(graph, resource, properties, sources, p, mapper, true);
+	}
+	
+	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
+			final MultiValuedMap<Property, RDFNode> properties,
+			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
+			final Function<RDFNode, T> mapper, boolean trim) {
 		final Collection<RDFNode> all = properties.get(p);
 		final List<GidsAttribute<T>> result = new ArrayList<>();
 		for (final RDFNode n : all) {
@@ -740,7 +836,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 							.map(t -> Triple.of(t.getLeft(), t.getMiddle(), GidsService.reverseSources.get(t.getRight()))) //
 							.filter(t -> t.getRight() != null) //
 							.map(s -> GidsAttribute.<T>builder() //
-									.alternative(s.getRight(), s.getLeft(), s.getMiddle(), v) //
+									.alternative(s.getRight(), s.getLeft(), s.getMiddle(),
+											trim ? trim(v, s.getRight(), s.getLeft(), s.getMiddle()) : v) //
 									.build()) //
 							.forEach(result::add);
 				}
@@ -760,9 +857,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.code(getAlternatives(graph, resource, properties, sources, Vocabulary.code, RDFService::getString)) //
 				.name(getAlternatives(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
 				.region(getAlternatives(graph, resource, properties, sources, Vocabulary.region,
-						n -> getObject(graph, n, Region.class))) //
+						n -> getObject(graph, n, Region.class), false)) //
 				.concessionaire(getAlternatives(graph, resource, properties, sources, Vocabulary.concessionaire,
-						n -> getObject(graph, n, Concessionaire.class))) //
+						n -> getObject(graph, n, Concessionaire.class), false)) //
 		;
 	}
 
@@ -842,7 +939,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.address(getAlternatives(graph, resource, properties, sources, Vocabulary.address,
 						n -> getObject(graph, n, Address.class))) //
 				.office(getAlternatives(graph, resource, properties, sources, Vocabulary.office,
-						n -> getObject(graph, n, CareOffice.class))) //
+						n -> getObject(graph, n, CareOffice.class), false)) //
 				.name(getAlternativesList(graph, resource, properties, sources, Vocabulary.name, RDFService::getString)) //
 				.primaryName(
 						getAlternatives(graph, resource, properties, sources, Vocabulary.primaryName, RDFService::getString)) //
