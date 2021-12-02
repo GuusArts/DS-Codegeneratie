@@ -33,7 +33,7 @@ public class Distribution extends DCATObject {
 	Double byteSize;
 	Float spatialResolutionInMeters;
 	Duration temporalResolution;
-	URI conformsTo;// Standard
+	Set<URI> conformsTo; // Standard
 //	List<MediaType> mediaType;
 //	List<MediaTypeOrExtent> format;
 //	List<MediaType> packageFormat;

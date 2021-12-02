@@ -26,7 +26,7 @@ class DIDServiceTest {
 
 	@Test
 	void testLocal() throws JOSEException, ResolutionException {
-		Assertions.assertThrows(ResolutionException.class, () -> service.getVerifier("did:web:localhost:britney", null));
+		Assertions.assertThrows(JOSEException.class, () -> service.getVerifier("did:web:localhost:britney", null));
 	}
 
 	@Test

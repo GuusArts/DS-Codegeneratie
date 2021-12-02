@@ -29,33 +29,33 @@ public abstract class AbstractDCATTest {
 				.type(new URI("http://purl.org/adms/publishertype/NonProfitOrganisation")) //
 				.build();
 		dataservice = DataService.builder() //
-				.conformsTo(Constants.STANDARD_VERIFIED_SPARQL) //
+				.conformsTo(Set.of(Constants.STANDARD_VERIFIED_SPARQL)) //
 				.title("Gevalideerde vragen") //
 				.description("Service voor het uitvoeren van gevalideerde vragen via sparql") //
 				.endpointURL(new URI("http://data.example.com/api/verifiedsparql")).build();
 		sparqlservice = DataService.builder() //
-				.conformsTo(Constants.STANDARD_SPARQL) //
+				.conformsTo(Set.of(Constants.STANDARD_SPARQL)) //
 				.title("SPARQL") //
 				.description("Service voor het uitvoeren van vragen via sparql") //
 				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
 		sparqlservice2 = DataService.builder() //
-				.conformsTo(Constants.STANDARD_SPARQL) //
+				.conformsTo(Set.of(Constants.STANDARD_SPARQL)) //
 				.title("SPARQL 2") //
 				.description("Service voor het uitvoeren van vragen via sparql") //
 				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
 		graphstoreservice = DataService.builder() //
-				.conformsTo(Constants.STANDARD_GRAPHSTORE) //
+				.conformsTo(Set.of(Constants.STANDARD_GRAPHSTORE)) //
 				.title("GRAPHSTORE") //
 				.description("Service voor graph store") //
 				.endpointURL(new URI("http://data.example.com/api/graphstore")).build();
 		shaclservice = DataService.builder() //
-				.conformsTo(Constants.STANDARD_SHACL) //
+				.conformsTo(Set.of(Constants.STANDARD_SHACL)) //
 				.title("SHACL") //
 				.description("Service voor graph store") //
 				.endpointURL(new URI("http://data.example.com/api/shacl")).build();
 		distribution = Distribution.builder() //
 				.accessService(Set.of(dataservice, sparqlservice, sparqlservice2, graphstoreservice, shaclservice)) //
-				.conformsTo(Constants.STANDARD_RDF) //
+				.conformsTo(Set.of(Constants.STANDARD_RDF)) //
 				.build();
 		dataset = Dataset.builder() //
 				.title("Linked data personeel") //
@@ -63,7 +63,7 @@ public abstract class AbstractDCATTest {
 				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
 				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.conformsTo(new URI("http://purl.org/ozo/hr")) //
+				.conformsTo(Set.of(new URI("http://purl.org/ozo/hr"))) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
 				.distribution(Set.of(distribution)) //
 				.build();

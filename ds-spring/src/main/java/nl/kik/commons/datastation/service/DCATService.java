@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
@@ -206,7 +207,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends DistributionBuilder<?, ?>> B getDistribution(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(RDFService.getURI(properties, DCTerms.conformsTo)) //
+				.conformsTo(RDFService.getURISet(properties, DCTerms.conformsTo)) //
 				.description(RDFService.getString(properties, DCTerms.description)) //
 				.title(RDFService.getString(properties, DCTerms.title)) //
 				.issued(RDFService.getDateTime(properties, DCTerms.issued)) //
@@ -305,7 +306,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	private <B extends ResourceBuilder<?, ?>> B getResource(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final B builder) {
 		return (B) getDCATObject(graph, properties, resource, builder) //
-				.conformsTo(RDFService.getURI(properties, DCTerms.conformsTo)) //
+				.conformsTo(RDFService.getURISet(properties, DCTerms.conformsTo)) //
 				.contactPoint(
 						RDFService.getEnum(properties, org.apache.jena.vocabulary.DCAT.contactPoint, DCATService.reverseKinds)) //
 				.creator(getObject(graph, properties, DCTerms.creator, Agent.class)) //
@@ -406,8 +407,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
 			addObject(g, resource, DCTerms.temporal, object.getTemporal());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
-					object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();
@@ -469,7 +469,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Distribution);
-			RDFService.addURI(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			CollectionUtils.emptyIfNull(object.getConformsTo())
+					.forEach(c -> RDFService.addURI(g, resource, DCTerms.conformsTo, c));
 			addProperty(g, resource, DCTerms.description, object.getDescription());
 			addProperty(g, resource, DCTerms.title, object.getTitle());
 			addProperty(g, resource, DCTerms.issued, object.getIssued());
@@ -480,8 +481,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.byteSize, object.getByteSize());
 			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.spatialResolutionInMeters,
 					object.getSpatialResolutionInMeters());
-			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution,
-					object.getTemporalResolution());
+			addProperty(g, resource, org.apache.jena.vocabulary.DCAT.temporalResolution, object.getTemporalResolution());
 			g.commit();
 		} finally {
 			g.end();
@@ -558,7 +558,8 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		try {
 			saveDCATObject(g, resource, object);
 			g.getModel().add(resource, RDF.type, org.apache.jena.vocabulary.DCAT.Resource);
-			RDFService.addURI(g, resource, DCTerms.conformsTo, object.getConformsTo());
+			CollectionUtils.emptyIfNull(object.getConformsTo())
+					.forEach(c -> RDFService.addURI(g, resource, DCTerms.conformsTo, c));
 			if (object.getContactPoint() != null) {
 				g.getModel().add(resource, org.apache.jena.vocabulary.DCAT.contactPoint,
 						DCATService.kinds.get(object.getContactPoint()));

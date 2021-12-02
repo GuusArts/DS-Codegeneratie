@@ -29,7 +29,8 @@ public class CatalogService {
 						.stream() //
 						.anyMatch(distribution -> Objects
 								.requireNonNullElse(distribution.getAccessService(), Collections.<DataService>emptySet()).stream() //
-								.anyMatch(dataservice -> provides.equals(dataservice.getConformsTo())) //
+								.anyMatch(dataservice -> dataservice.getConformsTo() != null
+										&& dataservice.getConformsTo().contains(provides)) //
 						) //
 				) //
 				.collect(Collectors.toList());
@@ -60,7 +61,8 @@ public class CatalogService {
 		return Objects.requireNonNullElse(dataset.getDistribution(), Collections.<Distribution>emptySet()).stream() //
 				.flatMap(distribution -> Objects
 						.requireNonNullElse(distribution.getAccessService(), Collections.<DataService>emptySet()).stream() //
-						.filter(dataservice -> provides.equals(dataservice.getConformsTo())) //
+						.filter(
+								dataservice -> dataservice.getConformsTo() != null && dataservice.getConformsTo().contains(provides)) //
 				) //
 				.collect(Collectors.toList());
 	}

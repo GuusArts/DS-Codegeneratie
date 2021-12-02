@@ -21,7 +21,7 @@ import nl.kik.commons.dto.RDFObject;
 @EqualsAndHashCode(callSuper = true)
 public class Resource extends DCATObject {
 //	List<RightsStatement> accessRights;
-	URI conformsTo; // Standard
+	Set<URI> conformsTo; // Standard
 	Kind contactPoint;
 	Agent creator;
 	String description;
