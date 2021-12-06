@@ -29,15 +29,17 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuperBuilder(toBuilder = true, builderMethodName = "creator")
 @Getter
-@ToString(exclude = { "model", "transactional" })
+@ToString
 @JsonInclude(Include.NON_NULL)
 @Slf4j
 public class Graph<G extends Model> implements Source {
+	@ToString.Exclude
 	private G model;
+	@ToString.Exclude
 	private Transactional transactional;
 	private Graph<? extends Model> delegate;
+	@ToString.Exclude
 	private OntModel ontModel;
-
 
 	@Getter(AccessLevel.NONE)
 	private final ThreadLocal<Integer> nesting = ThreadLocal.withInitial(() -> 0);
