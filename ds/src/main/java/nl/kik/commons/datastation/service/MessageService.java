@@ -190,24 +190,33 @@ public class MessageService extends AbstractTokenService {
 
 	public <T> void validateFields(final Message<T> m) throws ParseException {
 		MessageService.log.trace("Validating fields of {}", m.getId());
-		if (StringUtils.isBlank(m.getIssuer()))
+		if (StringUtils.isBlank(m.getIssuer())) {
 			throw new ParseException("Required feld `iss' is not given", 0);
-		if (StringUtils.isBlank(m.getFrom()))
+		}
+		if (StringUtils.isBlank(m.getFrom())) {
 			throw new ParseException("Required feld `from' is not given", 0);
-		if (CollectionUtils.isEmpty(m.getTo()))
+		}
+		if (CollectionUtils.isEmpty(m.getTo())) {
 			throw new ParseException("Required feld `to' is not given", 0);
-		if (StringUtils.isBlank(m.getId()))
+		}
+		if (StringUtils.isBlank(m.getId())) {
 			throw new ParseException("Required feld `jti' is not given", 0);
-		if (StringUtils.isBlank(m.getKeyId()))
+		}
+		if (StringUtils.isBlank(m.getKeyId())) {
 			throw new ParseException("Required feld `kid' is not given", 0);
-		if (StringUtils.isBlank(m.getThreadId()))
+		}
+		if (StringUtils.isBlank(m.getThreadId())) {
 			throw new ParseException("Required feld `threadId' is not given", 0);
-		if (m.getValidFrom() != null && m.getValidFrom().isAfter(ZonedDateTime.now()))
+		}
+		if (m.getValidFrom() != null && m.getValidFrom().isAfter(ZonedDateTime.now())) {
 			throw new ParseException("Message is not valid yet (from " + m.getValidFrom() + ")", 0);
-		if (m.getExpiration() != null && m.getExpiration().isBefore(ZonedDateTime.now()))
+		}
+		if (m.getExpiration() != null && m.getExpiration().isBefore(ZonedDateTime.now())) {
 			throw new ParseException("Message is no longer valid (to " + m.getExpiration() + ")", 0);
-		if (m.getBody() == null)
+		}
+		if (m.getBody() == null) {
 			throw new ParseException("A body must be given", 0);
+		}
 
 		if (m instanceof Request<?>) {
 			validateFields((Request<T>) m);
@@ -221,8 +230,9 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	protected <T> void validateFields(final Request<T> m) throws ParseException {
-		if (m.getReplyUrl() == null)
+		if (m.getReplyUrl() == null) {
 			throw new ParseException("Required feld `replyUrl' is not given", 0);
+		}
 		validateFieldsExtension(m);
 	}
 
@@ -290,12 +300,15 @@ public class MessageService extends AbstractTokenService {
 	}
 
 	private Builder wrap(final Builder claims, final Message<?> m) {
-		if (m instanceof Request)
+		if (m instanceof Request) {
 			return wrap(claims, (Request<?>) m);
-		if (m instanceof Response<?>)
+		}
+		if (m instanceof Response<?>) {
 			return wrap(claims, (Response<?>) m);
-		if (m instanceof ErrorReport<?>)
+		}
+		if (m instanceof ErrorReport<?>) {
 			return wrap(claims, (ErrorReport<?>) m);
+		}
 		return wrapExtension(claims, m);
 	}
 

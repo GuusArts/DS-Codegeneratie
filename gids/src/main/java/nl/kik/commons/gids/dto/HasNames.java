@@ -4,5 +4,6 @@ import java.util.List;
 
 public interface HasNames {
 	List<GidsAttribute<String>> getName();
+
 	GidsAttribute<String> getPrimaryName();
 }

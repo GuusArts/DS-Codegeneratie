@@ -47,15 +47,17 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 				final Message<Map<String, Result>> message = service.unwrapMessage(s, validator::validate,
 						o -> resultService.<Result, Exception>unwrapResultSet(
 								JSONObjectUtils.getJSONObject(o, MessageService.MESSAGE), resultService::unwrap));
-				if (!Response.class.isInstance(message))
+				if (!Response.class.isInstance(message)) {
 					throw new ParseException("Message must be Response and body must be result set of Result", 0);
+				}
 				return (Response) message;
 			}
 			case MessageService.ERROR_REPORT: {
 				final Message<String> message = service.unwrapMessage(s, validator::validate,
 						o -> JSONObjectUtils.getString(o, MessageService.MESSAGE));
-				if (!ErrorReport.class.isInstance(message))
+				if (!ErrorReport.class.isInstance(message)) {
 					throw new ParseException("Message must be ErrorReport and body must be String", 0);
+				}
 				return (ErrorReport) message;
 			}
 			default:
@@ -80,8 +82,9 @@ public class ResponseMessageConverter extends MessageMessageConverter<Object, Re
 				&& ((Map<?, ?>) t.getBody()).values().stream().allMatch(Result.class::isInstance)) {
 			wrapped = service.wrap((Response<Map<String, Result>>) (Response) t,
 					s -> Map.of(MessageService.MESSAGE, resultService.wrapResultSet(s, resultService::wrap)));
-		} else
+		} else {
 			throw new ParseException("Received unsupported return message", 0);
+		}
 		validator.sign(wrapped, keys.getSigner(wrapped.getHeader().getAlgorithm(), t.getIssuer(), t.getKeyId()));
 		return wrapped;
 	}

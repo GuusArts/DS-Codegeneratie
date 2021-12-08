@@ -181,25 +181,30 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	@SuppressWarnings("unchecked")
 	protected <U extends DCATObject> U getDCATObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
-		if (Catalog.class.isAssignableFrom(t))
+		if (Catalog.class.isAssignableFrom(t)) {
 			return (U) getCatalog(graph, properties, resource, Catalog.builder()).build();
-		if (Dataset.class.isAssignableFrom(t))
+		}
+		if (Dataset.class.isAssignableFrom(t)) {
 			return (U) getDataset(graph, properties, resource, Dataset.builder()).build();
-		if (DataService.class.isAssignableFrom(t))
+		}
+		if (DataService.class.isAssignableFrom(t)) {
 			return (U) getDataService(graph, properties, resource, DataService.builder()).build();
-		if (nl.kik.commons.datastation.dto.dcat.Resource.class.isAssignableFrom(t))
+		}
+		if (nl.kik.commons.datastation.dto.dcat.Resource.class.isAssignableFrom(t)) {
 			return (U) getResource(graph, properties, resource, nl.kik.commons.datastation.dto.dcat.Resource.builder())
 					.build();
-		else if (CatalogRecord.class.isAssignableFrom(t))
+		}
+		if (CatalogRecord.class.isAssignableFrom(t)) {
 			return (U) getCatalogRecord(graph, properties, resource, CatalogRecord.builder()).build();
-		else if (Distribution.class.isAssignableFrom(t))
+		} else if (Distribution.class.isAssignableFrom(t)) {
 			return (U) getDistribution(graph, properties, resource, Distribution.builder()).build();
-		else if (PeriodOfTime.class.isAssignableFrom(t))
+		} else if (PeriodOfTime.class.isAssignableFrom(t)) {
 			return (U) getPeriodOfTime(graph, properties, resource, PeriodOfTime.builder()).build();
-		else if (Relationship.class.isAssignableFrom(t))
+		} else if (Relationship.class.isAssignableFrom(t)) {
 			return (U) getRelationship(graph, properties, resource, Relationship.builder()).build();
-		else if (Role.class.isAssignableFrom(t))
+		} else if (Role.class.isAssignableFrom(t)) {
 			return (U) getRole(graph, properties, resource, Role.builder()).build();
+		}
 		throw new IllegalArgumentException("Cannot load DCAT objects of type " + t.getSimpleName());
 	}
 
@@ -231,12 +236,15 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	@SuppressWarnings("unchecked")
 	protected <U extends FOAFObject> U getFOAFObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
-		if (Group.class.isAssignableFrom(t))
+		if (Group.class.isAssignableFrom(t)) {
 			return (U) getGroup(graph, properties, resource, Group.builder()).build();
-		if (Organization.class.isAssignableFrom(t))
+		}
+		if (Organization.class.isAssignableFrom(t)) {
 			return (U) getOrganization(graph, properties, resource, Organization.builder()).build();
-		if (Person.class.isAssignableFrom(t))
+		}
+		if (Person.class.isAssignableFrom(t)) {
 			return (U) getPerson(graph, properties, resource, Person.builder()).build();
+		}
 		throw new IllegalArgumentException("Cannot load FOAF objects of type " + t.getSimpleName());
 	}
 
@@ -252,10 +260,12 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	@Override
 	protected <U extends RDFObject> U getObject(final Graph<Model> graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
-		if (DCATObject.class.isAssignableFrom(t))
+		if (DCATObject.class.isAssignableFrom(t)) {
 			return (U) getDCATObject(graph, properties, resource, (Class<DCATObject>) t);
-		if (FOAFObject.class.isAssignableFrom(t))
+		}
+		if (FOAFObject.class.isAssignableFrom(t)) {
 			return (U) getFOAFObject(graph, properties, resource, (Class<FOAFObject>) t);
+		}
 		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
 	}
 
@@ -437,8 +447,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			saveRelationship(g, resource, (Relationship) object);
 		} else if (object instanceof Role) {
 			saveRole(g, resource, (Role) object);
-		} else
+		} else {
 			throw new IllegalArgumentException("Cannot save DCAT objects of type " + object.getClass().getSimpleName());
+		}
 	}
 
 	protected void saveDetails(final Graph<? extends Model> g, final Resource resource, final FOAFObject object) {
@@ -450,8 +461,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			savePerson(g, resource, (Person) object);
 //		} else if (object instanceof Agent) { Abstract class, skip
 //			saveAgent(g, resource, (Agent) object);
-		} else
+		} else {
 			throw new IllegalArgumentException("Cannot save FOAF objects of type " + object.getClass().getSimpleName());
+		}
 	}
 
 	@Override
@@ -460,8 +472,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 			saveDetails(g, resource, (DCATObject) object);
 		} else if (object instanceof FOAFObject) {
 			saveDetails(g, resource, (FOAFObject) object);
-		} else
+		} else {
 			throw new IllegalArgumentException("Cannot save RDF objects of type " + object.getClass().getSimpleName());
+		}
 	}
 
 	protected void saveDistribution(final Graph<? extends Model> g, final Resource resource, final Distribution object) {

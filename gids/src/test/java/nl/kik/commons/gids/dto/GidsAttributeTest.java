@@ -1,9 +1,5 @@
 package nl.kik.commons.gids.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
 import java.time.LocalDate;
 
 import org.apache.commons.lang3.tuple.Triple;
@@ -27,40 +23,6 @@ class GidsAttributeTest {
 
 	private LocalDate date(final int month, final int day) {
 		return LocalDate.of(2021, month, day);
-	}
-
-	@Test
-	void testProject() {
-		final GidsAttribute<String> v = GidsAttribute.<String>builder() //
-				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 4), "A")//
-				.alternative(Source.KIK_STARTER, date(12, 6), date(12, 8), "B")//
-				.alternative(Source.LRZA, date(12, 7), date(12, 9), "C")//
-				.build();
-
-		assertEquals(3, v.getAll().size());
-		assertEquals(1, v.project(Source.LRZA).getAll().size());
-		assertEquals(2, v.project(Source.KIK_STARTER).getAll().size());
-		assertEquals(2, v.project(date(12, 7)).getAll().size());
-		assertEquals(1, v.project(date(12, 6)).getAll().size());
-		assertEquals(1, v.project(date(12, 3)).getAll().size());
-		assertNull(v.project(date(12, 1)));
-
-		GidsAttribute<Organisation> o = GidsAttribute.<Organisation>builder() //
-				.alternative(Source.LRZA, Organisation.builder() //
-						.id("hello") //
-						.primaryName(GidsAttribute.<String>builder() //
-								.alternative(Source.LRZA, "hello") //
-								.alternative(Source.TABELBEHEER, "world") //
-								.build()) //
-						.build()) //
-				.build();
-
-		GidsAttribute<Organisation> p = o.project(Source.LRZA);
-		assertNotNull(p);
-		assertEquals(1, p.getAll().size());
-		assertNotNull(p.getAny().getId());
-		assertEquals(1, p.getAny().getPrimaryName().getAll().size());
-		assertNull(o.project(Source.TABELBEHEER));
 	}
 
 	@Test
@@ -258,6 +220,40 @@ class GidsAttributeTest {
 				.alternative(Source.KIK_STARTER, null, null, "A")//
 				.build();
 		assertOne(v, date(12, 2), null, "A");
+	}
+
+	@Test
+	void testProject() {
+		final GidsAttribute<String> v = GidsAttribute.<String>builder() //
+				.alternative(Source.KIK_STARTER, date(12, 2), date(12, 4), "A")//
+				.alternative(Source.KIK_STARTER, date(12, 6), date(12, 8), "B")//
+				.alternative(Source.LRZA, date(12, 7), date(12, 9), "C")//
+				.build();
+
+		Assertions.assertEquals(3, v.getAll().size());
+		Assertions.assertEquals(1, v.project(Source.LRZA).getAll().size());
+		Assertions.assertEquals(2, v.project(Source.KIK_STARTER).getAll().size());
+		Assertions.assertEquals(2, v.project(date(12, 7)).getAll().size());
+		Assertions.assertEquals(1, v.project(date(12, 6)).getAll().size());
+		Assertions.assertEquals(1, v.project(date(12, 3)).getAll().size());
+		Assertions.assertNull(v.project(date(12, 1)));
+
+		final GidsAttribute<Organisation> o = GidsAttribute.<Organisation>builder() //
+				.alternative(Source.LRZA, Organisation.builder() //
+						.id("hello") //
+						.primaryName(GidsAttribute.<String>builder() //
+								.alternative(Source.LRZA, "hello") //
+								.alternative(Source.TABELBEHEER, "world") //
+								.build()) //
+						.build()) //
+				.build();
+
+		final GidsAttribute<Organisation> p = o.project(Source.LRZA);
+		Assertions.assertNotNull(p);
+		Assertions.assertEquals(1, p.getAll().size());
+		Assertions.assertNotNull(p.getAny().getId());
+		Assertions.assertEquals(1, p.getAny().getPrimaryName().getAll().size());
+		Assertions.assertNull(o.project(Source.TABELBEHEER));
 	}
 
 }

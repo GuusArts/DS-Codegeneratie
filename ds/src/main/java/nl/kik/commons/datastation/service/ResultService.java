@@ -43,13 +43,15 @@ public class ResultService extends AbstractTokenService {
 
 	public Result unwrap(final Map<String, Object> object) throws ParseException {
 		final Map<String, Object> head = JSONObjectUtils.getJSONObject(object, ResultService.HEAD);
-		if (head != null)
+		if (head != null) {
 			return unwrapSPARQL(object, head) //
 					.build();
+		}
 		final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
-		if (results != null)
+		if (results != null) {
 			return unwrapJSONLD(object, results) //
 					.build();
+		}
 		return unwrapExtension(object);
 	}
 
@@ -85,10 +87,12 @@ public class ResultService extends AbstractTokenService {
 	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapBody(final Map<String, Object> object) throws ParseException {
 		final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
 		final Boolean value = getGeneric(object, ResultService.BOOLEAN, Boolean.class);
-		if (results != null)
+		if (results != null) {
 			return unwrapSelect(object, results);
-		if (value != null)
+		}
+		if (value != null) {
 			return unwrapAsk(object, value);
+		}
 		return unwrapBodyExtension(object);
 	}
 
@@ -149,8 +153,9 @@ public class ResultService extends AbstractTokenService {
 									(final Map<String, Object> o) -> mapper.apply(getRequiredJSONObject(o, ResultService.RESULT)))));
 		} catch (final RuntimeException e) {
 			final Throwable cause = e.getCause();
-			if (cause instanceof ParseException)
+			if (cause instanceof ParseException) {
 				throw (ParseException) cause;
+			}
 			throw (E) cause;
 		}
 	}
@@ -236,8 +241,9 @@ public class ResultService extends AbstractTokenService {
 
 	public Map<String, Object> wrap(final Result result) throws ParseException {
 		final Map<String, Object> json = new HashMap<>();
-		if (result instanceof SPARQLResult)
+		if (result instanceof SPARQLResult) {
 			return wrap((SPARQLResult) result, json);
+		}
 		return wrapExtension(result, json);
 	}
 
@@ -268,10 +274,10 @@ public class ResultService extends AbstractTokenService {
 			json.put(ResultService.HEAD, wrap(result.getHead()));
 			return wrap((SelectResult) result, json);
 		}
-		if (result instanceof ConstructResult)
+		if (result instanceof ConstructResult) {
 			return wrap((ConstructResult) result, json);
-		else
-			return wrapExtension(result, json);
+		}
+		return wrapExtension(result, json);
 	}
 
 	protected Map<String, Object> wrapExtension(final AskResult result, final Map<String, Object> json)
@@ -330,8 +336,9 @@ public class ResultService extends AbstractTokenService {
 			);
 		} catch (final RuntimeException e) {
 			final Throwable cause = e.getCause();
-			if (cause instanceof ParseException)
+			if (cause instanceof ParseException) {
 				throw (ParseException) cause;
+			}
 			throw (E) cause;
 		}
 	}

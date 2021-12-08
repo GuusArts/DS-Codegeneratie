@@ -64,8 +64,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 
 		public B alternative(final K key, final Triple<LocalDate, LocalDate, V> value) {
 			if (value != null && value.getLeft() != null && value.getMiddle() != null
-					&& !value.getLeft().isBefore(value.getMiddle()))
+					&& !value.getLeft().isBefore(value.getMiddle())) {
 				throw new IllegalArgumentException("Value " + value + " has end date before or equal to start date");
+			}
 			if (key != null && value != null && value.getRight() != null) {
 				List<Triple<LocalDate, LocalDate, V>> overlapping = this.values.get(key).stream() //
 						.filter(v -> {
@@ -80,10 +81,11 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 						.collect(Collectors.toList());
 				Alternatives.log.trace("overlapping {}", overlapping);
 				if (!overlapping.stream() // We allow overlap if it is at most one day or if they have the same value
-						.allMatch(v -> (v.getMiddle() != null && value.getLeft() != null && v.getMiddle().equals(value.getLeft()))
-								|| Objects.equals(value.getRight(), v.getRight())))
+						.allMatch(v -> v.getMiddle() != null && value.getLeft() != null && v.getMiddle().equals(value.getLeft())
+								|| Objects.equals(value.getRight(), v.getRight()))) {
 					throw new IllegalArgumentException("Trying to add value " + value + " for source " + key
 							+ " overlapping with incompatible values " + overlapping);
+				}
 				overlapping = overlapping.stream() //
 						.filter(v -> Objects.equals(value.getRight(), v.getRight())) //
 						.collect(Collectors.toList());
@@ -112,25 +114,33 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 					|| Alternatives.isActual(s.getMiddle().getLeft(), s.getMiddle().getRight(), now);
 			final boolean actualT = t.getMiddle() == null
 					|| Alternatives.isActual(t.getMiddle().getLeft(), t.getMiddle().getRight(), now);
-			if (actualS != actualT)
+			if (actualS != actualT) {
 				return actualS ? -1 : 1;
-			if (Objects.equals(s.getMiddle(), t.getMiddle()))
+			}
+			if (Objects.equals(s.getMiddle(), t.getMiddle())) {
 				return 0;
-			if (s.getMiddle() == null)
+			}
+			if (s.getMiddle() == null) {
 				return 1;
-			if (t.getMiddle() == null)
+			}
+			if (t.getMiddle() == null) {
 				return -1;
+			}
 			if (Objects.equals(s.getMiddle().getLeft(), t.getMiddle().getLeft())) {
-				if (s.getMiddle().getRight() == null)
+				if (s.getMiddle().getRight() == null) {
 					return -1;
-				if (t.getMiddle().getRight() == null)
+				}
+				if (t.getMiddle().getRight() == null) {
 					return 1;
+				}
 				return s.getMiddle().getRight().isBefore(t.getMiddle().getRight()) ? -1 : 1;
 			}
-			if (s.getMiddle().getLeft() == null)
+			if (s.getMiddle().getLeft() == null) {
 				return -1;
-			if (t.getMiddle().getLeft() == null)
+			}
+			if (t.getMiddle().getLeft() == null) {
 				return 1;
+			}
 			return s.getMiddle().getLeft().isBefore(t.getMiddle().getLeft()) ? -1 : 1;
 		}
 	}
@@ -142,8 +152,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 		if (v != null) {
 			values.add(v);
 		}
-		if (values.stream().anyMatch(Objects::isNull))
+		if (values.stream().anyMatch(Objects::isNull)) {
 			return null;
+		}
 		return values.stream().min(comparator).get();
 	}
 
@@ -158,8 +169,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 		Objects.requireNonNull(key, "Key must be given to use get; otherwise guse getAny/getAll");
 		Objects.requireNonNull(date, "Date must be given to use get; otherwise guse getAny/getAll");
 		final Collection<Triple<K, Pair<LocalDate, LocalDate>, V>> result = getAll(key, date);
-		if (result.size() >= 2)
+		if (result.size() >= 2) {
 			throw new InternalError("Somehow got more than one result; this indicates internal data corruption");
+		}
 		return result.stream().findFirst().map(Triple::getRight).orElse(null);
 	}
 
@@ -180,11 +192,12 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 	 * @return
 	 */
 	public Collection<Triple<K, Pair<LocalDate, LocalDate>, V>> getAll(final K key, final LocalDate date) {
-		if (key == null)
+		if (key == null) {
 			return values.entries().stream() //
 					.filter(e -> date == null || Alternatives.isActual(e.getValue().getLeft(), e.getValue().getMiddle(), date)) //
 					.map(e -> Triple.of(e.getKey(), toPair(e.getValue()), e.getValue().getRight())) //
 					.collect(Collectors.toList());
+		}
 		return values.get(key).stream() //
 				.filter(v -> date == null || Alternatives.isActual(v.getLeft(), v.getMiddle(), date)) //
 				.map(v -> Triple.of(key, toPair(v), v.getRight())) //
@@ -198,8 +211,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 	@JsonIgnore
 	public V getAny() {
 		final Iterator<Triple<LocalDate, LocalDate, V>> iterator = values.values().iterator();
-		if (iterator.hasNext())
+		if (iterator.hasNext()) {
 			return iterator.next().getRight();
+		}
 		return null;
 	}
 
@@ -225,8 +239,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 
 	public V getAny(final LocalDate date, @SuppressWarnings("unchecked") final K... keys) {
 		for (final K key : keys) {
-			if (values.containsKey(key))
+			if (values.containsKey(key)) {
 				return getAny(key, date);
+			}
 		}
 		return null;
 	}
@@ -248,8 +263,9 @@ public abstract class Alternatives<K, V, A extends Alternatives<K, V, A>> implem
 	}
 
 	private <L, R> Pair<L, R> toPair(final Triple<L, R, ?> value) {
-		if ((value == null) || (value.getLeft() == null && value.getMiddle() == null))
+		if (value == null || value.getLeft() == null && value.getMiddle() == null) {
 			return null;
+		}
 		return Pair.of(value.getLeft(), value.getMiddle());
 	}
 

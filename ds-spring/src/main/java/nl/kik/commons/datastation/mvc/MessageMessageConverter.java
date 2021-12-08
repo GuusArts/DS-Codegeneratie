@@ -52,9 +52,10 @@ public abstract class MessageMessageConverter<T, M extends Message<T>> extends A
 	protected M decodeMessage(final String s, final HttpInputMessage inputMessage) {
 		try {
 			final Message<?> message = service.unwrapMessage(s, this.validator::validate, getDecoder(inputMessage));
-			if (!getMessageClass().isInstance(message) || !getBodyClass().isInstance(message.getBody()))
+			if (!getMessageClass().isInstance(message) || !getBodyClass().isInstance(message.getBody())) {
 				throw new ParseException("Message must be " + getMessageClass().getSimpleName() + " and body must be "
 						+ getBodyClass().getSimpleName(), 0);
+			}
 			return (M) message;
 		} catch (final Exception e) {
 			MessageMessageConverter.log.trace("Exception", e);

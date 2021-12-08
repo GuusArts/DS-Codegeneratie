@@ -51,32 +51,11 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>>
 				.build();
 	}
 
-	public GidsAttribute<V> orNull() {
-		if (getValues() == null || getValues().isEmpty())
-			return null;
-		return this;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public GidsAttribute<V> project(final Source key, final LocalDate date) {
-		return GidsAttribute.<V>builder() //
-				.alternatives(getAll(key, date).stream() //
-						.map(v -> {
-							if (v.getRight()instanceof Projectable p) {
-								return Triple.of(v.getLeft(), v.getMiddle(), (V) p.project(key, date));
-							}
-							return v;
-						}) //
-						.filter(Objects::nonNull) //
-						.toList()) //
-				.build();
-	}
-
-	@Override
-	public int compareTo(GidsAttribute<V> o) {
-		if (o == null)
+	public int compareTo(final GidsAttribute<V> o) {
+		if (o == null) {
 			return 1;
+		}
 		if (o.getValues() == null) {
 			return getValues() == null ? 0 : 1;
 		}
@@ -89,27 +68,44 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>>
 		if (getValues().size() > o.getValues().size()) {
 			return -1;
 		}
-		Set<Source> k1 = getValues().keySet();
-		Set<Source> k2 = o.getValues().keySet();
+		final Set<Source> k1 = getValues().keySet();
+		final Set<Source> k2 = o.getValues().keySet();
 		if (k1.size() < k2.size()) {
 			return 1;
 		}
 		if (k1.size() > k2.size()) {
 			return -1;
 		}
-		SortedSet<Source> s1 = new TreeSet<>(k1);
+		final SortedSet<Source> s1 = new TreeSet<>(k1);
 		if (!k1.equals(k2)) {
-			SortedSet<Source> s2 = new TreeSet<>(k2);
+			final SortedSet<Source> s2 = new TreeSet<>(k2);
 			s1.removeAll(k2);
 			s2.removeAll(k1);
 			// They are same size but not equal, so each has at least one element not in the
 			// other
-			return (s1.first().compareTo(s2.first()));
+			return s1.first().compareTo(s2.first());
 		}
-		Comparator<Triple<LocalDate, LocalDate, V>> c = new Comparator<Triple<LocalDate, LocalDate, V>>() {
+		final Comparator<Triple<LocalDate, LocalDate, V>> c = new Comparator<Triple<LocalDate, LocalDate, V>>() {
+			/**
+			 * @param d1
+			 * @param d2
+			 */
+			public int compare(final LocalDate d1, final LocalDate d2) {
+				if (d1 == null) {
+					return d2 == null ? 0 : 1;
+				}
+				if ((d2 == null) || d1.isBefore(d2)) {
+					return -1;
+				}
+				if (d1.isAfter(d2)) {
+					return 1;
+				}
+				return 0;
+			}
+
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
-			public int compare(Triple<LocalDate, LocalDate, V> o1, Triple<LocalDate, LocalDate, V> o2) {
+			public int compare(final Triple<LocalDate, LocalDate, V> o1, final Triple<LocalDate, LocalDate, V> o2) {
 				if (o1 == null) {
 					return o2 == null ? 0 : 1;
 				}
@@ -133,7 +129,7 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>>
 				if (o1.getRight() instanceof Comparable && o2.getRight() instanceof Comparable) {
 					return ((Comparable) o1.getRight()).compareTo(o2.getRight());
 				}
-				if (o1.getRight()instanceof ZonedDateTime z1 && o2.getRight()instanceof ZonedDateTime z2) {
+				if (o1.getRight()instanceof final ZonedDateTime z1 && o2.getRight()instanceof final ZonedDateTime z2) {
 					if (z1.isBefore(z2)) {
 						return -1;
 					}
@@ -144,45 +140,48 @@ public class GidsAttribute<V> extends Alternatives<Source, V, GidsAttribute<V>>
 				return 0;
 			}
 
-			/**
-			 * @param d1
-			 * @param d2
-			 */
-			public int compare(LocalDate d1, LocalDate d2) {
-				if (d1 == null) {
-					return d2 == null ? 0 : 1;
-				}
-				if (d2 == null) {
-					return -1;
-				}
-				if (d1.isBefore(d2)) {
-					return -1;
-				}
-				if (d1.isAfter(d2)) {
-					return 1;
-				}
-				return 0;
-			}
-
 		};
-		for (Source k : s1) {
-			Collection<Triple<LocalDate, LocalDate, V>> l1 = getValues().get(k);
-			Collection<Triple<LocalDate, LocalDate, V>> l2 = o.getValues().get(k);
+		for (final Source k : s1) {
+			final Collection<Triple<LocalDate, LocalDate, V>> l1 = getValues().get(k);
+			final Collection<Triple<LocalDate, LocalDate, V>> l2 = o.getValues().get(k);
 			if (l1.size() < l2.size()) {
 				return 1;
 			}
 			if (l1.size() > l2.size()) {
 				return -1;
 			}
-			List<Triple<LocalDate, LocalDate, V>> sl1 = l1.stream().sorted(c).toList();
-			List<Triple<LocalDate, LocalDate, V>> sl2 = l2.stream().sorted(c).toList();
+			final List<Triple<LocalDate, LocalDate, V>> sl1 = l1.stream().sorted(c).toList();
+			final List<Triple<LocalDate, LocalDate, V>> sl2 = l2.stream().sorted(c).toList();
 			for (int i = 0; i < sl1.size(); i++) {
-				int result = c.compare(sl1.get(i), sl2.get(i));
+				final int result = c.compare(sl1.get(i), sl2.get(i));
 				if (result != 0) {
 					return result;
 				}
 			}
 		}
 		return 0;
+	}
+
+	public GidsAttribute<V> orNull() {
+		if (getValues() == null || getValues().isEmpty()) {
+			return null;
+		}
+		return this;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public GidsAttribute<V> project(final Source key, final LocalDate date) {
+		return GidsAttribute.<V>builder() //
+				.alternatives(getAll(key, date).stream() //
+						.map(v -> {
+							if (v.getRight()instanceof final Projectable p) {
+								return Triple.of(v.getLeft(), v.getMiddle(), (V) p.project(key, date));
+							}
+							return v;
+						}) //
+						.filter(Objects::nonNull) //
+						.toList()) //
+				.build();
 	}
 }

@@ -77,16 +77,17 @@ public class DIDService {
 	public JWSVerifier getVerifier(final String issuer, final String keyId)
 			throws JOSEException, ResolutionException, ParseException {
 		final ResolveResult resolveResult = getDID(issuer);
-		if (resolveResult == null || resolveResult.getDidDocument() == null)
+		if (resolveResult == null || resolveResult.getDidDocument() == null) {
 			throw new JOSEException("No DID document found");
+		}
 		final List<PublicKey> authentications = getPublicKeys(resolveResult.getDidDocument()).stream() //
 				.filter(k -> CollectionUtils.emptyIfNull(k.getTypes()).stream().anyMatch(DIDService.SUPPORTED_KEYS::contains)) //
 				.collect(Collectors.toList());
 		if (keyId == null) {
-			if (authentications.size() == 1)
+			if (authentications.size() == 1) {
 				return toVerifier(authentications.get(0));
-			else
-				throw new JOSEException("No keyId provided and not exactly one key found");
+			}
+			throw new JOSEException("No keyId provided and not exactly one key found");
 		}
 		try {
 			final URI keyURI = new URI(keyId);
@@ -139,19 +140,22 @@ public class DIDService {
 
 	private JWSVerifier toVerifier(final JWK key) throws JOSEException {
 		final JWK publicJWK = key.toPublicJWK();
-		if (publicJWK.getKeyType() == KeyType.EC)
+		if (publicJWK.getKeyType() == KeyType.EC) {
 			return new ECDSAVerifier(publicJWK.toECKey());
-		if (publicJWK.getKeyType() == KeyType.RSA)
+		}
+		if (publicJWK.getKeyType() == KeyType.RSA) {
 			return new RSASSAVerifier(publicJWK.toRSAKey());
-		if (publicJWK.getKeyType() == KeyType.OKP)
+		}
+		if (publicJWK.getKeyType() == KeyType.OKP) {
 			return new Ed25519Verifier(publicJWK.toOctetKeyPair());
-		else
-			throw new IllegalArgumentException("Unsupported key type");
+		}
+		throw new IllegalArgumentException("Unsupported key type");
 	}
 
 	private JWSVerifier toVerifier(final PublicKey publicKey) throws ParseException, JOSEException {
-		if (publicKey.getPublicKeyJwk() != null)
+		if (publicKey.getPublicKeyJwk() != null) {
 			return toVerifier(JWK.parse(publicKey.getPublicKeyJwk()));
+		}
 		if (CollectionUtils.emptyIfNull(publicKey.getTypes()).contains(DIDService.ED25519_VERIFICATION_KEY2018)) {
 			String key = null;
 			if (publicKey.getPublicKeyBase64() != null) {
@@ -160,9 +164,10 @@ public class DIDService {
 			if (publicKey.getPublicKeyBase58() != null) {
 				key = Base64.encodeBase64String(Base58.decode(publicKey.getPublicKeyBase58()));
 			}
-			if (StringUtils.isNotBlank(key))
+			if (StringUtils.isNotBlank(key)) {
 				return toVerifier(
 						new OctetKeyPair.Builder(Curve.Ed25519, new Base64URL(key)).keyID(publicKey.getId().toString()).build());
+			}
 		}
 		throw new JOSEException("No key in a known encoding found");
 	}

@@ -102,10 +102,12 @@ public class GraphOrRemote implements nl.kik.commons.dto.Source {
 
 	@Override
 	public Resource getResource(final String uri) {
-		if (isGraph())
+		if (isGraph()) {
 			return getGraph().getResource(uri);
-		if (isRemote() || isCache())
+		}
+		if (isRemote() || isCache()) {
 			return new ResourceImpl(uri);
+		}
 		throw new IllegalArgumentException(); // Should never reach here
 	}
 

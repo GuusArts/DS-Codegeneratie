@@ -20,9 +20,19 @@ public class Concessionaire extends GidsObject
 		implements HasName, Projectable<Source, Concessionaire>, Comparable<Concessionaire> {
 	private GidsAttribute<String> name;
 
+	@Override
+	public int compareTo(final Concessionaire o) {
+		if (o == null) {
+			return 1;
+		}
+		final int result = compare(name, o.name);
+		return result;
+	}
+
 	public Concessionaire orNull() {
-		if (getId() == null && name == null)
+		if (getId() == null && name == null) {
 			return null;
+		}
 		return this;
 	}
 
@@ -32,18 +42,6 @@ public class Concessionaire extends GidsObject
 				.id(getId()) //
 				.name(name == null ? null : name.project(key, date)) //
 				.build().orNull();
-	}
-
-	@Override
-	public int compareTo(Concessionaire o) {
-		if (o == null) {
-			return 1;
-		}
-		int result = compare(name, o.name);
-		if (result != 0) {
-			return result;
-		}
-		return 0;
 	}
 
 }

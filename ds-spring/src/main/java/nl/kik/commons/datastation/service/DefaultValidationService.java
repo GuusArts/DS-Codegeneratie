@@ -25,8 +25,9 @@ public class DefaultValidationService<T> implements ValidationService {
 
 	@Override
 	public JWSObject sign(final JWSObject object, final JWSSigner signer) throws Exception {
-		if (signer == null)
+		if (signer == null) {
 			throw new ParseException("Trying to sign object without a key", 0);
+		}
 		object.sign(signer);
 		return object;
 	}
@@ -72,10 +73,12 @@ public class DefaultValidationService<T> implements ValidationService {
 	protected void validateSignature(final JWSVerifier verifier, final JWSObject jws, final JWTClaimsSet claims)
 			throws Exception {
 		DefaultValidationService.log.trace("Validating signature using {}", jws.getHeader().getKeyID());
-		if (verifier == null)
+		if (verifier == null) {
 			throw new ParseException("Key " + jws.getHeader().getKeyID() + " could not be found for validation", 0);
-		if (!jws.verify(verifier))
+		}
+		if (!jws.verify(verifier)) {
 			throw new ParseException("Signature did not match", 0);
+		}
 	}
 
 	protected <U> void validationDelegate(final Message<U> m, final U body, final T aux) throws Exception {

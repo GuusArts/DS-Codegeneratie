@@ -33,12 +33,53 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 
+	@Override
+	public int compareTo(final Organisation o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(kvk, o.kvk);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(lastModified, o.lastModified);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(deliveryMethod, o.deliveryMethod);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(name, o.name);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(sbi, o.sbi);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(address, o.address);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(office, o.office);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(location, o.location);
+		return result;
+	}
+
 	public Organisation orNull() {
-		if (getId() == null && address == null && office == null && (name == null || name.isEmpty())
-				&& primaryName == null && lastModified == null && (agb == null || agb.isEmpty())
-				&& (sbi == null || sbi.isEmpty()) && kvk == null && (location == null || location.isEmpty())
-				&& deliveryMethod == null)
+		if (getId() == null && address == null && office == null && (name == null || name.isEmpty()) && primaryName == null
+				&& lastModified == null && (agb == null || agb.isEmpty()) && (sbi == null || sbi.isEmpty()) && kvk == null
+				&& (location == null || location.isEmpty()) && deliveryMethod == null) {
 			return null;
+		}
 		return this;
 	}
 
@@ -81,50 +122,6 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 								.collect(Collectors.toList()))) //
 				.deliveryMethod(deliveryMethod == null ? null : deliveryMethod.project(key, date)) //
 				.build()).orNull();
-	}
-
-	@Override
-	public int compareTo(Organisation o) {
-		if (o == null) {
-			return 1;
-		}
-		int result = compare(kvk, o.kvk);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(lastModified, o.lastModified);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(deliveryMethod, o.deliveryMethod);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(name, o.name);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(agb, o.agb);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(sbi, o.sbi);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(address, o.address);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(office, o.office);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(location, o.location);
-		if (result != 0) {
-			return result;
-		}
-		return 0;
 	}
 
 }

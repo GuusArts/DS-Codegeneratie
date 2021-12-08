@@ -28,10 +28,36 @@ public class Location extends GidsObject
 	private List<GidsAttribute<String>> sbi;
 	private GidsAttribute<Address> address;
 
+	@Override
+	public int compareTo(final Location o) {
+		if (o == null) {
+			return 1;
+		}
+		int result = compare(number, o.number);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(name, o.name);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(agb, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(sbi, o.agb);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(address, o.address);
+		return result;
+	}
+
 	public Location orNull() {
 		if (getId() == null && (name == null || name.isEmpty()) && primaryName == null && number == null
-				&& (agb == null || agb.isEmpty()) && (sbi == null || sbi.isEmpty()) && address == null)
+				&& (agb == null || agb.isEmpty()) && (sbi == null || sbi.isEmpty()) && address == null) {
 			return null;
+		}
 		return this;
 	}
 
@@ -64,34 +90,6 @@ public class Location extends GidsObject
 								.collect(Collectors.toList()))) //
 				.address(address == null ? null : address.project(key, date)) //
 				.build().orNull();
-	}
-
-	@Override
-	public int compareTo(Location o) {
-		if (o == null) {
-			return 1;
-		}
-		int result = compare(number, o.number);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(name, o.name);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(agb, o.agb);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(sbi, o.agb);
-		if (result != 0) {
-			return result;
-		}
-		result = compare(address, o.address);
-		if (result != 0) {
-			return result;
-		}
-		return 0;
 	}
 
 }

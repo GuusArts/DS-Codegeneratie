@@ -63,8 +63,9 @@ public class DIDWeb implements Driver {
 
 		String url;
 		if ("localhost".equals(matcher.group(2))) {
-			if (!allowLocalhost)
+			if (!allowLocalhost) {
 				return null;
+			}
 			url = "http://localhost:" + getLocalhostPort();
 		} else {
 			url = "https://" + matcher.group(2);
@@ -90,8 +91,9 @@ public class DIDWeb implements Driver {
 			final String statusMessage = httpResponse.getStatusLine().getReasonPhrase();
 
 			DIDWeb.log.debug("Response status from {}: {} {}", url, statusCode, statusMessage);
-			if (statusCode == 404)
+			if (statusCode == 404) {
 				return null;
+			}
 
 			final HttpEntity httpEntity = httpResponse.getEntity();
 			final String httpBody = EntityUtils.toString(httpEntity);
@@ -106,9 +108,10 @@ public class DIDWeb implements Driver {
 
 			resolveResult = ResolveResult.build(DIDDocument.fromJson(httpBody));
 			if (resolveResult.getDidDocument() == null
-					|| !identifier.equals(resolveResult.getDidDocument().getId().toString()))
+					|| !identifier.equals(resolveResult.getDidDocument().getId().toString())) {
 				throw new ResolutionException("Result does not match requested identifier " + identifier + " != "
 						+ resolveResult.getDidDocument().getId());
+			}
 		} catch (final IOException ex) {
 			throw new ResolutionException(
 					"Cannot retrieve RESOLVE RESULT for " + identifier + " from " + url + ": " + ex.getMessage(), ex);

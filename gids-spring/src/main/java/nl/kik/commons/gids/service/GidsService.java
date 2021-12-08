@@ -1,7 +1,6 @@
 package nl.kik.commons.gids.service;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -201,13 +200,16 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @return
 	 */
 	protected static QueryExecution getQueryExecution(final GraphOrRemote graph, final Query q) {
-		if (graph.isCache())
+		if (graph.isCache()) {
 			throw new IllegalArgumentException("Cannot query cache");
-		if (graph.isGraph())
+		}
+		if (graph.isGraph()) {
 			return QueryExecutionFactory.create(q, graph.getGraph().getModel());
-		if (graph.isRemote())
+		}
+		if (graph.isRemote()) {
 			return QueryExecutionFactory.sparqlService(GidsService.getQueryURL(graph.getRemote()), q,
 					GidsService.getHttpClient(graph.getAuth()));
+		}
 		throw new IllegalArgumentException(); // Cannot happen
 	}
 
@@ -216,8 +218,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @return
 	 */
 	protected static String getQueryURL(final String url) {
-		if (url == null || !(url.endsWith("/gids") || url.endsWith("/gids/")))
+		if (url == null || !(url.endsWith("/gids") || url.endsWith("/gids/"))) {
 			throw new IllegalArgumentException("Please provice an endpoint to the base service");
+		}
 		return url.replaceFirst("/*$", "") + "/sparql";
 	}
 
@@ -261,8 +264,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 * @return
 	 */
 	protected static String getUploadURL(final String url) {
-		if (url == null || !(url.endsWith("/gids") || url.endsWith("/gids/")))
+		if (url == null || !(url.endsWith("/gids") || url.endsWith("/gids/"))) {
 			throw new IllegalArgumentException("Please provice an endpoint to the base service");
+		}
 		return url.replaceFirst("/gids/*$", "/upload/gids/data");
 	}
 
@@ -284,11 +288,13 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 */
 	public static <U> Stream<U> search(final GraphOrRemote graph, final Resource r, final Property p, final Resource o,
 			final Function<Statement, U> extract) {
-		if (graph.isCache())
+		if (graph.isCache()) {
 			throw new IllegalArgumentException("Cannot search cache");
+		}
 		GidsService.log.trace("Search for ({}, {}, {})", r, p, o);
-		if (graph.isGraph())
+		if (graph.isGraph()) {
 			return RDFService.search(graph.getGraph(), r, p, o, extract);
+		}
 		if (graph.isRemote()) {
 			final Query q = GidsService.getSelectQuery(r, p, o);
 			return GidsService.search(graph, q) //
@@ -310,11 +316,13 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	}
 
 	private static String unique(final String value, final String... blocks) {
-		if (blocks == null)
+		if (blocks == null) {
 			return value;
+		}
 		for (final String block : blocks) {
-			if (Objects.equals(block, value))
+			if (Objects.equals(block, value)) {
 				return value + "1";
+			}
 		}
 		return value;
 	}
@@ -336,15 +344,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 */
 	protected void addAgb(final Graph<? extends Model> g, final Resource resource, final HasAgb object) {
 		addAllProperties(g, resource, Vocabulary.agb, object.getAgb());
-	}
-
-	/**
-	 * @param g
-	 * @param resource
-	 * @param object
-	 */
-	protected void addSbi(final Graph<? extends Model> g, final Resource resource, final HasSbi object) {
-		addAllProperties(g, resource, Vocabulary.sbi, object.getSbi());
 	}
 
 	private <U extends GidsObject> GidsAttribute<U> addAlternatives(final GraphOrRemote graph,
@@ -376,27 +375,6 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				}
 			});
 		}
-	}
-
-	@Override
-	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final Object value) {
-		if (value instanceof GidsAttribute<?>) {
-			GidsAttribute<?> attribute = (GidsAttribute<?>) value;
-			if (attribute.getValues() != null) {
-				attribute.getValues().entries().forEach(e -> {
-					final Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
-					if (s != null) {
-						final Resource rs = g.getModel().createReifiedStatement(s);
-						g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
-						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
-						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
-					}
-				});
-			}
-			return null;
-		}
-		return super.addProperty(g, resource, property, value);
 	}
 
 	/**
@@ -436,8 +414,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		if (attribute != null) {
 			if (attribute.getValues() != null) {
 				attribute.getValues().entries().forEach(e -> {
-					if (!deep && e.getValue().getRight().getId() == null)
+					if (!deep && e.getValue().getRight().getId() == null) {
 						throw new RuntimeException("Trying to save reference to unsaved object " + e.getValue().getRight());
+					}
 					final Statement s = super.addObject(g, resource, property, e.getValue().getRight());
 					if (s != null) {
 						final Resource rs = g.getModel().createReifiedStatement(s);
@@ -455,6 +434,35 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		for (final GidsAttribute<? extends RDFObject> object : CollectionUtils.emptyIfNull(list)) {
 			addObject(g, resource, property, object, deep);
 		}
+	}
+
+	@Override
+	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Object value) {
+		if (value instanceof GidsAttribute<?> attribute) {
+			if (attribute.getValues() != null) {
+				attribute.getValues().entries().forEach(e -> {
+					final Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
+					if (s != null) {
+						final Resource rs = g.getModel().createReifiedStatement(s);
+						g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
+						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
+						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
+					}
+				});
+			}
+			return null;
+		}
+		return super.addProperty(g, resource, property, value);
+	}
+
+	/**
+	 * @param g
+	 * @param resource
+	 * @param object
+	 */
+	protected void addSbi(final Graph<? extends Model> g, final Resource resource, final HasSbi object) {
+		addAllProperties(g, resource, Vocabulary.sbi, object.getSbi());
 	}
 
 	/**
@@ -682,8 +690,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@Override
 	protected void deleteDetails(final Graph<? extends Model> g, final Resource resource, final RDFObject object,
 			final boolean purge) {
-		if (object instanceof Organisation) {
-			final Organisation o = (Organisation) object;
+		if (object instanceof Organisation o) {
 			delete(g, o.getAddress(), purge);
 			CollectionUtils.emptyIfNull(o.getLocation()).forEach(l -> delete(g, l, purge));
 		}
@@ -716,7 +723,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	private <T> GidsAttribute<T> getAlternatives(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
-			final Function<RDFNode, T> mapper, boolean trim) {
+			final Function<RDFNode, T> mapper, final boolean trim) {
 		final Collection<RDFNode> all = properties.get(p);
 		final var builder = GidsAttribute.<T>builder();
 		for (final RDFNode n : all) {
@@ -736,96 +743,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		return builder.build();
 	}
 
-	@SuppressWarnings("unchecked")
-	private <T> T trim(T object, Source s, LocalDate from, LocalDate to) {
-		if (object instanceof Address a)
-			return (T) trim(a, s, from, to);
-		if (object instanceof CareOffice a)
-			return (T) trim(a, s, from, to);
-		if (object instanceof Concessionaire a)
-			return (T) trim(a, s, from, to);
-		if (object instanceof Location a)
-			return (T) trim(a, s, from, to);
-		if (object instanceof Organisation a)
-			return (T) trim(a, s, from, to);
-		if (object instanceof Region a)
-			return (T) trim(a, s, from, to);
-		return object;
-	}
-
-	private <T> GidsAttribute<T> trim(GidsAttribute<T> a, Source s, LocalDate from, LocalDate to) {
-		return a == null ? null : a.project(s);
-	}
-
-	private <T> List<GidsAttribute<T>> trim(List<GidsAttribute<T>> a, Source s, LocalDate from, LocalDate to) {
-		List<GidsAttribute<T>> result = CollectionUtils.emptyIfNull(a).stream().map(g -> trim(g, s, from, to))
-				.filter(Objects::nonNull).toList();
-		return result.isEmpty() ? null : result;
-	}
-
-	private Address trim(Address a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.houseNumber(trim(a.getHouseNumber(), s, from, to)) //
-				.houseLetter(trim(a.getHouseLetter(), s, from, to)) //
-				.town(trim(a.getTown(), s, from, to)) //
-				.province(trim(a.getProvince(), s, from, to)) //
-				.postalcode(trim(a.getPostalcode(), s, from, to)) //
-				.street(trim(a.getStreet(), s, from, to)) //
-				.build();
-	}
-
-	private CareOffice trim(CareOffice a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.code(trim(a.getCode(), s, from, to)) //
-				.name(trim(a.getName(), s, from, to)) //
-				.build();
-	}
-
-	private Concessionaire trim(Concessionaire a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.name(trim(a.getName(), s, from, to)) //
-				.build();
-	}
-
-	private Location trim(Location a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
-				.name(trim(a.getName(), s, from, to)) //
-				.number(trim(a.getNumber(), s, from, to)) //
-				.agb(trim(a.getAgb(), s, from, to)) //
-				.sbi(trim(a.getSbi(), s, from, to)) //
-				.build();
-	}
-
-	private Organisation trim(Organisation a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
-				.name(trim(a.getName(), s, from, to)) //
-				.lastModified(trim(a.getLastModified(), s, from, to)) //
-				.agb(trim(a.getAgb(), s, from, to)) //
-				.sbi(trim(a.getSbi(), s, from, to)) //
-				.kvk(trim(a.getKvk(), s, from, to)) //
-				.deliveryMethod(trim(a.getDeliveryMethod(), s, from, to)) //
-				.build();
-	}
-
-	private Region trim(Region a, Source s, LocalDate from, LocalDate to) {
-		return a.toBuilder() //
-				.code(trim(a.getCode(), s, from, to)) //
-				.build();
-	}
-
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
 			final Function<RDFNode, T> mapper) {
 		return getAlternativesList(graph, resource, properties, sources, p, mapper, true);
 	}
-	
+
 	private <T> List<GidsAttribute<T>> getAlternativesList(final GraphOrRemote graph, final Resource resource,
 			final MultiValuedMap<Property, RDFNode> properties,
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources, final Property p,
-			final Function<RDFNode, T> mapper, boolean trim) {
+			final Function<RDFNode, T> mapper, final boolean trim) {
 		final Collection<RDFNode> all = properties.get(p);
 		final List<GidsAttribute<T>> result = new ArrayList<>();
 		for (final RDFNode n : all) {
@@ -884,18 +812,24 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<GidsObject> t) {
 		final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> sources = getSources(graph,
 				resource);
-		if (Address.class.isAssignableFrom(t))
+		if (Address.class.isAssignableFrom(t)) {
 			return (U) getAddress(graph, properties, sources, resource, Address.builder()).build();
-		if (CareOffice.class.isAssignableFrom(t))
+		}
+		if (CareOffice.class.isAssignableFrom(t)) {
 			return (U) getCareOffice(graph, properties, sources, resource, CareOffice.builder()).build();
-		if (Concessionaire.class.isAssignableFrom(t))
+		}
+		if (Concessionaire.class.isAssignableFrom(t)) {
 			return (U) getConcessionaire(graph, properties, sources, resource, Concessionaire.builder()).build();
-		if (Location.class.isAssignableFrom(t))
+		}
+		if (Location.class.isAssignableFrom(t)) {
 			return (U) getLocation(graph, properties, sources, resource, Location.builder()).build();
-		if (Organisation.class.isAssignableFrom(t))
+		}
+		if (Organisation.class.isAssignableFrom(t)) {
 			return (U) getOrganisation(graph, properties, sources, resource, Organisation.builder()).build();
-		if (Region.class.isAssignableFrom(t))
+		}
+		if (Region.class.isAssignableFrom(t)) {
 			return (U) getRegion(graph, properties, sources, resource, Region.builder()).build();
+		}
 		throw new IllegalArgumentException("Cannot load Gids objects of type " + t.getSimpleName());
 	}
 
@@ -920,8 +854,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@Override
 	protected <U extends RDFObject> U getObject(final GraphOrRemote graph,
 			final MultiValuedMap<Property, RDFNode> properties, final Resource resource, final Class<U> t) {
-		if (GidsObject.class.isAssignableFrom(t))
+		if (GidsObject.class.isAssignableFrom(t)) {
 			return (U) getGidsObject(graph, properties, resource, (Class<GidsObject>) t);
+		}
 		throw new IllegalArgumentException("Cannot load RDF objects of type " + t.getSimpleName());
 	}
 
@@ -965,14 +900,17 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected MultiValuedMap<Property, RDFNode> getProperties(final GraphOrRemote g, final Resource r) {
-		if (g.isCache())
+		if (g.isCache()) {
 			return g.getCache().get(r);
-		if (g.isGraph())
+		}
+		if (g.isGraph()) {
 			return RDFService.getProperties(g.getGraph(), r);
-		if (g.isRemote())
+		}
+		if (g.isRemote()) {
 			return (MultiValuedMap) GidsService.search(g, r, null, null, s -> s) //
 					.collect(HashSetValuedHashMap::new, (b, s) -> b.put(s.getPredicate(), s.getObject()),
 							HashSetValuedHashMap::putAll); //
+		}
 		throw new IllegalArgumentException(); // Should never be reachable
 	}
 
@@ -991,8 +929,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		if (graph.isCache()) {
 			final MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> map = graph.getSources()
 					.get(Vocabulary.Root);
-			if (map != null)
+			if (map != null) {
 				return map.get(Pair.of(Vocabulary.root, resource));
+			}
 			return Collections.emptyList();
 		}
 		final Query q = new SelectBuilder() //
@@ -1016,8 +955,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 
 	private MultiValuedMap<Pair<Property, RDFNode>, Triple<LocalDate, LocalDate, Resource>> getSources(
 			final GraphOrRemote graph, final Resource resource) {
-		if (graph.isCache())
+		if (graph.isCache()) {
 			return graph.getSources().get(resource);
+		}
 		final Query q = new SelectBuilder() //
 				.setDistinct(true) //
 				.addVar("?so") //
@@ -1105,12 +1045,15 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <U extends GidsObject> List<GidsAttribute<U>> query(final GraphOrRemote graph, final Query q,
 			final Class<U> clazz) throws ParseException {
-		if (graph.isCache())
+		if (graph.isCache()) {
 			throw new IllegalArgumentException("Please do not call with a cache direcly");
-		if (q == null || !q.isSelectType())
+		}
+		if (q == null || !q.isSelectType()) {
 			throw new IllegalArgumentException("Exactly one SELECT query must be given");
-		if (q.getProjectVars().size() != 1)
+		}
+		if (q.getProjectVars().size() != 1) {
 			throw new IllegalArgumentException("Query must project onto exactly one value (the requested resource)");
+		}
 		final String variableName = "?" + q.getProjectVars().iterator().next().getVarName();
 		GidsService.log.trace("Exceuting with variable {} class {} query {}", variableName, clazz, q);
 
@@ -1255,8 +1198,9 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			saveConcessionaire(g, resource, (Concessionaire) object);
 		} else if (object instanceof Address) {
 			saveAddress(g, resource, (Address) object);
-		} else
+		} else {
 			throw new IllegalArgumentException("Cannot save Gids objects of type " + object.getClass().getSimpleName());
+		}
 	}
 
 	protected void saveGidsObject(final Graph<? extends Model> g, final Resource resource, final GidsObject object) {
@@ -1309,6 +1253,87 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		} finally {
 			g.end();
 		}
+	}
+
+	private Address trim(final Address a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.houseNumber(trim(a.getHouseNumber(), s, from, to)) //
+				.houseLetter(trim(a.getHouseLetter(), s, from, to)) //
+				.town(trim(a.getTown(), s, from, to)) //
+				.province(trim(a.getProvince(), s, from, to)) //
+				.postalcode(trim(a.getPostalcode(), s, from, to)) //
+				.street(trim(a.getStreet(), s, from, to)) //
+				.build();
+	}
+
+	private CareOffice trim(final CareOffice a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.code(trim(a.getCode(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.build();
+	}
+
+	private Concessionaire trim(final Concessionaire a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.name(trim(a.getName(), s, from, to)) //
+				.build();
+	}
+
+	private <T> GidsAttribute<T> trim(final GidsAttribute<T> a, final Source s, final LocalDate from,
+			final LocalDate to) {
+		return a == null ? null : a.project(s);
+	}
+
+	private <T> List<GidsAttribute<T>> trim(final List<GidsAttribute<T>> a, final Source s, final LocalDate from,
+			final LocalDate to) {
+		final List<GidsAttribute<T>> result = CollectionUtils.emptyIfNull(a).stream().map(g -> trim(g, s, from, to))
+				.filter(Objects::nonNull).toList();
+		return result.isEmpty() ? null : result;
+	}
+
+	private Location trim(final Location a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.number(trim(a.getNumber(), s, from, to)) //
+				.agb(trim(a.getAgb(), s, from, to)) //
+				.sbi(trim(a.getSbi(), s, from, to)) //
+				.build();
+	}
+
+	private Organisation trim(final Organisation a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.primaryName(trim(a.getPrimaryName(), s, from, to)) //
+				.name(trim(a.getName(), s, from, to)) //
+				.lastModified(trim(a.getLastModified(), s, from, to)) //
+				.agb(trim(a.getAgb(), s, from, to)) //
+				.sbi(trim(a.getSbi(), s, from, to)) //
+				.kvk(trim(a.getKvk(), s, from, to)) //
+				.deliveryMethod(trim(a.getDeliveryMethod(), s, from, to)) //
+				.build();
+	}
+
+	private Region trim(final Region a, final Source s, final LocalDate from, final LocalDate to) {
+		return a.toBuilder() //
+				.code(trim(a.getCode(), s, from, to)) //
+				.build();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T trim(final T object, final Source s, final LocalDate from, final LocalDate to) {
+		if (object instanceof Address a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof CareOffice a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Concessionaire a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Location a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Organisation a)
+			return (T) trim(a, s, from, to);
+		if (object instanceof Region a)
+			return (T) trim(a, s, from, to);
+		return object;
 	}
 
 }

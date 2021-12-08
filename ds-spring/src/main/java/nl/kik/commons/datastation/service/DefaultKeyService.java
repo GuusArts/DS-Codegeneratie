@@ -40,5 +40,4 @@ public class DefaultKeyService implements KeyService {
 		verifier = new Ed25519Verifier(publicKey);
 		publicJwk = publicKey;
 	}
-
 }

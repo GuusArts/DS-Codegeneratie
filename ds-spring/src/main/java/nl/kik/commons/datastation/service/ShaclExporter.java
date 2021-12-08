@@ -98,20 +98,19 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	private Resource path;
 	private Resource ontology;
 	private boolean createMissing = false;
-	private Map<Shape, Node> createdNodes = new HashMap<>();
-
-	public ShaclExporter(final Model model, boolean createMissing) {
-		this.model = model;
-		this.createMissing = createMissing;
-	}
+	private final Map<Shape, Node> createdNodes = new HashMap<>();
 
 	public ShaclExporter(final Model model) {
 		this(model, false);
 	}
 
+	public ShaclExporter(final Model model, final boolean createMissing) {
+		this.model = model;
+		this.createMissing = createMissing;
+	}
+
 	private void add(final List<Path> result, final Path path) {
-		if (path instanceof P_Seq) {
-			final P_Seq pathSeq = (P_Seq) path;
+		if (path instanceof P_Seq pathSeq) {
 			add(result, pathSeq.getLeft());
 			add(result, pathSeq.getRight());
 		} else {
@@ -139,6 +138,14 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		CollectionUtils.emptyIfNull(nodeShape.getPropertyShapes()).forEach(p -> p.visit(this));
 	}
 
+	public Model export(final Resource r, final Shape shape) {
+		final Resource savedParent = parent;
+		parent = r;
+		shape.visit(this);
+		parent = savedParent;
+		return getModel();
+	}
+
 	public Model export(final Shapes shapes) {
 		ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
 		if (!CollectionUtils.isEmpty(shapes.getImports())) {
@@ -152,16 +159,32 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		return getModel();
 	}
 
-	public Model export(Resource r, Shape shape) {
-		final Resource savedParent = parent;
-		parent = r;
-		shape.visit(this);
-		parent = savedParent;
-		return getModel();
-	}
-
 	public Model getModel() {
 		return model;
+	}
+
+	/**
+	 * @param shape
+	 * @return
+	 */
+	protected Node getNode(final Shape shape) {
+		if (createMissing) {
+			Node result = createdNodes.get(shape);
+			if (result == null) {
+				result = model.createResource().asNode();
+				createdNodes.put(shape, result);
+			}
+			return result;
+		}
+		return shape.getShapeNode();
+	}
+
+	public boolean isCreateMissing() {
+		return createMissing;
+	}
+
+	public void setCreateMissing(final boolean createMissing) {
+		this.createMissing = createMissing;
 	}
 
 	private List<Path> toList(final P_Seq pathSeq) {
@@ -171,11 +194,21 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		return result;
 	}
 
+	private Literal toLiteral(final int value) {
+		return model.createTypedLiteral(value);
+	}
+
+	private Resource toLiteral(final List<?> values) {
+		return model.createList(CollectionUtils.emptyIfNull(values).stream() //
+				.map(v -> model.createTypedLiteral(v)) //
+				.collect(Collectors.toList()).iterator());
+	}
+
 	private Literal toLiteral(final Node n) {
-		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank)
+		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank) {
 			throw new IllegalArgumentException();
-		if (n instanceof Node_Literal) {
-			final Node_Literal ni = (Node_Literal) n;
+		}
+		if (n instanceof Node_Literal ni) {
 			Literal value;
 			if (ni.getLiteralDatatype() != null) {
 				value = model.createTypedLiteral(ni.getLiteralValue(), ni.getLiteralDatatype());
@@ -188,63 +221,56 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 			}
 			return value;
 		}
-		if (n instanceof Node_URI)
-			throw new IllegalArgumentException();
-		else
-			throw new IllegalArgumentException();
-	}
-
-	private Resource toLiteral(final List<?> values) {
-		return model.createList(CollectionUtils.emptyIfNull(values).stream() //
-				.map(v -> model.createTypedLiteral(v)) //
-				.collect(Collectors.toList()).iterator());
-	}
-
-	private Literal toLiteral(final int value) {
-		return model.createTypedLiteral(value);
+		if (n instanceof Node_URI) {
+		}
+		throw new IllegalArgumentException();
 	}
 
 	private Property toProperty(final Node n) {
-		if (properties.containsKey(n))
+		if (properties.containsKey(n)) {
 			return properties.get(n);
-		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank || (n instanceof Node_Literal))
+		}
+		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank || n instanceof Node_Literal) {
 			throw new IllegalArgumentException();
-		if (n instanceof Node_URI) {
-			final Node_URI ni = (Node_URI) n;
+		}
+		if (n instanceof Node_URI ni) {
 			final Property property = model.createProperty(ni.getURI());
 			properties.put(ni, property);
 			return property;
-		} else
-			throw new IllegalArgumentException();
+		}
+		throw new IllegalArgumentException();
 	}
 
 	private Resource toResource(final Node n) {
-		if (resources.containsKey(n))
+		if (resources.containsKey(n)) {
 			return resources.get(n);
-		if (!(n instanceof Node_Concrete))
+		}
+		if (!(n instanceof Node_Concrete)) {
 			throw new IllegalArgumentException();
+		}
 		if (n instanceof Node_Blank) {
 			final Resource resource = model
 					.createResource(n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
 			resources.put(n, resource);
 			return resource;
 		}
-		if (n instanceof Node_Literal)
+		if (n instanceof Node_Literal) {
 			throw new IllegalArgumentException();
-		if (n instanceof Node_URI) {
-			final Node_URI ni = (Node_URI) n;
+		}
+		if (n instanceof Node_URI ni) {
 			final Resource resource = model.createResource(ni.getURI());
 			resources.put(ni, resource);
 			return resource;
-		} else
-			throw new IllegalArgumentException();
+		}
+		throw new IllegalArgumentException();
 	}
 
 	private Resource toURI(final String prefix, final String uri) throws URISyntaxException {
 		if (prefixes.containsKey(prefix)) {
 			final Pair<String, Resource> namespace = prefixes.get(prefix);
-			if (!namespace.getLeft().equals(uri))
+			if (!namespace.getLeft().equals(uri)) {
 				return null;
+			}
 			return namespace.getRight();
 		}
 		final Resource r = model.createResource();
@@ -261,8 +287,58 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final ClosedConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final ConstraintComponentSPARQL constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final DatatypeConstraint constraint) {
 		model.add(parent, toProperty(SHACL.datatype), toResource(constraint.getDatatype()));
+	}
+
+	@Override
+	public void visit(final DisjointConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final EqualsConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final HasValueConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final InConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final JLogConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final JViolationConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final LessThanConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final LessThanOrEqualsConstraint constraint) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -276,6 +352,11 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final NodeKindConstraint constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final NodeShape nodeShape) {
 		final Resource savedParent = parent;
 		final Resource nodeResource = toResource(getNode(nodeShape));
@@ -285,6 +366,21 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		commonNode(nodeShape, nodeResource);
 
 		parent = savedParent;
+	}
+
+	@Override
+	public void visit(final P_Alt pathAlt) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final P_Distinct pathDistinct) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final P_FixedLength pFixedLength) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -301,11 +397,38 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final P_Mod pathMod) {
+		throw new NotImplementedException();
+	}
+
+	/////////////////////// TODO implement missing structural elements
+
+	@Override
+	public void visit(final P_Multi pathMulti) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final P_NegPropSet pathNotOneOf) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final P_OneOrMore1 path) {
 		final Resource newPath = model.createResource();
 		path.getSubPath().visit(this);
 		model.add(newPath, toProperty(SHACL.oneOrMorePath), this.path);
 		this.path = newPath;
+	}
+
+	@Override
+	public void visit(final P_OneOrMoreN path) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final P_ReverseLink pathNode) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -322,6 +445,11 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final P_Shortest pathShortest) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final P_ZeroOrMore1 path) {
 		final Resource newPath = model.createResource();
 		path.getSubPath().visit(this);
@@ -330,11 +458,21 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final P_ZeroOrMoreN path) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final P_ZeroOrOne path) {
 		final Resource newPath = model.createResource();
 		path.getSubPath().visit(this);
 		model.add(newPath, toProperty(SHACL.zeroOrOnePath), this.path);
 		this.path = newPath;
+	}
+
+	@Override
+	public void visit(final PatternConstraint constraint) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -353,22 +491,6 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		commonNode(propertyShape, nodeResource);
 
 		parent = savedParent;
-	}
-
-	/**
-	 * @param shape
-	 * @return
-	 */
-	protected Node getNode(final Shape shape) {
-		if (createMissing) {
-			Node result = createdNodes.get(shape);
-			if (result == null) {
-				result = model.createResource().asNode();
-				createdNodes.put(shape, result);
-			}
-			return result;
-		}
-		return shape.getShapeNode();
 	}
 
 	@Override
@@ -391,6 +513,16 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	@Override
+	public void visit(final ShAnd constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final ShNode constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
 	public void visit(final ShNot constraint) {
 		final Resource savedParent = parent;
 		final Resource nodeResource = toResource(getNode(constraint.getOther()));
@@ -398,6 +530,16 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		model.add(savedParent, toProperty(SHACL.not), nodeResource);
 		constraint.getOther().visit(this);
 		parent = savedParent;
+	}
+
+	@Override
+	public void visit(final ShOr constraint) {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void visit(final ShXone constraint) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -442,9 +584,9 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	@SuppressWarnings("unchecked")
 	@Override
 	public void visit(final StrLanguageIn constraint) {
-		Field langsField = ReflectionUtils.findField(StrLanguageIn.class, "langs");
+		final Field langsField = ReflectionUtils.findField(StrLanguageIn.class, "langs");
 		ReflectionUtils.makeAccessible(langsField);
-		List<String> langs = (List<String>) ReflectionUtils.getField(langsField, constraint);
+		final List<String> langs = (List<String>) ReflectionUtils.getField(langsField, constraint);
 		model.add(parent, toProperty(SHACL.languageIn), toLiteral(langs));
 	}
 
@@ -456,6 +598,11 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	@Override
 	public void visit(final StrMinLengthConstraint constraint) {
 		model.addLiteral(parent, toProperty(SHACL.minLength), toLiteral(constraint.getMinLength()));
+	}
+
+	@Override
+	public void visit(final UniqueLangConstraint constraint) {
+		throw new NotImplementedException();
 	}
 
 	@Override
@@ -476,150 +623,5 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	@Override
 	public void visit(final ValueMinInclusiveConstraint constraint) {
 		model.add(parent, toProperty(SHACL.minInclusive), toLiteral(constraint.getNodeValue().asNode()));
-	}
-
-	public boolean isCreateMissing() {
-		return createMissing;
-	}
-
-	public void setCreateMissing(boolean createMissing) {
-		this.createMissing = createMissing;
-	}
-
-	/////////////////////// TODO implement missing structural elements
-
-	@Override
-	public void visit(final ClosedConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final ConstraintComponentSPARQL constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final DisjointConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final EqualsConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final HasValueConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final InConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final JLogConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final JViolationConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final LessThanConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final LessThanOrEqualsConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final NodeKindConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_Alt pathAlt) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_Distinct pathDistinct) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_FixedLength pFixedLength) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_Mod pathMod) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_Multi pathMulti) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_NegPropSet pathNotOneOf) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final PatternConstraint constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_Shortest pathShortest) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_OneOrMoreN path) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_ReverseLink pathNode) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final P_ZeroOrMoreN path) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final ShAnd constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final ShNode constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final ShOr constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final ShXone constraint) {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void visit(final UniqueLangConstraint constraint) {
-		throw new NotImplementedException();
 	}
 }

@@ -24,28 +24,8 @@ public class Address extends GidsObject implements Projectable<Source, Address>,
 	private GidsAttribute<String> postalcode;
 	private GidsAttribute<String> street;
 
-	public Address orNull() {
-		if (getId() == null && houseNumber == null && houseLetter == null && town == null && province == null
-				&& postalcode == null && street == null)
-			return null;
-		return this;
-	}
-
 	@Override
-	public Address project(final Source key, final LocalDate date) {
-		return Address.builder() //
-				.id(getId()) //
-				.houseNumber(houseNumber == null ? null : houseNumber.project(key, date)) //
-				.houseLetter(houseLetter == null ? null : houseLetter.project(key, date)) //
-				.town(town == null ? null : town.project(key, date)) //
-				.province(province == null ? null : province.project(key, date)) //
-				.postalcode(postalcode == null ? null : postalcode.project(key, date)) //
-				.street(street == null ? null : street.project(key, date)) //
-				.build().orNull();
-	}
-
-	@Override
-	public int compareTo(Address o) {
+	public int compareTo(final Address o) {
 		if (o == null) {
 			return 1;
 		}
@@ -70,9 +50,27 @@ public class Address extends GidsObject implements Projectable<Source, Address>,
 			return result;
 		}
 		result = compare(street, o.street);
-		if (result != 0) {
-			return result;
+		return result;
+	}
+
+	public Address orNull() {
+		if (getId() == null && houseNumber == null && houseLetter == null && town == null && province == null
+				&& postalcode == null && street == null) {
+			return null;
 		}
-		return 0;
+		return this;
+	}
+
+	@Override
+	public Address project(final Source key, final LocalDate date) {
+		return Address.builder() //
+				.id(getId()) //
+				.houseNumber(houseNumber == null ? null : houseNumber.project(key, date)) //
+				.houseLetter(houseLetter == null ? null : houseLetter.project(key, date)) //
+				.town(town == null ? null : town.project(key, date)) //
+				.province(province == null ? null : province.project(key, date)) //
+				.postalcode(postalcode == null ? null : postalcode.project(key, date)) //
+				.street(street == null ? null : street.project(key, date)) //
+				.build().orNull();
 	}
 }

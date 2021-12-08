@@ -22,25 +22,8 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 	private GidsAttribute<Concessionaire> concessionaire;
 	private GidsAttribute<String> name;
 
-	public CareOffice orNull() {
-		if (getId() == null && code == null && region == null && concessionaire == null && name == null)
-			return null;
-		return this;
-	}
-
 	@Override
-	public CareOffice project(final Source key, final LocalDate date) {
-		return CareOffice.builder() //
-				.id(getId()) //
-				.code(code == null ? null : code.project(key, date)) //
-				.region(region == null ? null : region.project(key, date)) //
-				.concessionaire(concessionaire == null ? null : concessionaire.project(key, date)) //
-				.name(name == null ? null : name.project(key, date)) //
-				.build().orNull();
-	}
-
-	@Override
-	public int compareTo(CareOffice o) {
+	public int compareTo(final CareOffice o) {
 		if (o == null) {
 			return 1;
 		}
@@ -57,10 +40,25 @@ public class CareOffice extends GidsObject implements HasName, Projectable<Sourc
 			return result;
 		}
 		result = compare(name, o.name);
-		if (result != 0) {
-			return result;
+		return result;
+	}
+
+	public CareOffice orNull() {
+		if (getId() == null && code == null && region == null && concessionaire == null && name == null) {
+			return null;
 		}
-		return 0;
+		return this;
+	}
+
+	@Override
+	public CareOffice project(final Source key, final LocalDate date) {
+		return CareOffice.builder() //
+				.id(getId()) //
+				.code(code == null ? null : code.project(key, date)) //
+				.region(region == null ? null : region.project(key, date)) //
+				.concessionaire(concessionaire == null ? null : concessionaire.project(key, date)) //
+				.name(name == null ? null : name.project(key, date)) //
+				.build().orNull();
 	}
 
 }

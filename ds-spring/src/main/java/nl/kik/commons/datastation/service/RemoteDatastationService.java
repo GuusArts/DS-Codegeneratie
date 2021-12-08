@@ -40,8 +40,9 @@ public class RemoteDatastationService {
 		RemoteDatastationService.log.trace("Sending request {} to {}", request, url);
 		final ResponseEntity<Void> result = rest.postForEntity(url, requestConverter.encode(request), Void.class);
 		RemoteDatastationService.log.trace("Received for request {}", result.getStatusCode());
-		if (result.getStatusCode().isError())
+		if (result.getStatusCode().isError()) {
 			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -50,8 +51,9 @@ public class RemoteDatastationService {
 		final ResponseEntity<Void> result = rest.postForEntity(url,
 				responseConverter.encode((ReturnMessage<Object>) response), Void.class);
 		RemoteDatastationService.log.trace("Received for response {}", result.getStatusCode());
-		if (result.getStatusCode().isError())
+		if (result.getStatusCode().isError()) {
 			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
+		}
 	}
 
 	public ValidationReport validate(final String url, final Shapes shapes) {

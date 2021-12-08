@@ -58,43 +58,6 @@ public class RDFService {
 		}
 	}
 
-	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
-			final Object value) {
-		if (value != null) {
-			if (value instanceof URL || value instanceof URI) {
-				RDFService.log.warn("URL/URIs should be added using addURL/URI for {}", property);
-			}
-			Statement s;
-			if (value instanceof Duration) {
-				s = g.getModel().createLiteralStatement(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
-			} else if (value instanceof ZonedDateTime) {
-				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
-						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
-			} else if (value instanceof LocalDateTime || value instanceof OffsetDateTime) {
-				s = g.getModel().createLiteralStatement(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdateTime));
-			} else if (value instanceof LocalDate) {
-				s = g.getModel().createLiteralStatement(resource, property,
-						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdate));
-			} else if (value instanceof Resource) {
-				RDFService.log.warn("Resources should not be added using addProperty for {}", property);
-				s = g.getModel().createStatement(resource, property, (Resource) value);
-			} else {
-				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(value));
-			}
-			g.getModel().add(s);
-			return s;
-		}
-		return null;
-	}
-	
-	protected void addAllProperties(Graph<? extends Model> g, Resource resource, Property property, Collection<?> list) {
-		for (Object value : CollectionUtils.emptyIfNull(list)) {
-			addProperty(g, resource, property, value);
-		}
-	}
-
 	/**
 	 * @param g
 	 * @param resource
@@ -104,6 +67,19 @@ public class RDFService {
 			final URI url) {
 		if (url != null) {
 			g.getModel().add(resource, property, g.getModel().createResource(url.toString()));
+		}
+	}
+
+	public static <M extends Model, G extends Graph<M>> G emitJSON(final G model, final Path name) {
+		model.beginRead();
+		try {
+			try (OutputStream f = Files.newOutputStream(name)) {
+				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_EXPAND_PRETTY);
+			} catch (final IOException e) {
+			}
+			return model;
+		} finally {
+			model.end();
 		}
 	}
 
@@ -138,20 +114,6 @@ public class RDFService {
 			model.end();
 		}
 	}
-	
-	public static <M extends Model, G extends Graph<M>> G emitJSON(final G model, final Path name) {
-		model.beginRead();
-		try {
-			try (OutputStream f = Files.newOutputStream(name)) {
-				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_EXPAND_PRETTY);
-			} catch (final IOException e) {
-			}
-			return model;
-		} finally {
-			model.end();
-		}
-	}
-
 
 	public static Boolean getBoolean(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
 		try {
@@ -236,8 +198,9 @@ public class RDFService {
 	 * @return
 	 */
 	public static <U extends Enum<U>> U getEnum(final Collection<Resource> l, final Map<Resource, U> values) {
-		if (l == null)
+		if (l == null) {
 			return null;
+		}
 		final List<U> list = l.stream().map(rr -> {
 			final U v = values.get(rr);
 			RDFService.log.trace(" - trying {} for {}", rr, v);
@@ -384,8 +347,9 @@ public class RDFService {
 				.map(getter) //
 				.filter(Objects::nonNull) //
 				.collect(Collectors.toSet());
-		if (result.isEmpty())
+		if (result.isEmpty()) {
 			return null;
+		}
 		return result;
 	}
 
@@ -489,8 +453,9 @@ public class RDFService {
 	 */
 	public static String removeId(@NotNull final String prefix, @NotNull final String id) {
 		RDFService.log.trace("Resolving {} id {}", prefix, id);
-		if (!id.startsWith(prefix + RDFService.COLON))
+		if (!id.startsWith(prefix + RDFService.COLON)) {
 			throw new IllegalArgumentException(prefix + " id must start with `" + prefix + RDFService.COLON + "'");
+		}
 		return StringUtils.trimToEmpty(id.substring(prefix.length() + RDFService.COLON.length()));
 	}
 
@@ -572,6 +537,44 @@ public class RDFService {
 			}
 		});
 		m.end();
+	}
+
+	protected void addAllProperties(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Collection<?> list) {
+		for (final Object value : CollectionUtils.emptyIfNull(list)) {
+			addProperty(g, resource, property, value);
+		}
+	}
+
+	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
+			final Object value) {
+		if (value != null) {
+			if (value instanceof URL || value instanceof URI) {
+				RDFService.log.warn("URL/URIs should be added using addURL/URI for {}", property);
+			}
+			Statement s;
+			if (value instanceof Duration) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), new XSDDurationType()));
+			} else if (value instanceof ZonedDateTime) {
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
+						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
+			} else if (value instanceof LocalDateTime || value instanceof OffsetDateTime) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdateTime));
+			} else if (value instanceof LocalDate) {
+				s = g.getModel().createLiteralStatement(resource, property,
+						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdate));
+			} else if (value instanceof Resource) {
+				RDFService.log.warn("Resources should not be added using addProperty for {}", property);
+				s = g.getModel().createStatement(resource, property, (Resource) value);
+			} else {
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(value));
+			}
+			g.getModel().add(s);
+			return s;
+		}
+		return null;
 	}
 
 }

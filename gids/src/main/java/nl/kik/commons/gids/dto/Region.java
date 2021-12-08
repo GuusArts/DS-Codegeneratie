@@ -19,9 +19,19 @@ import nl.kik.commons.dto.Projectable;
 public class Region extends GidsObject implements Projectable<Source, Region>, Comparable<Region> {
 	private GidsAttribute<String> code;
 
+	@Override
+	public int compareTo(final Region o) {
+		if (o == null) {
+			return 1;
+		}
+		final int result = compare(code, o.code);
+		return result;
+	}
+
 	public Region orNull() {
-		if (getId() == null && code == null)
+		if (getId() == null && code == null) {
 			return null;
+		}
 		return this;
 	}
 
@@ -31,18 +41,6 @@ public class Region extends GidsObject implements Projectable<Source, Region>, C
 				.id(getId()) //
 				.code(code == null ? null : code.project(key, date)) //
 				.build().orNull();
-	}
-
-	@Override
-	public int compareTo(Region o) {
-		if (o == null) {
-			return 1;
-		}
-		int result = compare(code, o.code);
-		if (result != 0) {
-			return result;
-		}
-		return 0;
 	}
 
 }

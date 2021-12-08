@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 
-import org.apache.jena.shacl.Shapes;
 import org.apache.jena.shacl.engine.constraint.ClassConstraint;
 import org.apache.jena.shacl.engine.constraint.ClosedConstraint;
 import org.apache.jena.shacl.engine.constraint.ConstraintComponentSPARQL;
@@ -43,16 +42,15 @@ import org.apache.jena.shacl.parser.Constraint;
 import org.apache.jena.shacl.parser.ConstraintVisitor;
 import org.apache.jena.shacl.parser.PropertyShape;
 import org.apache.jena.shacl.parser.Shape;
-import org.apache.jena.sparql.path.Path;
 import org.apache.jena.shacl.validation.Severity;
+import org.apache.jena.sparql.path.Path;
+
 import com.cedarsoftware.util.DeepEquals;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ShapeComparator implements BiPredicate<Shape, Shape> {
-	int index = 0;
-
 	public final class EqualsVisitor implements ConstraintVisitor {
 		private boolean result;
 		private final Constraint other;
@@ -63,14 +61,16 @@ public class ShapeComparator implements BiPredicate<Shape, Shape> {
 		}
 
 		private boolean same(final ConstraintOp1 a, final Constraint b) {
-			if (a.getClass() != b.getClass())
+			if (a.getClass() != b.getClass()) {
 				return false;
+			}
 			return test(a.getOther(), ((ConstraintOp1) b).getOther());
 		}
 
 		private boolean same(final ConstraintOpN a, final Constraint b) {
-			if (a.getClass() != b.getClass())
+			if (a.getClass() != b.getClass()) {
 				return false;
+			}
 			return compare(a.getOthers(), ((ConstraintOpN) b).getOthers(), ShapeComparator.this::test);
 		}
 
@@ -165,8 +165,7 @@ public class ShapeComparator implements BiPredicate<Shape, Shape> {
 				return;
 			}
 			final QualifiedValueShape o = (QualifiedValueShape) other;
-			if ((constraint.qMin() != o.qMin()) || (constraint.qMax() != o.qMax())
-					|| (constraint.qDisjoint() != o.qDisjoint())) {
+			if (constraint.qMin() != o.qMin() || constraint.qMax() != o.qMax() || constraint.qDisjoint() != o.qDisjoint()) {
 				result = false;
 				return;
 			}
@@ -245,22 +244,25 @@ public class ShapeComparator implements BiPredicate<Shape, Shape> {
 
 	}
 
+	int index = 0;
+
 	private <T> boolean compare(final Collection<T> a, final Collection<T> b, final BiFunction<T, T, Boolean> compare) {
 		if (a == null) {
-			return b == null || b.isEmpty() ? true : false;
+			return b == null || b.isEmpty() == true;
 		}
 		if (b == null) {
 			return a.isEmpty();
 		}
-		if (a.size() != b.size())
+		if (a.size() != b.size()) {
 			return false;
+		}
 		loop: for (final T n : a) {
 			for (final T m : b) {
 				if (compare.apply(m, n)) {
 					continue loop;
 				}
 			}
-			log.trace("{} could not be matched", n);
+			ShapeComparator.log.trace("{} could not be matched", n);
 			return false;
 		}
 		return true;
@@ -275,64 +277,66 @@ public class ShapeComparator implements BiPredicate<Shape, Shape> {
 	}
 
 	@Override
-	public boolean test(Shape a, Shape b) {
+	public boolean test(final Shape a, final Shape b) {
 		if (a == null) {
-			return b == null ? true : false;
+			return b == null == true;
 		}
 		if (b == null) {
 			return false;
 		}
 		final int i = index++;
-		log.trace(i + " ============== Shape ===============================");
+		ShapeComparator.log.trace(i + " ============== Shape ===============================");
 		if (a.deactivated() != b.deactivated()) {
-			log.trace("deactivated failing {} != {}", a.deactivated(), b.deactivated());
+			ShapeComparator.log.trace("deactivated failing {} != {}", a.deactivated(), b.deactivated());
 			return false;
 		}
 		if (a.hasTarget() != b.hasTarget()) {
-			log.trace("hasTarget failing {} != {}", a.hasTarget(), b.hasTarget());
+			ShapeComparator.log.trace("hasTarget failing {} != {}", a.hasTarget(), b.hasTarget());
 			return false;
 		}
 		if (a.isNodeShape() != b.isNodeShape()) {
-			log.trace("isNodeShape failing {} != {}", a.isNodeShape(), b.isNodeShape());
+			ShapeComparator.log.trace("isNodeShape failing {} != {}", a.isNodeShape(), b.isNodeShape());
 			return false;
 		}
 		if (a.isPropertyShape() != b.isPropertyShape()) {
-			log.trace("isPropertyShape failing {} != {}", a.isPropertyShape(), b.isPropertyShape());
+			ShapeComparator.log.trace("isPropertyShape failing {} != {}", a.isPropertyShape(), b.isPropertyShape());
 			return false;
 		}
 		if (!Objects.equals(Objects.requireNonNullElse(a.getSeverity(), Severity.Violation),
 				Objects.requireNonNullElse(b.getSeverity(), Severity.Violation))) {
-			log.trace("getSeverity failing {} != {}", a.getSeverity(), b.getSeverity());
+			ShapeComparator.log.trace("getSeverity failing {} != {}", a.getSeverity(), b.getSeverity());
 			return false;
 		}
 		if (!compare(a.getConstraints(), b.getConstraints(), this::compare)) {
-			log.trace("getConstraints failing {} != {}", a.getConstraints(), b.getConstraints());
+			ShapeComparator.log.trace("getConstraints failing {} != {}", a.getConstraints(), b.getConstraints());
 			return false;
 		}
 		if (!compare(a.getMessages(), b.getMessages(), DeepEquals::deepEquals)) {
-			log.trace("getMessages failing {} != {}", a.getMessages(), b.getMessages());
+			ShapeComparator.log.trace("getMessages failing {} != {}", a.getMessages(), b.getMessages());
 			return false;
 		}
 		if (!compare(a.getPropertyShapes(), b.getPropertyShapes(), this::test)) {
-			log.trace("getPropertyShapes failing {} != {}", a.getPropertyShapes(), b.getPropertyShapes());
+			ShapeComparator.log.trace("getPropertyShapes failing {} != {}", a.getPropertyShapes(), b.getPropertyShapes());
 			return false;
 		}
 		if (!compare(a.getTargets(), b.getTargets(), DeepEquals::deepEquals)) {
-			log.trace("getTargets failing {} != {}", a.getTargets(), b.getTargets());
+			ShapeComparator.log.trace("getTargets failing {} != {}", a.getTargets(), b.getTargets());
 			return false;
 		}
 		if (a instanceof PropertyShape) {
-			if (!(b instanceof PropertyShape))
+			if (!(b instanceof PropertyShape)) {
 				return false;
+			}
 			final PropertyShape m = (PropertyShape) a;
 			final PropertyShape n = (PropertyShape) b;
 			if (!compare(m.getPath(), n.getPath())) {
-				log.trace("getPath failing {} != {}", m.getPath(), n.getPath());
+				ShapeComparator.log.trace("getPath failing {} != {}", m.getPath(), n.getPath());
 				return false;
 			}
-		} else if (b instanceof PropertyShape)
+		} else if (b instanceof PropertyShape) {
 			return false;
-		log.trace(i + " ============== Shape ok =============================");
+		}
+		ShapeComparator.log.trace(i + " ============== Shape ok =============================");
 		return true;
 	}
 

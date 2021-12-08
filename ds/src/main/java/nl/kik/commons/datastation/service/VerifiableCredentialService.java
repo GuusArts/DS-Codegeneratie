@@ -206,8 +206,9 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	protected <T> T requireType(final Object o, final Class<T> clazz) throws ParseException, MalformedURLException {
-		if (o == null || !clazz.isInstance(o))
+		if (o == null || !clazz.isInstance(o)) {
 			throw new ParseException("Expecting object to be " + clazz.getCanonicalName() + " but it is " + o, 0);
+		}
 		return clazz.cast(o);
 	}
 
@@ -216,12 +217,15 @@ public class VerifiableCredentialService extends AbstractTokenService {
 			throws ParseException, MalformedURLException, E {
 		final Map<String, Object> vp = claims.getJSONObjectClaim(VerifiableCredentialService.VP);
 		final Map<String, Object> vc = claims.getJSONObjectClaim(VerifiableCredentialService.VC);
-		if (!(vp == null ^ vc == null))
+		if (!(vp == null ^ vc == null)) {
 			throw new ParseException("Exactly one of vc or vp must be given", 0);
-		if (vp != null)
+		}
+		if (vp != null) {
 			return unwrapPresentation(vp, credentialValidator);
-		if (vc != null)
+		}
+		if (vc != null) {
 			return unwrapCredential(vc, credentialValidator);
+		}
 		throw new IllegalArgumentException("It should not be possible to reach this code");
 	}
 
@@ -232,9 +236,10 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		final Set<String> contexts = getContexts(vc);
 		final boolean vcType = !types.remove(VerifiableCredentialService.VERIFIABLE_CREDENTIAL_TYPE);
 		final boolean vcContext = !contexts.remove(VerifiableCredentialService.CREDENTIALS_CONTEXT);
-		if (vcType && vcContext)
+		if (vcType && vcContext) {
 			throw new ParseException("Expecting VC to contain type " + VerifiableCredentialService.VERIFIABLE_CREDENTIAL
 					+ " and context " + VerifiableCredentialService.CREDENTIALS_CONTEXT, 0);
+		}
 		VerifiableCredential.VerifiableCredentialBuilder<?, ?> builder;
 		if (types.remove(VerifiableCredentialService.VALIDATED_QUERY_CREDENTIAL_TYPE)) {
 			builder = unwrapValidatedQuery(vc, types, contexts, credentialValidator);
@@ -266,11 +271,12 @@ public class VerifiableCredentialService extends AbstractTokenService {
 		final Set<String> contexts = getContexts(vp);
 		final boolean vpType = !types.remove(VerifiableCredentialService.VERIFIABLE_PRESENTATION_TYPE);
 		final boolean vpContext = !contexts.remove(VerifiableCredentialService.CREDENTIALS_CONTEXT);
-		if (vpType && vpContext)
+		if (vpType && vpContext) {
 			throw new ParseException(
 					"Expecting VC to contain type " + VerifiableCredentialService.VERIFIABLE_PRESENTATION_TYPE + " and context "
 							+ VerifiableCredentialService.CREDENTIALS_CONTEXT,
 					0);
+		}
 		try {
 			return makePresentation() //
 					.credential(CollectionUtils
@@ -282,10 +288,12 @@ public class VerifiableCredentialService extends AbstractTokenService {
 			;
 		} catch (final RuntimeException e) {
 			final Throwable cause = e.getCause();
-			if (cause instanceof ParseException)
+			if (cause instanceof ParseException) {
 				throw (ParseException) cause;
-			if (cause instanceof MalformedURLException)
+			}
+			if (cause instanceof MalformedURLException) {
 				throw (MalformedURLException) cause;
+			}
 			throw (E) cause;
 		}
 	}
@@ -293,9 +301,10 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	private <E extends Exception> ValidatedQuery.ValidatedQueryBuilder<?, ?> unwrapValidatedQuery(
 			final Map<String, Object> vc, final Set<String> types, final Set<String> contexts,
 			final BiConsumerWithException<JWSObject, VerifiableBase, E> credentialValidator) throws ParseException {
-		if (!contexts.remove(VerifiableCredentialService.VALIDATED_QUERY_CONTEXT))
+		if (!contexts.remove(VerifiableCredentialService.VALIDATED_QUERY_CONTEXT)) {
 			throw new ParseException(
 					"Expecting validated query to contain context " + VerifiableCredentialService.VALIDATED_QUERY_CONTEXT, 0);
+		}
 		final Map<String, Object> subject = getRequiredJSONObject(vc, VerifiableCredentialService.CREDENTIAL_SUBJECT);
 		return makeValidatedQuery() //
 				.subjectId(getRequiredString(subject, VerifiableCredentialService.ID)) //
@@ -332,27 +341,35 @@ public class VerifiableCredentialService extends AbstractTokenService {
 	}
 
 	protected void validateFields(final ValidatedQuery vq) throws ParseException {
-		if (StringUtils.isBlank(vq.getQuery()))
+		if (StringUtils.isBlank(vq.getQuery())) {
 			throw new ParseException("Required feld `query' is not given", 0);
-		if (StringUtils.isBlank(vq.getOntology()))
+		}
+		if (StringUtils.isBlank(vq.getOntology())) {
 			throw new ParseException("Required feld `ontology' is not given", 0);
-		if (StringUtils.isBlank(vq.getProfile()))
+		}
+		if (StringUtils.isBlank(vq.getProfile())) {
 			throw new ParseException("Required feld `profile' is not given", 0);
+		}
 		validateFieldsExtension(vq);
 	}
 
 	public void validateFields(final VerifiableBase v) throws ParseException {
 		VerifiableCredentialService.log.trace("Validating fields of {}", v.getId());
-		if (StringUtils.isBlank(v.getIssuer()))
+		if (StringUtils.isBlank(v.getIssuer())) {
 			throw new ParseException("Required feld `iss' is not given", 0);
-		if (StringUtils.isBlank(v.getId()))
+		}
+		if (StringUtils.isBlank(v.getId())) {
 			throw new ParseException("Required feld `jti' is not given", 0);
-		if (StringUtils.isBlank(v.getKeyId()))
+		}
+		if (StringUtils.isBlank(v.getKeyId())) {
 			throw new ParseException("Required feld `kid' is not given", 0);
-		if (v.getValidFrom() != null && v.getValidFrom().isAfter(ZonedDateTime.now()))
+		}
+		if (v.getValidFrom() != null && v.getValidFrom().isAfter(ZonedDateTime.now())) {
 			throw new ParseException("VC is not valid yet (from " + v.getValidFrom() + ")", 0);
-		if (v.getExpiration() != null && v.getExpiration().isBefore(ZonedDateTime.now()))
+		}
+		if (v.getExpiration() != null && v.getExpiration().isBefore(ZonedDateTime.now())) {
 			throw new ParseException("VC is no longer valid (to " + v.getExpiration() + ")", 0);
+		}
 		if (v instanceof VerifiablePresentation) {
 			validateFields((VerifiablePresentation) v);
 		} else if (v instanceof VerifiableCredential) {
@@ -372,8 +389,9 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	protected void validateFields(final VerifiablePresentation vp) throws ParseException {
 		if (vp.getCredential() == null) {
-			if (vp.getExternalCredential() == null)
+			if (vp.getExternalCredential() == null) {
 				throw new ParseException("A VC must be given", 0);
+			}
 			throw new ParseException("A VC must be given and parsed", 0);
 		}
 		validateFieldsExtension(vp);
@@ -440,10 +458,12 @@ public class VerifiableCredentialService extends AbstractTokenService {
 
 	private <E extends Exception> Builder wrap(final Builder claims, final VerifiableBase m,
 			final BiFunctionWithException<VerifiableCredential, JWSObject, JWSObject, E> credentialSigner) throws E {
-		if (m instanceof VerifiablePresentation)
+		if (m instanceof VerifiablePresentation) {
 			return wrap(claims, (VerifiablePresentation) m, credentialSigner);
-		if (m instanceof VerifiableCredential)
+		}
+		if (m instanceof VerifiableCredential) {
 			return wrap(claims, (VerifiableCredential) m);
+		}
 		return wrapExtension(claims, m, credentialSigner);
 	}
 

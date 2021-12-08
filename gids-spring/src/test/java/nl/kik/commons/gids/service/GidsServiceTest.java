@@ -27,7 +27,6 @@ import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.gids.dto.Address;
 import nl.kik.commons.gids.dto.CareOffice;
 import nl.kik.commons.gids.dto.Concessionaire;
-import nl.kik.commons.gids.dto.DeliveryMethod;
 import nl.kik.commons.gids.dto.GidsAttribute;
 import nl.kik.commons.gids.dto.GidsObject;
 import nl.kik.commons.gids.dto.GraphOrRemote;
@@ -187,6 +186,46 @@ class GidsServiceTest {
 					Assertions.assertNotSame(m, o.get().getAny());
 				}
 			}
+		} finally {
+			fusekiServer.stop();
+			fusekiServer.join();
+		}
+	}
+
+	@Test
+	void testLookupById() throws ParseException {
+		final Graph<Model> loadedModel = getLoadedModel();
+		RDFService.emitTTL(loadedModel, Paths.get("output.ttl"));
+		final FusekiServer fusekiServer = startFuseki(loadedModel);
+		final GraphOrRemote g = new GraphOrRemote(GidsServiceTest.SERVER_URL);
+		try {
+			// Regular search
+			Query query = new SelectBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.setDistinct(true) //
+					.addVar("?test") //
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.addWhere("?test", GidsService.Vocabulary.agb, "'23456789'") //
+					.build();
+
+			List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
+			Assertions.assertEquals(1, organisations.size());
+			Assertions.assertTrue(organisations.iterator().next().isUnique());
+			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+
+			query = new SelectBuilder() //
+					.addPrefix("", GidsService.Vocabulary.uri) //
+					.addPrefix("gids:", "gids:") //
+					.setDistinct(true) //
+					.addVar("?test") //
+					.addBind(organisations.get(0).getAny().getId(), "?test")
+					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+					.build();
+
+			organisations = service.query(g, query, Organisation.class);
+			Assertions.assertEquals(1, organisations.size());
+			Assertions.assertTrue(organisations.iterator().next().isUnique());
+			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
 		} finally {
 			fusekiServer.stop();
 			fusekiServer.join();
@@ -359,46 +398,6 @@ class GidsServiceTest {
 	}
 
 	@Test
-	void testLookupById() throws ParseException {
-		Graph<Model> loadedModel = getLoadedModel();
-		RDFService.emitTTL(loadedModel, Paths.get("output.ttl"));
-		final FusekiServer fusekiServer = startFuseki(loadedModel);
-		GraphOrRemote g = new GraphOrRemote(GidsServiceTest.SERVER_URL);
-		try {
-			// Regular search
-			Query query = new SelectBuilder() //
-					.addPrefix("", GidsService.Vocabulary.uri) //
-					.setDistinct(true) //
-					.addVar("?test") //
-					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-					.addWhere("?test", GidsService.Vocabulary.agb, "'23456789'") //
-					.build();
-
-			List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
-			Assertions.assertEquals(1, organisations.size());
-			Assertions.assertTrue(organisations.iterator().next().isUnique());
-			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-
-			query = new SelectBuilder() //
-					.addPrefix("", GidsService.Vocabulary.uri) //
-					.addPrefix("gids:", "gids:") //
-					.setDistinct(true) //
-					.addVar("?test") //
-					.addBind(organisations.get(0).getAny().getId(), "?test")
-					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-					.build();
-
-			organisations = service.query(g, query, Organisation.class);
-			Assertions.assertEquals(1, organisations.size());
-			Assertions.assertTrue(organisations.iterator().next().isUnique());
-			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-		} finally {
-			fusekiServer.stop();
-			fusekiServer.join();
-		}
-	}
-
-	@Test
 	void testSaveLocal() {
 		final Graph<Model> g = getLoadedModel();
 		RDFService.snapshot(g, true, null);
@@ -414,7 +413,7 @@ class GidsServiceTest {
 			}
 			service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, organisation));
 
-			List<GidsObject> all = new ArrayList<>(model);
+			final List<GidsObject> all = new ArrayList<>(model);
 			all.add(organisation);
 			for (final RDFObject m : all) {
 				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());

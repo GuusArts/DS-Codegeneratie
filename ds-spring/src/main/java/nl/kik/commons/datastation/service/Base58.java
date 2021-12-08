@@ -23,8 +23,9 @@ public class Base58 {
 	}
 
 	public static byte[] decode(final String input) {
-		if (input.length() == 0)
+		if (input.length() == 0) {
 			return new byte[0];
+		}
 
 		final byte[] input58 = new byte[input.length()];
 		for (int i = 0; i < input.length(); ++i) {
@@ -34,8 +35,9 @@ public class Base58 {
 			if (c >= 0 && c < 128) {
 				digit58 = Base58.INDEXES[c];
 			}
-			if (digit58 < 0)
+			if (digit58 < 0) {
 				throw new RuntimeException("Not a Base58 input: " + input);
+			}
 
 			input58[i] = (byte) digit58;
 		}
@@ -94,8 +96,9 @@ public class Base58 {
 	}
 
 	public static String encode(byte[] input) {
-		if (input.length == 0)
+		if (input.length == 0) {
 			return "";
+		}
 		input = Base58.copyOfRange(input, 0, input.length);
 		int zeroCount = 0;
 		while (zeroCount < input.length && input[zeroCount] == 0) {

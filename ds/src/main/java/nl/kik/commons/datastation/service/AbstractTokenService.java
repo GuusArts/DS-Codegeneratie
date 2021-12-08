@@ -12,24 +12,28 @@ import com.nimbusds.jwt.JWTClaimsSet;
 
 public abstract class AbstractTokenService {
 	protected <T> T checkEquals(final String name, final T expected, final T actual) throws ParseException {
-		if (!Objects.equals(expected, actual))
+		if (!Objects.equals(expected, actual)) {
 			throw new ParseException(name + " does not match expectation (expected " + expected + ", got " + actual + ")", 0);
+		}
 		return actual;
 	}
 
 	protected <T> T checkNonNull(final String name, final T value) throws ParseException {
-		if (value == null)
+		if (value == null) {
 			throw new ParseException("Required parameter " + name + " is absent", 0);
+		}
 		return value;
 	}
 
 	protected <T> T getGeneric(final Map<String, Object> o, final String key, final Class<T> clazz)
 			throws ParseException {
-		if (o.get(key) == null)
+		if (o.get(key) == null) {
 			return null;
+		}
 		final Object value = o.get(key);
-		if (!clazz.isAssignableFrom(value.getClass()))
+		if (!clazz.isAssignableFrom(value.getClass())) {
 			throw new ParseException("Unexpected type of JSON object member with key \"" + key + "\"", 0);
+		}
 		return clazz.cast(value);
 	}
 
@@ -37,10 +41,12 @@ public abstract class AbstractTokenService {
 	protected <T> List<T> getList(final Map<String, Object> o, final String key, final Class<T> clazz)
 			throws ParseException {
 		final List<Object> array = JSONObjectUtils.getJSONArray(o, key);
-		if (array == null)
+		if (array == null) {
 			return Collections.emptyList();
-		if (!array.stream().allMatch(clazz::isInstance))
+		}
+		if (!array.stream().allMatch(clazz::isInstance)) {
 			throw new ParseException("Not all objects have type " + clazz, 0);
+		}
 		return (List<T>) array;
 	}
 
