@@ -1,6 +1,6 @@
 include:
       - project: 'ocs/cicd/parent'
-        ref: parent-1.0.8
+        ref: parent-1.0.9
         file: '/.gitlab-ci.yml'
 
 image: maven:3.8-openjdk-17-slim
