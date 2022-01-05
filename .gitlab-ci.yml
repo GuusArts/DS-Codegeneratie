@@ -16,9 +16,3 @@ image: maven:3.8-openjdk-17-slim
 .golive:
       only: 
        - external
-
-# Doesn't workd with Jav 17 right now
-sonar:
-      only: 
-       - external
-         
