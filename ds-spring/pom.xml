@@ -39,17 +39,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.cedarsoftware</groupId>
-            <artifactId>java-util</artifactId>
-            <version>1.65.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.logging.log4j</groupId>
-                    <artifactId>log4j-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>javax.json</groupId>
             <artifactId>javax.json-api</artifactId>
         </dependency>
@@ -58,12 +47,6 @@
             <groupId>decentralized-identity</groupId>
             <artifactId>uni-resolver-local</artifactId>
             <version>0.3.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.jena</groupId>
-            <artifactId>jena-shacl</artifactId>
-            <version>${jena.version}</version>
         </dependency>
 
         <dependency>

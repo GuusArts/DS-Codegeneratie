@@ -1,0 +1,439 @@
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "34567890" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#agb> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:df743286-6baf-468c-85c4-2f478bf4586b> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#region> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#root> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <https://kik-v.nl/ontology/starter/gids#Root> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#concessionaire> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "Noord-Brabant" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#province> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#office> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+<https://kik-v.nl/ontology/starter/gids#Root>
+        <https://kik-v.nl/ontology/starter/gids#root>
+                <gids:e6998a35-8395-4539-9832-6e85cf5b006d> , <gids:861279e6-b55e-4e50-9742-3b1f9f205622> , <gids:399136ab-634e-4e89-b9a2-1dafca89ccd5> , <gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80> , <gids:df743286-6baf-468c-85c4-2f478bf4586b> .
+
+<gids:d54405ee-a388-49fe-acd3-19a7a843676b>
+        a       <https://kik-v.nl/ontology/starter/gids#Location> ;
+        <https://kik-v.nl/ontology/starter/gids#address>
+                <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+        <https://kik-v.nl/ontology/starter/gids#agb>
+                "12345678" ;
+        <https://kik-v.nl/ontology/starter/gids#name>
+                "Britney Health, bv" ;
+        <https://kik-v.nl/ontology/starter/gids#number>
+                "1" ;
+        <https://kik-v.nl/ontology/starter/gids#sbi>
+                "871" .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "2" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#houseNumber> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "98765432" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#kvk> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "Eindhoven" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#town> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "ZUIDOOST-BRABANT" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#name> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "5529" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#code> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#address> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "Britney Health" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#name> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "1" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#number> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+<gids:861279e6-b55e-4e50-9742-3b1f9f205622>
+        a       <https://kik-v.nl/ontology/starter/gids#CareOffice> ;
+        <https://kik-v.nl/ontology/starter/gids#code>
+                "5529" ;
+        <https://kik-v.nl/ontology/starter/gids#concessionaire>
+                <gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80> ;
+        <https://kik-v.nl/ontology/starter/gids#name>
+                "ZUIDOOST-BRABANT" ;
+        <https://kik-v.nl/ontology/starter/gids#region>
+                <gids:df743286-6baf-468c-85c4-2f478bf4586b> .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "5621KA" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#postalcode> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+<gids:e6998a35-8395-4539-9832-6e85cf5b006d>
+        a       <https://kik-v.nl/ontology/starter/gids#Organisation> ;
+        <https://kik-v.nl/ontology/starter/gids#address>
+                <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+        <https://kik-v.nl/ontology/starter/gids#agb>
+                "34567890" , "23456789" ;
+        <https://kik-v.nl/ontology/starter/gids#kvk>
+                "98765432" ;
+        <https://kik-v.nl/ontology/starter/gids#lastModified>
+                "2022-01-24T21:13:34.346707+01:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+        <https://kik-v.nl/ontology/starter/gids#location>
+                <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+        <https://kik-v.nl/ontology/starter/gids#name>
+                "Britney Health" ;
+        <https://kik-v.nl/ontology/starter/gids#office>
+                <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+        <https://kik-v.nl/ontology/starter/gids#sbi>
+                "871" , "88101" .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "CZ" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#name> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#address> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "23456789" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#agb> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "772" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#code> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:df743286-6baf-468c-85c4-2f478bf4586b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "871" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#sbi> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:399136ab-634e-4e89-b9a2-1dafca89ccd5> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#root> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <https://kik-v.nl/ontology/starter/gids#Root> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+<gids:399136ab-634e-4e89-b9a2-1dafca89ccd5>
+        a       <https://kik-v.nl/ontology/starter/gids#Concessionaire> ;
+        <https://kik-v.nl/ontology/starter/gids#name>
+                "VGZ" .
+
+<gids:de420671-c740-48d6-bc9a-2dadc33ad735>
+        a       <https://kik-v.nl/ontology/starter/gids#Address> ;
+        <https://kik-v.nl/ontology/starter/gids#houseLetter>
+                "c" ;
+        <https://kik-v.nl/ontology/starter/gids#houseNumber>
+                "2" ;
+        <https://kik-v.nl/ontology/starter/gids#postalcode>
+                "5621KA" ;
+        <https://kik-v.nl/ontology/starter/gids#province>
+                "Noord-Brabant" ;
+        <https://kik-v.nl/ontology/starter/gids#street>
+                "Suikerpeerstraat" ;
+        <https://kik-v.nl/ontology/starter/gids#town>
+                "Eindhoven" .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#location> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+<gids:34fbd075-88e9-4935-a9e6-588c3f6d4f80>
+        a       <https://kik-v.nl/ontology/starter/gids#Concessionaire> ;
+        <https://kik-v.nl/ontology/starter/gids#name>
+                "CZ" .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "c" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#houseLetter> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:861279e6-b55e-4e50-9742-3b1f9f205622> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#root> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <https://kik-v.nl/ontology/starter/gids#Root> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "12345678" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#agb> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#root> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <https://kik-v.nl/ontology/starter/gids#Root> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "2022-01-24T21:13:34.346707+01:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#lastModified> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "Britney Health, bv" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#name> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+<gids:df743286-6baf-468c-85c4-2f478bf4586b>
+        a       <https://kik-v.nl/ontology/starter/gids#Region> ;
+        <https://kik-v.nl/ontology/starter/gids#code>
+                "772" .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "871" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#sbi> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:d54405ee-a388-49fe-acd3-19a7a843676b> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "VGZ" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#name> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:399136ab-634e-4e89-b9a2-1dafca89ccd5> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "Suikerpeerstraat" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#street> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:de420671-c740-48d6-bc9a-2dadc33ad735> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          "88101" ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#sbi> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <gids:e6998a35-8395-4539-9832-6e85cf5b006d> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#LRZA>
+] .
+
+[ a       <http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#object>
+          <gids:df743286-6baf-468c-85c4-2f478bf4586b> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>
+          <https://kik-v.nl/ontology/starter/gids#root> ;
+  <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>
+          <https://kik-v.nl/ontology/starter/gids#Root> ;
+  <https://kik-v.nl/ontology/starter/gids#source>
+          <https://kik-v.nl/ontology/starter/gids#TABELBEHEER>
+] .

@@ -22,6 +22,7 @@ import nl.kik.commons.datastation.dto.ds.async.ReturnMessage;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 import nl.kik.commons.datastation.mvc.RequestMessageConverter;
 import nl.kik.commons.datastation.mvc.ResponseMessageConverter;
+import nl.kik.commons.service.ShaclExporter;
 
 @Slf4j
 public class RemoteDatastationService {

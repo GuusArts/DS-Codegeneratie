@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import nl.kik.commons.service.ShaclExporter;
+import nl.kik.commons.service.ShapesComparator;
+
 class ShaclExporterTest {
 	ShaclExporter exporter;
 

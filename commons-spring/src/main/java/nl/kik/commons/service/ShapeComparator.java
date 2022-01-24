@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.service;
+package nl.kik.commons.service;
 
 import java.util.Collection;
 import java.util.Objects;
