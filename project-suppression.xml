@@ -3,5 +3,6 @@
 	<suppress>
 		<cve>CVE-2018-1258</cve>
 		<cve>CVE-2018-10237</cve>
+		<cve>CVE-2020-36448</cve>
 	</suppress>
 </suppressions>
