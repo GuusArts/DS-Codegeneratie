@@ -6,3 +6,4 @@ target
 *.versionsBackup
 *.iml
 output.ttl
+catalog-v001.xml

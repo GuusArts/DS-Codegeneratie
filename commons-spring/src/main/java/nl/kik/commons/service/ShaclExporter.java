@@ -241,7 +241,7 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		throw new IllegalArgumentException();
 	}
 
-	private Resource toResource(final Node n) {
+	protected Resource toResource(final Node n) {
 		if (resources.containsKey(n)) {
 			return resources.get(n);
 		}
