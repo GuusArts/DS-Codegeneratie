@@ -1,5 +1,10 @@
 package nl.kik.commons.service;
 
+import static java.time.temporal.ChronoField.HOUR_OF_DAY;
+import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
+import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,9 +18,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -170,6 +182,14 @@ public class RDFService {
 	public static ZonedDateTime getDateTime(final RDFNode n) {
 		try {
 			return ZonedDateTime.parse(n.asLiteral().getString());
+		} catch (final Exception e) {
+			return null;
+		}
+	}
+
+	public static LocalDateTime getLocalDateTime(final MultiValuedMap<Property, RDFNode> properties, final Property p) {
+		try {
+			return LocalDateTime.parse(properties.get(p).iterator().next().asLiteral().getString());
 		} catch (final Exception e) {
 			return null;
 		}
@@ -546,6 +566,13 @@ public class RDFService {
 		}
 	}
 
+	private static DateTimeFormatter ISO_LOCAL_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive()
+			.append(DateTimeFormatter.ISO_LOCAL_DATE).appendLiteral('T')
+			.append(new DateTimeFormatterBuilder().appendValue(HOUR_OF_DAY, 2).appendLiteral(':')
+					.appendValue(MINUTE_OF_HOUR, 2).appendLiteral(':').appendValue(SECOND_OF_MINUTE, 2)
+					.toFormatter())
+			.toFormatter();
+
 	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
 			final Object value) {
 		if (value != null) {
@@ -559,7 +586,10 @@ public class RDFService {
 			} else if (value instanceof ZonedDateTime) {
 				s = g.getModel().createLiteralStatement(resource, property, g.getModel()
 						.createTypedLiteral(((ZonedDateTime) value).toOffsetDateTime().toString(), XSDDatatype.XSDdateTime));
-			} else if (value instanceof LocalDateTime || value instanceof OffsetDateTime) {
+			} else if (value instanceof LocalDateTime ldt) {
+				s = g.getModel().createLiteralStatement(resource, property, g.getModel().createTypedLiteral(
+						ldt.truncatedTo(ChronoUnit.SECONDS).format(ISO_LOCAL_DATE_TIME), XSDDatatype.XSDdateTime));
+			} else if (value instanceof OffsetDateTime) {
 				s = g.getModel().createLiteralStatement(resource, property,
 						g.getModel().createTypedLiteral(value.toString(), XSDDatatype.XSDdateTime));
 			} else if (value instanceof LocalDate) {
