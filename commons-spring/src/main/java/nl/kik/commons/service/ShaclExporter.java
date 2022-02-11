@@ -573,7 +573,6 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 			break;
 		case CONSTRUCT:
 		case CONSTRUCT_JSON:
-		case CONSTRUCT_QUADS:
 		case DESCRIBE:
 		case UNKNOWN:
 		default:

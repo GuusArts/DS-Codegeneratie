@@ -1,5 +1,15 @@
 package nl.kik.commons.gids.service;
 
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.PushPromiseHandler;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,22 +20,24 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicHeader;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
 import org.apache.jena.arq.querybuilder.UpdateBuilder;
 import org.apache.jena.query.Query;
@@ -45,6 +57,7 @@ import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFuseki;
+import org.apache.jena.sparql.exec.http.QueryExecutionHTTPBuilder;
 import org.apache.jena.sparql.expr.ExprVar;
 import org.apache.jena.sparql.expr.nodevalue.NodeValueNode;
 import org.apache.jena.sparql.lang.sparql_11.ParseException;
@@ -54,6 +67,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.vocabulary.RDF;
 import org.springframework.stereotype.Service;
 
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;
@@ -187,9 +201,138 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	protected static HttpClient getHttpClient(final String auth) {
 		HttpClient httpclient = null;
 		if (auth != null) {
-			httpclient = HttpClients.custom() //
-					.setDefaultHeaders(Collections.singleton(new BasicHeader("Authorization", "Bearer " + auth))) //
-					.build();
+			httpclient = new HttpClient() {
+				private HttpClient delegate = HttpClient.newHttpClient();
+
+				@Override
+				public <T> HttpResponse<T> send(HttpRequest request, BodyHandler<T> responseBodyHandler)
+						throws IOException, InterruptedException {
+					return delegate.send(addAuth(request), responseBodyHandler);
+				}
+
+				private HttpRequest addAuth(HttpRequest request) {
+					return HttpRequest.newBuilder(request, (h, v) -> !StringUtils.equalsIgnoreCase(h, "Authorization")) //
+							.header("Authorization", "Bearer " + auth) //
+							.build();
+				}
+
+				@Override
+				public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request,
+						BodyHandler<T> responseBodyHandler) {
+					return delegate.sendAsync(addAuth(request), responseBodyHandler);
+				}
+
+				@Override
+				public <T> CompletableFuture<HttpResponse<T>> sendAsync(HttpRequest request, BodyHandler<T> responseBodyHandler,
+						PushPromiseHandler<T> pushPromiseHandler) {
+					return delegate.sendAsync(addAuth(request), responseBodyHandler, pushPromiseHandler);
+				}
+
+				/**
+				 * @return
+				 * @see java.lang.Object#hashCode()
+				 */
+				public int hashCode() {
+					return delegate.hashCode();
+				}
+
+				/**
+				 * @param obj
+				 * @return
+				 * @see java.lang.Object#equals(java.lang.Object)
+				 */
+				public boolean equals(Object obj) {
+					return delegate.equals(obj);
+				}
+
+				/**
+				 * @return
+				 * @see java.lang.Object#toString()
+				 */
+				public String toString() {
+					return delegate.toString();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#cookieHandler()
+				 */
+				public Optional<CookieHandler> cookieHandler() {
+					return delegate.cookieHandler();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#connectTimeout()
+				 */
+				public Optional<Duration> connectTimeout() {
+					return delegate.connectTimeout();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#followRedirects()
+				 */
+				public Redirect followRedirects() {
+					return delegate.followRedirects();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#proxy()
+				 */
+				public Optional<ProxySelector> proxy() {
+					return delegate.proxy();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#sslContext()
+				 */
+				public SSLContext sslContext() {
+					return delegate.sslContext();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#sslParameters()
+				 */
+				public SSLParameters sslParameters() {
+					return delegate.sslParameters();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#authenticator()
+				 */
+				public Optional<Authenticator> authenticator() {
+					return delegate.authenticator();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#version()
+				 */
+				public Version version() {
+					return delegate.version();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#executor()
+				 */
+				public Optional<Executor> executor() {
+					return delegate.executor();
+				}
+
+				/**
+				 * @return
+				 * @see java.net.http.HttpClient#newWebSocketBuilder()
+				 */
+				public java.net.http.WebSocket.Builder newWebSocketBuilder() {
+					return delegate.newWebSocketBuilder();
+				}
+			};
 		}
 		return httpclient;
 	}
@@ -207,8 +350,12 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			return QueryExecutionFactory.create(q, graph.getGraph().getModel());
 		}
 		if (graph.isRemote()) {
-			return QueryExecutionFactory.sparqlService(GidsService.getQueryURL(graph.getRemote()), q,
-					GidsService.getHttpClient(graph.getAuth()));
+			var builder = QueryExecutionHTTPBuilder.create() //
+					.endpoint(GidsService.getQueryURL(graph.getRemote())) //
+					.query(q) //
+			;
+			Optional.ofNullable(GidsService.getHttpClient(graph.getAuth())).ifPresent(h -> builder.httpClient(h));
+			return builder.build();
 		}
 		throw new IllegalArgumentException(); // Cannot happen
 	}
