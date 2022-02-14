@@ -1,13 +1,7 @@
 include:
       - project: 'ocs/cicd/parent'
-        ref: parent-1.1.11
+        ref: parent-1.1.12
         file: '/.gitlab-ci.yml'
-
-stages:
-  - compile and test
-  - acceptance
-  - production
-  - publish reports
 
 default:
       image: maven:3.8-openjdk-17-slim
@@ -28,23 +22,3 @@ default:
 sonar:
       only: 
        - external
-
-pages:
-  extends: .job
-  stage: publish reports
-  dependencies: []
-  allow_failure: true
-  script:
-    - mvn $MAVEN_CLI_OPTS -Ddependency.password=$CVE_PASSWORD site
-    - if [ -d target/site ]; then mv -f target/site public; else mkdir public; fi
-    - for file in *; do if [ -d "$file"/target/site ]; then mv "$file"/target/site public/"$file"; fi; done
-  when: always
-  artifacts:
-    paths:
-      - public
-  only:
-    - next
-  needs:
-  - compile and unit test
-
-         

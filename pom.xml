@@ -24,7 +24,7 @@
 	<parent>
 		<groupId>com.ocs.cicd</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.1.11</version>
+		<version>1.1.12</version>
 		<relativePath />
 	</parent>
 
@@ -139,33 +139,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.owasp</groupId>
-				<artifactId>dependency-check-maven</artifactId>
-				<configuration>
-					<skip>false</skip>
-					<retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
-					<autoUpdate>false</autoUpdate>
-					<failBuildOnCVSS>8</failBuildOnCVSS>
-					<junitFailOnCVSS>8</junitFailOnCVSS>
-					<databaseDriverName>org.postgresql.Driver</databaseDriverName>
-					<connectionString>${dependency.connection}</connectionString>
-					<databaseUser>${dependency.user}</databaseUser>
-					<databasePassword>${dependency.password}</databasePassword>
-					<suppressionFiles>
-						<suppressionFile>project-suppression.xml</suppressionFile>
-					</suppressionFiles>
-					<reportSets>
-						<reportSet>
-							<reports>
-								<report>aggregate</report>
-							</reports>
-						</reportSet>
-					</reportSets>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
 </project>
