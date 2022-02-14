@@ -3,6 +3,12 @@ include:
         ref: parent-1.1.11
         file: '/.gitlab-ci.yml'
 
+stages:
+  - build and test
+  - acceptance
+  - production
+  - publish reports
+
 default:
       image: maven:3.8-openjdk-17-slim
 
