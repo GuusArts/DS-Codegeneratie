@@ -22,4 +22,18 @@ default:
 sonar:
       only: 
        - external
+
+pages:
+  extends: .job
+  stage: publish reports
+  dependencies: []
+  script:
+    - mvn $MAVEN_CLI_OPTS site -Ddependency.locations.enabled=false
+    - if [ -d target/site ]; then mv -f target/site public; else mkdir public; fi
+    - for file in *; do if [ -d "$file"/target/site ]; then mv "$file"/target/site public/"$file"; fi; done
+  when: always
+  artifacts:
+    paths:
+      - public
+
          
