@@ -42,5 +42,10 @@ pages:
   artifacts:
     paths:
       - public
+  only:
+    - refs 
+      - pushes
+  needs:
+  - compile and unit test
 
          
