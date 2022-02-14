@@ -43,8 +43,7 @@ pages:
     paths:
       - public
   only:
-    - refs 
-      - pushes
+    - next
   needs:
   - compile and unit test
 
