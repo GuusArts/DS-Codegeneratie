@@ -33,6 +33,7 @@ pages:
   extends: .job
   stage: publish reports
   dependencies: []
+  allow_failure: true
   script:
     - mvn $MAVEN_CLI_OPTS site -Ddependency.locations.enabled=false
     - if [ -d target/site ]; then mv -f target/site public; else mkdir public; fi
