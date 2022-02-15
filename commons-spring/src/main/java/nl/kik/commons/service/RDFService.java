@@ -2,7 +2,6 @@ package nl.kik.commons.service;
 
 import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 import static java.time.temporal.ChronoField.MINUTE_OF_HOUR;
-import static java.time.temporal.ChronoField.NANO_OF_SECOND;
 import static java.time.temporal.ChronoField.SECOND_OF_MINUTE;
 
 import java.io.File;
@@ -18,16 +17,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
-import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.ResolverStyle;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -217,7 +212,7 @@ public class RDFService {
 	 * @param values
 	 * @return
 	 */
-	public static <U extends Enum<U>> U getEnum(final Collection<Resource> l, final Map<Resource, U> values) {
+	public static <U> U getEnum(final Collection<Resource> l, final Map<Resource, U> values) {
 		if (l == null) {
 			return null;
 		}
@@ -239,7 +234,7 @@ public class RDFService {
 		return list.get(0);
 	}
 
-	public static <U extends Enum<U>> U getEnum(final Graph<? extends Model> g, final Resource r, final Property p,
+	public static <U> U getEnum(final Graph<? extends Model> g, final Resource r, final Property p,
 			final Map<Resource, U> values) {
 		final U result = RDFService
 				.getEnum(RDFService.search(g, r, p, null, Statement::getResource).collect(Collectors.toList()), values);
@@ -247,7 +242,7 @@ public class RDFService {
 		return result;
 	}
 
-	public static <U extends Enum<U>> U getEnum(final MultiValuedMap<Property, RDFNode> map, final Property p,
+	public static <U> U getEnum(final MultiValuedMap<Property, RDFNode> map, final Property p,
 			final Map<Resource, U> values) {
 		final U result = RDFService.getEnum(map.get(p).stream() //
 				.filter(Resource.class::isInstance) //
@@ -569,8 +564,7 @@ public class RDFService {
 	private static DateTimeFormatter ISO_LOCAL_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive()
 			.append(DateTimeFormatter.ISO_LOCAL_DATE).appendLiteral('T')
 			.append(new DateTimeFormatterBuilder().appendValue(HOUR_OF_DAY, 2).appendLiteral(':')
-					.appendValue(MINUTE_OF_HOUR, 2).appendLiteral(':').appendValue(SECOND_OF_MINUTE, 2)
-					.toFormatter())
+					.appendValue(MINUTE_OF_HOUR, 2).appendLiteral(':').appendValue(SECOND_OF_MINUTE, 2).toFormatter())
 			.toFormatter();
 
 	protected Statement addProperty(final Graph<? extends Model> g, final Resource resource, final Property property,
