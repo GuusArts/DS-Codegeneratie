@@ -498,10 +498,10 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		final Resource savedParent = parent;
 		final Resource nodeResource = toResource(getNode(constraint.getSub()));
 		parent = nodeResource;
-		if (constraint.qMin() >= 0) {
+		if (constraint.qMin() > 0) {
 			model.add(savedParent, toProperty(SHACL.qualifiedMinCount), model.createTypedLiteral(constraint.qMin()));
 		}
-		if (constraint.qMax() >= 0) {
+		if (constraint.qMax() > 0) {
 			model.add(savedParent, toProperty(SHACL.qualifiedMaxCount), model.createTypedLiteral(constraint.qMax()));
 		}
 		if (constraint.qDisjoint()) {
