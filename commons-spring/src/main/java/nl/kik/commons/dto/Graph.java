@@ -1,6 +1,14 @@
 package nl.kik.commons.dto;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.graph.compose.MultiUnion;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.ontology.ProfileRegistry;
@@ -9,6 +17,7 @@ import org.apache.jena.query.TxnType;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.core.Transactional;
 
@@ -33,185 +42,229 @@ import lombok.extern.slf4j.Slf4j;
 @JsonInclude(Include.NON_NULL)
 @Slf4j
 public class Graph<G extends Model> implements Source {
-	/**
-	 * @param lock
-	 *
-	 */
-	public static void begin(final Model model, final Transactional t, final boolean lock) {
-		if (model.supportsTransactions()) {
-			if (t == null) {
-				model.begin();
-			} else {
-				t.begin(lock == Lock.READ ? TxnType.READ : TxnType.WRITE);
-			}
-		}
-		model.enterCriticalSection(lock);
-	}
+  /**
+   * @param lock
+   *
+   */
+  public static void begin(final Model model, final Transactional t, final boolean lock) {
+    if (model.supportsTransactions()) {
+      if (t == null) {
+        model.begin();
+      } else {
+        t.begin(lock == Lock.READ ? TxnType.READ : TxnType.WRITE);
+      }
+    }
+    model.enterCriticalSection(lock);
+  }
 
-	public static <T extends Model> Graph<T> create(final Pair<T, Transactional> p) {
-		return Graph.create(p.getLeft(), p.getRight(), null);
-	}
+  public static <T extends Model> Graph<T> create(final Pair<T, Transactional> p) {
+    return Graph.create(p.getLeft(), p.getRight(), null);
+  }
 
-	public static <T extends Model> Graph<T> create(final T model) {
-		return Graph.create(model, null, null);
-	}
+  public static <T extends Model> Graph<T> create(final T model) {
+    return Graph.create(model, null, null);
+  }
 
-	public static <T extends Model> Graph<T> create(final T model, final Graph<? extends Model> delegate) {
-		return Graph.create(model, null, delegate);
-	}
+  public static <T extends Model> Graph<T> create(final T model, final Graph<? extends Model> delegate) {
+    return Graph.create(model, null, delegate);
+  }
 
-	public static <T extends Model> Graph<T> create(final T model, final Transactional t) {
-		return Graph.create(model, t, null);
-	}
+  public static <T extends Model> Graph<T> create(final T model, final Transactional t) {
+    return Graph.create(model, t, null);
+  }
 
-	public static <T extends Model> Graph<T> create(final T model, final Transactional t,
-			final Graph<? extends Model> delegate) {
-		return Graph.<T>creator() //
-				.model(model) //
-				.transactional(t) //
-				.delegate(delegate) //
-				.build();
-	}
+  public static <T extends Model> Graph<T> create(final T model, final Transactional t,
+      final Graph<? extends Model> delegate) {
+    return Graph.<T>creator() //
+        .model(model) //
+        .transactional(t) //
+        .delegate(delegate) //
+        .build();
+  }
 
-	/**
-	 *
-	 */
-	public static void end(final Model model, final Transactional t, final boolean failed) {
-		try {
-			model.leaveCriticalSection();
-			if (model.supportsTransactions()) {
-				if (!failed) {
-					if (t == null) {
-						model.commit();
-					} else {
-						t.commit();
-					}
-				} else if (t == null) {
-					model.abort();
-				} else {
-					t.abort();
-				}
-			}
-		} catch (final Throwable e) {
-			if (model.supportsTransactions()) {
-				if (t == null) {
-					model.abort();
-				} else {
-					t.abort();
-				}
-			}
-			throw e;
-		}
-	}
+  public static <T extends Model> Graph<Model> create(final Graph<? extends T>... delegates) {
+    return create(Arrays.asList(delegates));
+  }
 
-	@ToString.Exclude
-	private G model;
+  @SuppressWarnings("unchecked")
+  public static <T extends Model> Graph<Model> create(final Collection<? extends Graph<? extends T>> delegates) {
+    if (delegates == null || delegates.isEmpty()) {
+      throw new IllegalArgumentException();
+    }
+    if (delegates.size() == 1) {
+      return (Graph<Model>) delegates.iterator().next();
+    }
+    List<Graph<? extends T>> list = new ArrayList<>(delegates);
+    List<Graph<? extends T>> reverse = new ArrayList<>(list);
+    Collections.reverse(reverse);
+    ModelCom union = new ModelCom(
+        new MultiUnion(list.stream().filter(Objects::nonNull).map(g -> g.getModel().getGraph()).iterator()));
+    return new Graph<Model>(creator().model(union)) {
+      public void beginRead() {
+        synchronized (list) {
+          list.forEach(Graph::beginRead);
+        }
+      }
 
-	@ToString.Exclude
-	private Transactional transactional;
+      public void beginWrite() {
+        synchronized (list) {
+          list.forEach(Graph::beginWrite);
+        }
+      }
 
-	private Graph<? extends Model> delegate;
+      public void commit() {
+        synchronized (reverse) {
+          reverse.forEach(Graph::commit);
+        }
+      }
 
-	@ToString.Exclude
-	private OntModel ontModel;
+      public void end() {
+        synchronized (reverse) {
+          reverse.forEach(Graph::end);
+        }
+      }
+    };
+  }
 
-	@Getter(AccessLevel.NONE)
-	private final ThreadLocal<Integer> nesting = ThreadLocal.withInitial(() -> 0);
+  /**
+   *
+   */
+  public static void end(final Model model, final Transactional t, final boolean failed) {
+    try {
+      model.leaveCriticalSection();
+      if (model.supportsTransactions()) {
+        if (!failed) {
+          if (t == null) {
+            model.commit();
+          } else {
+            t.commit();
+          }
+        } else if (t == null) {
+          model.abort();
+        } else {
+          t.abort();
+        }
+      }
+    } catch (final Throwable e) {
+      if (model.supportsTransactions()) {
+        if (t == null) {
+          model.abort();
+        } else {
+          t.abort();
+        }
+      }
+      throw e;
+    }
+  }
 
-	@Getter(AccessLevel.NONE)
-	private final ThreadLocal<Boolean> locktype = ThreadLocal.withInitial(() -> false);
+  @ToString.Exclude
+  private G model;
 
-	@Getter(AccessLevel.NONE)
-	private final ThreadLocal<Boolean> failed = ThreadLocal.withInitial(() -> false);
+  @ToString.Exclude
+  private Transactional transactional;
 
-	/**
-	 *
-	 */
-	@Override
-	public void beginRead() {
-		if (delegate != null) {
-			delegate.beginRead();
-		} else {
-			final int n = nesting.get() + 1;
-			nesting.set(n);
-			Graph.log.trace("Locking for READ at level {} in {}", n, Thread.currentThread());
-			if (n == 1) {
-				locktype.set(Lock.READ);
-				Graph.begin(model, transactional, Lock.READ);
-			}
-		}
-	}
+  private Graph<? extends Model> delegate;
 
-	/**
-	 *
-	 */
-	@Override
-	public void beginWrite() {
-		if (delegate != null) {
-			delegate.beginWrite();
-		} else {
-			final int n = nesting.get() + 1;
-			nesting.set(n);
-			Graph.log.trace("Locking for WRITE at level {} in {}", n, Thread.currentThread());
-			if (n == 1) {
-				locktype.set(Lock.WRITE);
-				failed.set(true);
-				Graph.begin(model, transactional, Lock.WRITE);
-			} else if (Lock.WRITE != locktype.get()) {
-				throw new RuntimeException("Fout bij wisselen naar schrijfmodus in transactie");
-			}
-		}
-	}
+  @ToString.Exclude
+  private OntModel ontModel;
 
-	@Override
-	public void commit() {
-		if (delegate != null) {
-			delegate.commit();
-		} else if (nesting.get() == 1 && Lock.WRITE == locktype.get()) {
-			failed.set(false);
-		}
-	}
+  @Getter(AccessLevel.NONE)
+  private final ThreadLocal<Integer> nesting = ThreadLocal.withInitial(() -> 0);
 
-	/**
-	 *
-	 */
-	@Override
-	public void end() {
-		if (delegate != null) {
-			delegate.end();
-		} else {
-			final int n = nesting.get() - 1;
-			nesting.set(n);
-			Graph.log.trace("Unlocking at level {} in {}", n + 1, Thread.currentThread());
-			if (n < 0) {
-				throw new RuntimeException("Begin-einde is niet in balans");
-			}
-			if (n == 0) {
-				final boolean write = Lock.WRITE == locktype.get();
-				final boolean fail = failed.get();
-				Graph.end(model, transactional, write ? fail : false);
-			}
-		}
-	}
+  @Getter(AccessLevel.NONE)
+  private final ThreadLocal<Boolean> locktype = ThreadLocal.withInitial(() -> false);
 
-	public Dataset getDataset() {
-		if (transactional instanceof Dataset) {
-			return (Dataset) transactional;
-		}
-		Graph.log.warn("Trying to obtain dataset from graph that has none");
-		return null;
-	}
+  @Getter(AccessLevel.NONE)
+  private final ThreadLocal<Boolean> failed = ThreadLocal.withInitial(() -> false);
 
-	public OntModel getOntModel() {
-		if (ontModel == null) {
-			ModelFactory.createOntologyModel(OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG), getModel());
-		}
-		return ontModel;
-	}
+  /**
+   *
+   */
+  @Override
+  public void beginRead() {
+    if (delegate != null) {
+      delegate.beginRead();
+    } else {
+      final int n = nesting.get() + 1;
+      nesting.set(n);
+      Graph.log.trace("Locking for READ at level {} in {}", n, Thread.currentThread());
+      if (n == 1) {
+        locktype.set(Lock.READ);
+        Graph.begin(model, transactional, Lock.READ);
+      }
+    }
+  }
 
-	@Override
-	public Resource getResource(final String uri) {
-		return getModel().getResource(uri);
-	}
+  /**
+   *
+   */
+  @Override
+  public void beginWrite() {
+    if (delegate != null) {
+      delegate.beginWrite();
+    } else {
+      final int n = nesting.get() + 1;
+      nesting.set(n);
+      Graph.log.trace("Locking for WRITE at level {} in {}", n, Thread.currentThread());
+      if (n == 1) {
+        locktype.set(Lock.WRITE);
+        failed.set(true);
+        Graph.begin(model, transactional, Lock.WRITE);
+      } else if (Lock.WRITE != locktype.get()) {
+        throw new RuntimeException("Fout bij wisselen naar schrijfmodus in transactie");
+      }
+    }
+  }
+
+  @Override
+  public void commit() {
+    if (delegate != null) {
+      delegate.commit();
+    } else if (nesting.get() == 1 && Lock.WRITE == locktype.get()) {
+      failed.set(false);
+    }
+  }
+
+  /**
+   *
+   */
+  @Override
+  public void end() {
+    if (delegate != null) {
+      delegate.end();
+    } else {
+      final int n = nesting.get() - 1;
+      nesting.set(n);
+      Graph.log.trace("Unlocking at level {} in {}", n + 1, Thread.currentThread());
+      if (n < 0) {
+        throw new RuntimeException("Begin-einde is niet in balans");
+      }
+      if (n == 0) {
+        final boolean write = Lock.WRITE == locktype.get();
+        final boolean fail = failed.get();
+        Graph.end(model, transactional, write ? fail : false);
+      }
+    }
+  }
+
+  public Dataset getDataset() {
+    if (transactional instanceof Dataset) {
+      return (Dataset) transactional;
+    }
+    Graph.log.warn("Trying to obtain dataset from graph that has none");
+    return null;
+  }
+
+  public OntModel getOntModel() {
+    if (ontModel == null) {
+      ModelFactory.createOntologyModel(OntModelSpec.getDefaultSpec(ProfileRegistry.OWL_LANG), getModel());
+    }
+    return ontModel;
+  }
+
+  @Override
+  public Resource getResource(final String uri) {
+    return getModel().getResource(uri);
+  }
 
 }
