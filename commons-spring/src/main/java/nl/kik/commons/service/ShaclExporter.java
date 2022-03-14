@@ -481,7 +481,9 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		final Resource nodeResource = toResource(getNode(propertyShape));
 		parent = nodeResource;
 
-		model.add(savedParent, toProperty(SHACL.property), nodeResource);
+		if (savedParent != null) {
+			model.add(savedParent, toProperty(SHACL.property), nodeResource);
+		}
 		model.add(nodeResource, RDF.type, toResource(SHACL.PropertyShape));
 		if (propertyShape.getPath() != null) {
 			propertyShape.getPath().visit(this);
