@@ -30,7 +30,6 @@ import java.util.stream.StreamSupport;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -67,7 +66,7 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.vocabulary.RDF;
 import org.springframework.stereotype.Service;
 
-import lombok.experimental.Delegate;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;

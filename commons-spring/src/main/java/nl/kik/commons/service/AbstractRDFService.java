@@ -9,8 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,6 +19,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;

@@ -4,8 +4,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,6 +19,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.VCARD4;
 import org.springframework.stereotype.Service;
 
+import jakarta.validation.constraints.NotNull;
 import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.Catalog.CatalogBuilder;
 import nl.kik.commons.datastation.dto.dcat.CatalogRecord;

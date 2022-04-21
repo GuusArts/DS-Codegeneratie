@@ -32,8 +32,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -49,6 +47,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
 
