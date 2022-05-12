@@ -18,7 +18,7 @@
 		<spring.boot.version>2.7.0-M2</spring.boot.version>
 		<nimbus-jose-jwt.version>9.21</nimbus-jose-jwt.version>
 		<junit.version>5.8.2</junit.version>
-		<jena.version>4.4.0</jena.version>
+		<jena.version>4.5.0</jena.version>
 	</properties>
 
 	<parent>
