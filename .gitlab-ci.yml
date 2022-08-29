@@ -1,6 +1,6 @@
 include:
       - project: 'ocs/cicd/parent'
-        ref: parent-1.1.12
+        ref: parent-1.1.22
         file: '/.gitlab-ci.yml'
 
 default:
@@ -15,10 +15,5 @@ default:
        - external
 
 .golive:
-      only: 
-       - external
-
-# Doesn't workd with Jav 17 right now
-sonar:
       only: 
        - external
