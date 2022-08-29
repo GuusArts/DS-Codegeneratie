@@ -15,16 +15,16 @@
 		<maven.javadoc.skip>true</maven.javadoc.skip>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
-		<spring.boot.version>2.7.1</spring.boot.version>
-		<nimbus-jose-jwt.version>9.23</nimbus-jose-jwt.version>
-		<junit.version>5.8.2</junit.version>
-		<jena.version>4.5.0</jena.version>
+		<spring.boot.version>2.7.3</spring.boot.version>
+		<nimbus-jose-jwt.version>9.24.3</nimbus-jose-jwt.version>
+		<junit.version>5.9.0</junit.version>
+		<jena.version>4.6.0</jena.version>
 	</properties>
 
 	<parent>
 		<groupId>com.ocs.cicd</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.1.12</version>
+		<version>1.1.22</version>
 		<relativePath />
 	</parent>
 
