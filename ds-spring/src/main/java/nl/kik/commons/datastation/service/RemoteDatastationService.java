@@ -42,7 +42,7 @@ public class RemoteDatastationService {
 		final ResponseEntity<Void> result = rest.postForEntity(url, requestConverter.encode(request), Void.class);
 		RemoteDatastationService.log.trace("Received for request {}", result.getStatusCode());
 		if (result.getStatusCode().isError()) {
-			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
+			throw new IllegalArgumentException(result.getStatusCode().toString());
 		}
 	}
 
@@ -53,7 +53,7 @@ public class RemoteDatastationService {
 				responseConverter.encode((ReturnMessage<Object>) response), Void.class);
 		RemoteDatastationService.log.trace("Received for response {}", result.getStatusCode());
 		if (result.getStatusCode().isError()) {
-			throw new IllegalArgumentException(result.getStatusCode().getReasonPhrase());
+			throw new IllegalArgumentException(result.getStatusCode().toString());
 		}
 	}
 

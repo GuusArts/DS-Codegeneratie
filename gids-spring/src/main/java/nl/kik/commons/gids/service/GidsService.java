@@ -30,7 +30,7 @@ import java.util.stream.StreamSupport;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
