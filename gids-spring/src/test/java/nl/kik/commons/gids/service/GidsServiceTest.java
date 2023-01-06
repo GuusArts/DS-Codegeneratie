@@ -142,7 +142,6 @@ class GidsServiceTest {
 				.build();
 
 		fusekiServer.start();
-		fusekiServer.logServer();
 
 		try {
 			Thread.sleep(2000); // Wait for server to start
