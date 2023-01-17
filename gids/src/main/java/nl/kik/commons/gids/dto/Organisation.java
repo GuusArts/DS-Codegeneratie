@@ -32,6 +32,7 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 	private GidsAttribute<String> kvk;
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
+	private GidsAttribute<String> endpoint;
 
 	@Override
 	public int compareTo(final Organisation o) {
@@ -39,6 +40,10 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 			return 1;
 		}
 		int result = compare(kvk, o.kvk);
+		if (result != 0) {
+			return result;
+		}
+		result = compare(endpoint, o.endpoint);
 		if (result != 0) {
 			return result;
 		}
@@ -75,8 +80,9 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 	}
 
 	public Organisation orNull() {
-		if (getId() == null && address == null && office == null && (name == null || name.isEmpty()) && primaryName == null
-				&& lastModified == null && (agb == null || agb.isEmpty()) && (sbi == null || sbi.isEmpty()) && kvk == null
+		if (getId() == null && address == null && office == null && (name == null || name.isEmpty())
+				&& primaryName == null && lastModified == null && (agb == null || agb.isEmpty())
+				&& (sbi == null || sbi.isEmpty()) && kvk == null && endpoint == null
 				&& (location == null || location.isEmpty()) && deliveryMethod == null) {
 			return null;
 		}
@@ -113,6 +119,7 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 								.sorted() //
 								.collect(Collectors.toList()))) //
 				.kvk(kvk == null ? null : kvk.project(key, date)) //
+				.endpoint(endpoint == null ? null : endpoint.project(key, date)) //
 				.location(location == null ? null
 						: orNull(location.stream() //
 								.filter(Objects::nonNull) //

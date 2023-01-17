@@ -27,6 +27,7 @@ import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.gids.dto.Address;
 import nl.kik.commons.gids.dto.CareOffice;
 import nl.kik.commons.gids.dto.Concessionaire;
+import nl.kik.commons.gids.dto.DeliveryMethod;
 import nl.kik.commons.gids.dto.GidsAttribute;
 import nl.kik.commons.gids.dto.GidsObject;
 import nl.kik.commons.gids.dto.GraphOrRemote;
@@ -78,7 +79,8 @@ class GidsServiceTest {
 		careOffice = CareOffice.builder() //
 				.code(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "5529").build()) //
 				.name(GidsAttribute.<String>builder().alternative(Source.TABELBEHEER, "ZUIDOOST-BRABANT").build()) //
-				.concessionaire(GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
+				.concessionaire(
+						GidsAttribute.<Concessionaire>builder().alternative(Source.TABELBEHEER, concessionaire).build()) //
 				.region(GidsAttribute.<Region>builder().alternative(Source.TABELBEHEER, region).build()) //
 				.build();
 
@@ -110,6 +112,10 @@ class GidsServiceTest {
 				.sbi(List.of(GidsAttribute.<String>builder().alternative(Source.LRZA, "871").build(),
 						GidsAttribute.<String>builder().alternative(Source.LRZA, "88101").build())) //
 				.kvk(GidsAttribute.<String>builder().alternative(Source.LRZA, "98765432").build()) //
+				.endpoint(GidsAttribute.<String>builder()
+						.alternative(Source.LRZA, "http://acceptatie.kikstarter.nl").build()) //
+				.deliveryMethod(GidsAttribute.<DeliveryMethod>builder()
+						.alternative(Source.LRZA, DeliveryMethod.Datastation).build()) //
 				.location(List.of(GidsAttribute.<Location>builder().alternative(Source.LRZA, location).build())) //
 				.build();
 
@@ -173,7 +179,8 @@ class GidsServiceTest {
 		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
 		try {
 			for (final GidsObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+						m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {
@@ -415,7 +422,8 @@ class GidsServiceTest {
 			final List<GidsObject> all = new ArrayList<>(model);
 			all.add(organisation);
 			for (final RDFObject m : all) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null, m.getId());
+				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+						m.getId());
 				if (o.isEmpty()) {
 					Assertions.fail("Not found " + m);
 				} else {

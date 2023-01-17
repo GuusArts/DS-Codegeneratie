@@ -143,6 +143,12 @@
     
 
 
+    <!-- https://kik-v.nl/ontology/starter/gids#endpoint -->
+
+    <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#endpoint"/>
+    
+
+
     <!-- https://kik-v.nl/ontology/starter/gids#from -->
 
     <owl:DatatypeProperty rdf:about="https://kik-v.nl/ontology/starter/gids#from">
