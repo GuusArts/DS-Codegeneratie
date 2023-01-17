@@ -1,6 +1,6 @@
 include:
       - project: 'ocs/cicd/parent'
-        ref: parent-1.1.23
+        ref: parent-1.1
         file: '/.gitlab-ci.yml'
 
 default:
