@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>nl.kik-v.commons</groupId>
 	<artifactId>parent</artifactId>
-	<version>2.0.0-SNAPSHOT</version>
+	<version>2.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>KIK-V Commons</name>
 	<properties>
@@ -16,7 +16,7 @@
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
 		<spring.boot.version>2.7.8</spring.boot.version>
-		<nimbus-jose-jwt.version>9.30.1</nimbus-jose-jwt.version>
+		<nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
 		<junit.version>5.9.2</junit.version>
 		<jena.version>4.7.0</jena.version>
 	</properties>
