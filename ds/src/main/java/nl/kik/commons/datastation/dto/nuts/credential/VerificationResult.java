@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.dto.nuts;
+package nl.kik.commons.datastation.dto.nuts.credential;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

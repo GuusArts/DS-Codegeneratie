@@ -34,7 +34,7 @@ import nl.kik.commons.datastation.dto.ds.SelectResult;
 public class SPARQLService {
 	protected Map<String, Object> parse(final Model model) throws ParseException {
 		final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		RDFDataMgr.write(outputStream, model, RDFFormat.JSONLD_COMPACT_FLAT);
+		RDFDataMgr.write(outputStream, model, RDFFormat.JSONLD10_COMPACT_FLAT);
 		return JSONObjectUtils.parse(outputStream.toString());
 	}
 

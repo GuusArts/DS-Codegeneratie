@@ -45,7 +45,7 @@ public class ListOrSingle {
 		}
 	}
 
-	public static abstract class Deserialize<T> extends JsonDeserializer<List<T>> {
+	private static abstract class Deserialize<T> extends JsonDeserializer<List<T>> {
 		public abstract T convert(String value);
 
 		@Override

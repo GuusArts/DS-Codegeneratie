@@ -361,7 +361,7 @@ class SerializationTest {
     @Test
     void presentationVerificationResult() throws Exception {
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/presentationverificationresult")) //
-//				.andDo(print()) //
+//              .andDo(print()) //
                 .andExpect(MockMvcResultMatchers.status().isOk()) //
                 .andReturn();
         final String request = result.getResponse().getContentAsString();
@@ -369,14 +369,14 @@ class SerializationTest {
 
         result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/presentationverificationresult").content(request)
                 .contentType(MediaType.APPLICATION_JSON)) //
-//				.andDo(print()) //
+//              .andDo(print()) //
                 .andExpect(MockMvcResultMatchers.status().isOk()) //
                 .andReturn();
         Assertions.assertEquals(request, result.getResponse().getContentAsString());
 
         result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/presentationverificationresult").content(request)
                 .contentType(MediaType.APPLICATION_JSON)) //
-//				.andDo(print()) //
+//              .andDo(print()) //
                 .andExpect(MockMvcResultMatchers.status().isOk()) //
                 .andReturn();
         Assertions.assertEquals(request, result.getResponse().getContentAsString());
@@ -386,123 +386,32 @@ class SerializationTest {
                 .andExpect(MockMvcResultMatchers.status().is(400));
     }
 
-//	@Test
-//	void ask() throws Exception {
-//		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/ask")) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		final String request = result.getResponse().getContentAsString();
-//		SerializationTest.log.info("Ask: {}", request);
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/ask").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/response").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		mockMvc.perform(MockMvcRequestBuilders.post("/ask").content("AAAA" + request)) //
-//				.andExpect(MockMvcResultMatchers.status().is(400));
-//	}
+    @Test
+    void signResultSet() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/signresultset")) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        final String request = result.getResponse().getContentAsString();
+        SerializationTest.log.info("signResultSet: {}", new JSONObject(request).toString(2));
 
-//	@Test
-//	void construct() throws Exception {
-//		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/construct")) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		final String request = result.getResponse().getContentAsString();
-//		SerializationTest.log.info("Construct: {}", request);
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/construct").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/response").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		mockMvc.perform(MockMvcRequestBuilders.post("/construct").content("AAAA" + request)) //
-//				.andExpect(MockMvcResultMatchers.status().is(400));
-//	}
-//
-//	@Test
-//	void error() throws Exception {
-//		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/error")) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		final String request = result.getResponse().getContentAsString();
-//		SerializationTest.log.info("Error: {}", request);
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/error").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/response").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		mockMvc.perform(MockMvcRequestBuilders.post("/error").content("AAAA" + request)) //
-//				.andExpect(MockMvcResultMatchers.status().is(400));
-//	}
-//
-//	@Test
-//	void request() throws Exception {
-//		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/request")) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		final String request = result.getResponse().getContentAsString();
-//		SerializationTest.log.info("Request: {}", request);
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/request").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		mockMvc.perform(MockMvcRequestBuilders.post("/request").content("AAAA" + request)) //
-//				.andExpect(MockMvcResultMatchers.status().is(400));
-//	}
-//
-//	@Test
-//	void select() throws Exception {
-//		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/select")) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		final String request = result.getResponse().getContentAsString();
-//		SerializationTest.log.info("Select: {}", request);
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/select").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		result = mockMvc.perform(MockMvcRequestBuilders.post("/response").content(request)) //
-////				.andDo(print()) //
-//				.andExpect(MockMvcResultMatchers.status().isOk()) //
-//				.andReturn();
-//		Assertions.assertEquals(request, result.getResponse().getContentAsString());
-//
-//		mockMvc.perform(MockMvcRequestBuilders.post("/select").content("AAAA" + request)) //
-//				.andExpect(MockMvcResultMatchers.status().is(400));
-//	}
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/signresultset").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/signresultset").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/nuts/signresultset").content("AAAA" + request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+                .andExpect(MockMvcResultMatchers.status().is(400));
+    }
 
 }

@@ -13,8 +13,8 @@ import com.nimbusds.jose.JOSEException;
 
 import foundation.identity.jsonld.JsonLDUtils;
 import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
-import nl.kik.commons.datastation.dto.nuts.CreateVerifiableCredential;
-import nl.kik.commons.datastation.dto.nuts.Visibility;
+import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.credential.Visibility;
 
 class VCTest {
 

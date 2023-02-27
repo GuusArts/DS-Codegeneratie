@@ -1,9 +1,6 @@
-package nl.kik.commons.datastation.dto.nuts;
+package nl.kik.commons.datastation.dto.nuts.credential;
 
-import java.net.URI;
-import java.time.ZonedDateTime;
-import java.util.Map;
-
+import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -20,10 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Revocation {
-    private URI issuer;
-    private String subject;
-    private String reason;
-    private ZonedDateTime date;
-    private Map<String, Object> proof;
+public class VerifyVerifiableCredential {
+	private VerifiableCredential verifiableCredential;
+	private VerificationOptions verificationOptions;
 }

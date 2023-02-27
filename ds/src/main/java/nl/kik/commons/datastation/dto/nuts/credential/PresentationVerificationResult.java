@@ -1,11 +1,10 @@
-package nl.kik.commons.datastation.dto.nuts;
+package nl.kik.commons.datastation.dto.nuts.credential;
 
-import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.List;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,16 +15,12 @@ import lombok.extern.jackson.Jacksonized;
 
 @Getter
 @SuperBuilder(toBuilder = true)
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateVerifiablePresentation {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class PresentationVerificationResult extends VerificationResult {
 	@Singular
-	private List<VerifiableCredential> verifiableCredentials;
-	private URI signerDID;
-	private ProofPurpose proofPurpose;
-	private String challenge;
-	private String domain;
-	private ZonedDateTime expires;
+	private List<VerifiableCredential> credentials;
 }

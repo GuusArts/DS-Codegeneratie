@@ -1,5 +1,6 @@
-package nl.kik.commons.datastation.dto.nuts;
+package nl.kik.commons.datastation.dto.nuts.credential;
 
+import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -16,6 +17,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class VerificationOptions {
-    private boolean allowUntrustedIssuer;
+public class SearchVerifiableCredential {
+    private VerifiableCredential query;
+    private SearchOptions searchOptions;
 }

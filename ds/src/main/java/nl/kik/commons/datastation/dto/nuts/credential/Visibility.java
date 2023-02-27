@@ -1,4 +1,4 @@
-package nl.kik.commons.datastation.dto.nuts;
+package nl.kik.commons.datastation.dto.nuts.credential;
 
 public enum Visibility {
     Private("private"), Public("public");

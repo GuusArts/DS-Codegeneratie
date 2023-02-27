@@ -35,20 +35,21 @@ import nl.kik.commons.datastation.dto.kikv.Response;
 import nl.kik.commons.datastation.dto.kikv.Result;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
 import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
-import nl.kik.commons.datastation.dto.nuts.CreateVerifiableCredential;
-import nl.kik.commons.datastation.dto.nuts.CreateVerifiablePresentation;
-import nl.kik.commons.datastation.dto.nuts.PresentationVerificationResult;
-import nl.kik.commons.datastation.dto.nuts.ProofPurpose;
-import nl.kik.commons.datastation.dto.nuts.Revocation;
-import nl.kik.commons.datastation.dto.nuts.SearchOptions;
-import nl.kik.commons.datastation.dto.nuts.SearchResult;
-import nl.kik.commons.datastation.dto.nuts.SearchVerifiableCredential;
-import nl.kik.commons.datastation.dto.nuts.VerifiableCredentialSearchResult;
-import nl.kik.commons.datastation.dto.nuts.VerificationOptions;
-import nl.kik.commons.datastation.dto.nuts.VerificationResult;
-import nl.kik.commons.datastation.dto.nuts.VerifyVerifiableCredential;
-import nl.kik.commons.datastation.dto.nuts.VerifyVerifiablePresentation;
-import nl.kik.commons.datastation.dto.nuts.Visibility;
+import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiablePresentation;
+import nl.kik.commons.datastation.dto.nuts.credential.PresentationVerificationResult;
+import nl.kik.commons.datastation.dto.nuts.credential.ProofPurpose;
+import nl.kik.commons.datastation.dto.nuts.credential.Revocation;
+import nl.kik.commons.datastation.dto.nuts.credential.SearchOptions;
+import nl.kik.commons.datastation.dto.nuts.credential.SearchResult;
+import nl.kik.commons.datastation.dto.nuts.credential.SearchVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.credential.VerifiableCredentialSearchResult;
+import nl.kik.commons.datastation.dto.nuts.credential.VerificationOptions;
+import nl.kik.commons.datastation.dto.nuts.credential.VerificationResult;
+import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
+import nl.kik.commons.datastation.dto.nuts.credential.Visibility;
+import nl.kik.commons.datastation.dto.nuts.crypto.SignResultSet;
 
 @RestController
 @Slf4j
@@ -216,6 +217,21 @@ public class SerializationController {
         return create;
     }
 
+    @GetMapping("/nuts/signresultset")
+    public SignResultSet signResultSet() {
+        return SignResultSet.builder() //
+                .header("header", "headerValue") //
+                .detached(false) //
+                .kid(URI.create("urn:from")) //
+                .payload(resultset()) //
+                .build();
+    }
+
+    @PostMapping("/nuts/signresultset")
+    public SignResultSet signResultSet(@RequestBody SignResultSet create) {
+        return create;
+    }
+
     @GetMapping("/didcomm/request")
     public Request request() {
         return Request.builder() //
@@ -289,18 +305,25 @@ public class SerializationController {
                 .expires_time(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
                         .toZonedDateTime()) //
                 .body(QueryResponse.builder() //
-                        .response(ResultSet.builder() //
-                                .result(Result.builder() //
-                                        .messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
-                                        .queryId("014b0186-a472-4c1f-8883-5d394dba7ee8") //
-                                        .result(ask()) //
-                                        .build()) //
-                                .result(Result.builder() //
-                                        .messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
-                                        .queryId("afd5a04d-4747-44d6-bc59-43f5b6ecf8b5") //
-                                        .result(select()) //
-                                        .build()) //
-                                .build()) //
+                        .response(resultset()) //
+                        .build()) //
+                .build();
+    }
+
+    /**
+     * @return
+     */
+    private ResultSet resultset() {
+        return ResultSet.builder() //
+                .result(Result.builder() //
+                        .messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
+                        .queryId("014b0186-a472-4c1f-8883-5d394dba7ee8") //
+                        .result(ask()) //
+                        .build()) //
+                .result(Result.builder() //
+                        .messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
+                        .queryId("afd5a04d-4747-44d6-bc59-43f5b6ecf8b5") //
+                        .result(select()) //
                         .build()) //
                 .build();
     }
@@ -345,38 +368,6 @@ public class SerializationController {
         return create;
     }
 
-//	
-//	
-//	@GetMapping("/ask")
-//	public ReturnMessage<?> ask() throws MalformedURLException {
-//		SerializationController.log.info("GET ask");
-//
-//		final AskResult ask = AskResult.builder() //
-//				.head(Header.builder().build()) //
-//				.value(true) //
-//				.build();
-//
-//		final Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
-//				.keyId("urn:userkey") //
-//				.body(Map.of("urn:ask", ask)) //
-//				.issuer("did:sender") //
-//				.from("did:sender") //
-//				.to(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.build();
-//
-//		return message;
-//	}
-//
-//	@PostMapping("/ask")
-//	public ReturnMessage<?> ask(@RequestBody final ReturnMessage<?> ask) {
-//		SerializationController.log.info("POST ask {}", ask);
-//		return ask;
-//	}
-//
 //	@GetMapping("/construct")
 //	public ReturnMessage<?> construct() throws MalformedURLException, ParseException {
 //		SerializationController.log.info("GET construct");
@@ -413,188 +404,5 @@ public class SerializationController {
 //		return construct;
 //	}
 //
-//	@GetMapping("/error")
-//	public ReturnMessage<?> error() {
-//		SerializationController.log.info("GET error");
-//
-//		final ErrorReport<String> message = ErrorReport.<String>builder() //
-//				.keyId("urn:userkey") //
-//				.body("Something went wrong") //
-//				.issuer("did:sender") //
-//				.from("did:sender") //
-//				.to(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.build();
-//
-//		return message;
-//	}
-//
-//	@GetMapping("/request")
-//	public Request<VerifiablePresentation> request() throws MalformedURLException {
-//		SerializationController.log.info("GET request");
-//		final ValidatedQuery credential = ValidatedQuery.builder() //
-//				.keyId("urn:centralkey") //
-//				.issuer("did:central") //
-//				.audience(Collections.singletonList("did:sender")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.profile("urn:profile") //
-//				.ontology("urn:ontology") //
-//				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
-//				.build();
-//
-//		final VerifiablePresentation presentation = VerifiablePresentation.builder() //
-//				.keyId("urn:userkey") //
-//				.issuer("did:sender") //
-//				.audience(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.credential(Collections.singletonList(credential)) //
-//				.build();
-//
-//		final Request<VerifiablePresentation> message = Request.<VerifiablePresentation>builder() //
-//				.keyId("urn:userkey") //
-//				.body(presentation) //
-//				.issuer("did:sender") //
-//				.from("did:sender") //
-//				.replyUrl(new URL("http://example.com/datastation")) //
-//				.to(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.build();
-//
-//		return message;
-//	}
-//
-//	@PostMapping("/request")
-//	public Request<VerifiablePresentation> request(@RequestBody final Request<VerifiablePresentation> request) {
-//		SerializationController.log.info("POST request {}", request);
-//		return request;
-//	}
-//
-//	@PostMapping("/error")
-//	public ReturnMessage<?> request(@RequestBody final ReturnMessage<?> error) {
-//		SerializationController.log.info("POST error {}", error);
-//		return error;
-//	}
-//
-//	@PostMapping("/response")
-//	public ReturnMessage<?> response(@RequestBody final ReturnMessage<?> response) {
-//		SerializationController.log.info("POST response {}", response);
-//		return response;
-//	}
-//
-//	@GetMapping("/select")
-//	public ReturnMessage<?> select() throws MalformedURLException {
-//		SerializationController.log.info("GET select");
-//
-//		final SelectResult select = SelectResult.builder() //
-//				.head(Header.builder() //
-//						.link(List.of(new URL("http://example.com"))) //
-//						.vars(List.of("a", "b")) //
-//						.build()) //
-//				.results(SelectBody.builder() //
-//						.bindings(List.of( //
-//								Map.of("a", Binding.builder().value("1").type(RDFType.literal).build()), //
-//								Map.of("a", Binding.builder().value("http://example.com").type(RDFType.uri).build()), //
-//								Map.of("b", Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
-//								Map.of("a", Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string").build(), //
-//										"b", Binding.builder().value("b23").type(RDFType.bnode).build()) //
-//						)) //
-//						.build())//
-//				.build();
-//
-//		final Response<Map<String, Result>> message = Response.<Map<String, Result>>builder() //
-//				.keyId("urn:userkey") //
-//				.body(Map.of("urn:select", select)) //
-//				.issuer("did:sender") //
-//				.from("did:sender") //
-//				.to(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.build();
-//
-//		return message;
-//	}
-//
-//	@PostMapping("/select")
-//	public ReturnMessage<?> select(@RequestBody final ReturnMessage<?> select) {
-//		SerializationController.log.info("POST select {}", select);
-//		return select;
-//	}
-//
-//	@GetMapping("/vc")
-//	public VerifiableCredential vc() throws MalformedURLException {
-//		SerializationController.log.info("GET vc");
-//
-//		final ValidatedQuery credential = ValidatedQuery.builder() //
-//				.keyId("urn:centralkey") //
-//				.issuer("did:central") //
-//				.audience(Collections.singletonList("did:sender")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.profile("urn:profile") //
-//				.ontology("urn:ontology") //
-//				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
-//				.build();
-//
-//		return credential;
-//	}
-//
-//	@GetMapping("/vp")
-//	public VerifiablePresentation vp() throws MalformedURLException {
-//		SerializationController.log.info("GET vp");
-//
-//		final ValidatedQuery credential = ValidatedQuery.builder() //
-//				.keyId("urn:centralkey") //
-//				.issuer("did:central") //
-//				.audience(Collections.singletonList("did:sender")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.profile("urn:profile") //
-//				.ontology("urn:ontology") //
-//				.query("SELECT ?s ?p ?o WHERE { ?s ?p ?o }") //
-//				.build();
-//
-//		final VerifiablePresentation presentation = VerifiablePresentation.builder() //
-//				.keyId("urn:userkey") //
-//				.issuer("did:sender") //
-//				.audience(Collections.singletonList("did:recipient")) //
-//				.expiration(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.validFrom(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
-//						.toZonedDateTime()) //
-//				.credential(Collections.singletonList(credential)) //
-//				.build();
-//
-//		return presentation;
-//	}
-//
-//	@PostMapping("/vc")
-//	public VerifiableCredential vp(@RequestBody final VerifiableCredential vc) {
-//		SerializationController.log.info("POST vc {}", vc);
-//		return vc;
-//	}
-//
-//	@PostMapping("/vp")
-//	public VerifiablePresentation vp(@RequestBody final VerifiablePresentation vp) {
-//		SerializationController.log.info("POST vp {}", vp);
-//		return vp;
-//	}
 
 }
