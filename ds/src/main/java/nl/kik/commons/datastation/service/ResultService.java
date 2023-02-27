@@ -1,7 +1,8 @@
 package nl.kik.commons.datastation.service;
 
-import java.net.URL;
+import java.net.URI;
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,282 +25,316 @@ import nl.kik.commons.datastation.dto.ds.SelectResult;
 import nl.kik.commons.datastation.dto.ds.SelectResult.SelectResultBuilder;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 
-public class ResultService extends AbstractTokenService {
-	private static final String XML_LANG = "xml:lang";
-	private static final String DATATYPE = "datatype";
-	private static final String VALUE = "value";
-	private static final String TYPE = "type";
-	private static final String BINDINGS = "bindings";
-	private static final String RESULTS = "results";
-	private static final String BOOLEAN = "boolean";
-	private static final String VARS = "vars";
-	private static final String LINK = "link";
-	private static final String HEAD = "head";
+public class ResultService {
+    private static final String XML_LANG = "xml:lang";
+    private static final String DATATYPE = "datatype";
+    private static final String VALUE = "value";
+    private static final String TYPE = "type";
+    private static final String BINDINGS = "bindings";
+    private static final String RESULTS = "results";
+    private static final String BOOLEAN = "boolean";
+    private static final String VARS = "vars";
+    private static final String LINK = "link";
+    private static final String HEAD = "head";
 
-	public SPARQLResult unwrap(final Map<String, Object> object) throws ParseException {
-		final Map<String, Object> head = JSONObjectUtils.getJSONObject(object, ResultService.HEAD);
-		if (head != null) {
-			return unwrapSPARQL(object, head) //
-					.build();
-		}
-		final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
-		if (results != null) {
-			return unwrapJSONLD(object, results) //
-					.build();
-		}
-		return unwrapExtension(object);
-	}
+    private <T> T getGeneric(final Map<String, Object> o, final String key, final Class<T> clazz)
+            throws ParseException {
+        if (o.get(key) == null) {
+            return null;
+        }
+        final Object value = o.get(key);
+        if (!clazz.isAssignableFrom(value.getClass())) {
+            throw new ParseException("Unexpected type of JSON object member with key \"" + key + "\"", 0);
+        }
+        return clazz.cast(value);
+    }
 
-	protected AskResult.AskResultBuilder<?, ?> unwrapAsk(final Map<String, Object> object, final Boolean value)
-			throws ParseException {
-		final AskResultBuilder<?, ?> result = AskResult.builder() //
+    @SuppressWarnings("unchecked")
+    private <T> List<T> getList(final Map<String, Object> o, final String key, final Class<T> clazz)
+            throws ParseException {
+        final List<Object> array = JSONObjectUtils.getJSONArray(o, key);
+        if (array == null) {
+            return Collections.emptyList();
+        }
+        if (!array.stream().allMatch(clazz::isInstance)) {
+            throw new ParseException("Not all objects have type " + clazz, 0);
+        }
+        return (List<T>) array;
+    }
 
-				.value(value) //
-		;
-		return unwrapExtension(result);
-	}
+    private String getRequiredString(final Map<String, Object> json, final String key) throws ParseException {
+        return checkNonNull(key, JSONObjectUtils.getString(json, key));
+    }
 
-	@SuppressWarnings("unchecked")
-	protected Map<String, Binding> unwrapBinding(final Map<String, Object> binding) throws ParseException {
-		try {
-			return binding.entrySet().stream() //
-					.collect(Collectors.toMap(Entry::getKey,
-							FunctionWrapper.wrapper((final Map.Entry<String, Object> e) -> unwrapBindingValue(
-									(Map<String, Object>) e.getValue()))));
-		} catch (final RuntimeException e) {
-			throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
-		}
-	}
+    private <T> T checkNonNull(final String name, final T value) throws ParseException {
+        if (value == null) {
+            throw new ParseException("Required parameter " + name + " is absent", 0);
+        }
+        return value;
+    }
 
-	protected Binding unwrapBindingValue(final Map<String, Object> o) throws ParseException {
-		return Binding.builder() //
-				.type(RDFType.valueOf(JSONObjectUtils.getString(o, ResultService.TYPE))) //
-				.value(getRequiredString(o, ResultService.VALUE)) //
-				.language(JSONObjectUtils.getString(o, ResultService.XML_LANG)) //
-				.datatype(JSONObjectUtils.getString(o, ResultService.DATATYPE)) //
-				.build();
-	}
+    public SPARQLResult unwrap(final Map<String, Object> object) throws ParseException {
+        final Map<String, Object> head = JSONObjectUtils.getJSONObject(object, ResultService.HEAD);
+        if (head != null) {
+            return unwrapSPARQL(object, head) //
+                    .build();
+        }
+        final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
+        if (results != null) {
+            return unwrapJSONLD(object, results) //
+                    .build();
+        }
+        return unwrapExtension(object);
+    }
 
-	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapBody(final Map<String, Object> object)
-			throws ParseException {
-		final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
-		final Boolean value = getGeneric(object, ResultService.BOOLEAN, Boolean.class);
-		if (results != null) {
-			return unwrapSelect(object, results);
-		}
-		if (value != null) {
-			return unwrapAsk(object, value);
-		}
-		return unwrapBodyExtension(object);
-	}
+    protected AskResult.AskResultBuilder<?, ?> unwrapAsk(final Map<String, Object> object, final Boolean value)
+            throws ParseException {
+        final AskResultBuilder<?, ?> result = AskResult.builder() //
 
-	protected SPARQLResultBuilder<?, ?> unwrapBodyExtension(final Map<String, Object> object) throws ParseException {
-		throw new ParseException("Received unknown SPARQLResult object", 0);
-	}
+                .value(value) //
+        ;
+        return unwrapExtension(result);
+    }
 
-	protected AskResultBuilder<?, ?> unwrapExtension(final AskResultBuilder<?, ?> result) throws ParseException {
-		return result;
-	}
+    @SuppressWarnings("unchecked")
+    protected Map<String, Binding> unwrapBinding(final Map<String, Object> binding) throws ParseException {
+        try {
+            return binding.entrySet().stream() //
+                    .collect(Collectors.toMap(Entry::getKey,
+                            FunctionWrapper.wrapper((final Map.Entry<String, Object> e) -> unwrapBindingValue(
+                                    (Map<String, Object>) e.getValue()))));
+        } catch (final RuntimeException e) {
+            throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
+        }
+    }
 
-	protected HeaderBuilder<?, ?> unwrapExtension(final HeaderBuilder<?, ?> result) throws ParseException {
-		return result;
-	}
+    protected Binding unwrapBindingValue(final Map<String, Object> o) throws ParseException {
+        return Binding.builder() //
+                .type(RDFType.valueOf(JSONObjectUtils.getString(o, ResultService.TYPE))) //
+                .value(getRequiredString(o, ResultService.VALUE)) //
+                .language(JSONObjectUtils.getString(o, ResultService.XML_LANG)) //
+                .datatype(JSONObjectUtils.getString(o, ResultService.DATATYPE)) //
+                .build();
+    }
 
-	protected SPARQLResult unwrapExtension(final Map<String, Object> object) throws ParseException {
-		throw new ParseException("Received unknown Result object", 0);
-	}
+    protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapBody(final Map<String, Object> object)
+            throws ParseException {
+        final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
+        final Boolean value = getGeneric(object, ResultService.BOOLEAN, Boolean.class);
+        if (results != null) {
+            return unwrapSelect(object, results);
+        }
+        if (value != null) {
+            return unwrapAsk(object, value);
+        }
+        return unwrapBodyExtension(object);
+    }
 
-	protected SelectResultBuilder<?, ?> unwrapExtension(final SelectResultBuilder<?, ?> result) throws ParseException {
-		return result;
-	}
+    protected SPARQLResultBuilder<?, ?> unwrapBodyExtension(final Map<String, Object> object) throws ParseException {
+        throw new ParseException("Received unknown SPARQLResult object", 0);
+    }
 
-	protected SPARQLResultBuilder<?, ?> unwrapExtension(final SPARQLResultBuilder<?, ?> result) {
-		return result;
-	}
+    protected AskResultBuilder<?, ?> unwrapExtension(final AskResultBuilder<?, ?> result) throws ParseException {
+        return result;
+    }
 
-	protected Header.HeaderBuilder<?, ?> unwrapHead(final Map<String, Object> head) throws ParseException {
-		final List<String> link = JSONObjectUtils.getStringList(head, ResultService.LINK);
-		final List<String> vars = JSONObjectUtils.getStringList(head, ResultService.VARS);
-		try {
-			final HeaderBuilder<?, ?> result = Header.builder() //
-					.link(link == null ? null
-							: link.stream().map(FunctionWrapper.wrapper((final String s) -> new URL(s)))
-									.collect(Collectors.toList())) //
-					.vars(vars) //
-			;
-			return unwrapExtension(result);
-		} catch (final RuntimeException e) {
-			throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
-		}
-	}
+    protected HeaderBuilder<?, ?> unwrapExtension(final HeaderBuilder<?, ?> result) throws ParseException {
+        return result;
+    }
 
-	protected ConstructResult.ConstructResultBuilder<?, ?> unwrapJSONLD(final Map<String, Object> object,
-			final Map<String, Object> results) {
-		return ConstructResult.builder() //
-				.data(results) //
-		;
-	}
+    protected SPARQLResult unwrapExtension(final Map<String, Object> object) throws ParseException {
+        throw new ParseException("Received unknown Result object", 0);
+    }
 
-	protected SelectResult.SelectResultBuilder<?, ?> unwrapSelect(final Map<String, Object> object,
-			final Map<String, Object> results) throws ParseException {
-		final SelectResultBuilder<?, ?> result = SelectResult.builder() //
-				.results(unwrapSelectBody(results)) //
-		;
-		return unwrapExtension(result);
-	}
+    protected SelectResultBuilder<?, ?> unwrapExtension(final SelectResultBuilder<?, ?> result) throws ParseException {
+        return result;
+    }
 
-	protected SelectBody unwrapSelectBody(final Map<String, Object> results) throws ParseException {
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		final List<Map<String, Object>> bindings = getList(results, ResultService.BINDINGS,
-				(Class<Map<String, Object>>) (Class) Map.class);
-		try {
-			return SelectBody.builder() //
-					.bindings(bindings.stream()
-							.map(FunctionWrapper.wrapper((final Map<String, Object> o) -> unwrapBinding(o)))
-							.collect(Collectors.toList())) //
-					.build();
-		} catch (final RuntimeException e) {
-			throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
-		}
-	}
+    protected SPARQLResultBuilder<?, ?> unwrapExtension(final SPARQLResultBuilder<?, ?> result) {
+        return result;
+    }
 
-	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapSPARQL(final Map<String, Object> object,
-			final Map<String, Object> head) throws ParseException {
-		final Header header = unwrapHead(head) //
-				.build();
-		final SPARQLResultBuilder<?, ?> result = unwrapBody(object) //
-				.head(header) //
-		;
-		return unwrapExtension(result);
-	}
+    protected Header.HeaderBuilder<?, ?> unwrapHead(final Map<String, Object> head) throws ParseException {
+        final List<String> link = JSONObjectUtils.getStringList(head, ResultService.LINK);
+        final List<String> vars = JSONObjectUtils.getStringList(head, ResultService.VARS);
+        try {
+            final HeaderBuilder<?, ?> result = Header.builder() //
+                    .link(link == null ? null : link.stream().map(URI::create).collect(Collectors.toList())) //
+                    .vars(vars) //
+            ;
+            return unwrapExtension(result);
+        } catch (final RuntimeException e) {
+            throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
+        }
+    }
 
-	protected Map<String, Object> wrap(final AskResult result, final Map<String, Object> json) throws ParseException {
-		json.put(ResultService.BOOLEAN, result.isValue());
-		return wrapExtension(result, json);
-	}
+    protected ConstructResult.ConstructResultBuilder<?, ?> unwrapJSONLD(final Map<String, Object> object,
+            final Map<String, Object> results) {
+        return ConstructResult.builder() //
+                .data(results) //
+        ;
+    }
 
-	protected Map<String, Object> wrap(final Binding v) throws ParseException {
-		final Map<String, Object> result = new HashMap<>();
-		if (v.getType() != null) {
-			result.put(ResultService.TYPE, v.getType().name());
-		}
-		if (v.getValue() != null) {
-			result.put(ResultService.VALUE, v.getValue());
-		}
-		if (v.getDatatype() != null) {
-			result.put(ResultService.DATATYPE, v.getDatatype());
-		}
-		if (v.getLanguage() != null) {
-			result.put(ResultService.XML_LANG, v.getLanguage());
-		}
-		return wrapExtension(v, result);
-	}
+    protected SelectResult.SelectResultBuilder<?, ?> unwrapSelect(final Map<String, Object> object,
+            final Map<String, Object> results) throws ParseException {
+        final SelectResultBuilder<?, ?> result = SelectResult.builder() //
+                .results(unwrapSelectBody(results)) //
+        ;
+        return unwrapExtension(result);
+    }
 
-	protected Map<String, Object> wrap(final ConstructResult result, final Map<String, Object> json)
-			throws ParseException {
-		json.put(ResultService.RESULTS, result.getData());
-		return wrapExtension(result, json);
-	}
+    protected SelectBody unwrapSelectBody(final Map<String, Object> results) throws ParseException {
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        final List<Map<String, Object>> bindings = getList(results, ResultService.BINDINGS,
+                (Class<Map<String, Object>>) (Class) Map.class);
+        try {
+            return SelectBody.builder() //
+                    .bindings(bindings.stream()
+                            .map(FunctionWrapper.wrapper((final Map<String, Object> o) -> unwrapBinding(o)))
+                            .collect(Collectors.toList())) //
+                    .build();
+        } catch (final RuntimeException e) {
+            throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
+        }
+    }
 
-	protected Map<String, Object> wrap(final Header head) throws ParseException {
-		final Map<String, Object> result = new HashMap<>();
-		if (head.getLink() != null) {
-			result.put(ResultService.LINK, head.getLink().stream().map(URL::toString).collect(Collectors.toList()));
-		}
-		if (head.getVars() != null) {
-			result.put(ResultService.VARS, head.getVars());
-		}
-		return wrapExtension(head, result);
-	}
+    protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapSPARQL(final Map<String, Object> object,
+            final Map<String, Object> head) throws ParseException {
+        final Header header = unwrapHead(head) //
+                .build();
+        final SPARQLResultBuilder<?, ?> result = unwrapBody(object) //
+                .head(header) //
+        ;
+        return unwrapExtension(result);
+    }
 
-	protected Map<String, Object> wrap(final Map<String, Binding> binding) throws ParseException {
-		final Map<String, Object> result = new HashMap<>();
-		binding.forEach(FunctionWrapper.wrapper((final String k, final Binding v) -> {
-			result.put(k, wrap(v));
-		}));
-		return wrapExtension(binding, result);
-	}
+    protected Map<String, Object> wrap(final AskResult result, final Map<String, Object> json) throws ParseException {
+        json.put(ResultService.BOOLEAN, result.isValue());
+        return wrapExtension(result, json);
+    }
 
-	public Map<String, Object> wrap(final SPARQLResult result) throws ParseException {
-		final Map<String, Object> json = new HashMap<>();
-		return wrap(result, json);
-	}
+    protected Map<String, Object> wrap(final Binding v) throws ParseException {
+        final Map<String, Object> result = new HashMap<>();
+        if (v.getType() != null) {
+            result.put(ResultService.TYPE, v.getType().name());
+        }
+        if (v.getValue() != null) {
+            result.put(ResultService.VALUE, v.getValue());
+        }
+        if (v.getDatatype() != null) {
+            result.put(ResultService.DATATYPE, v.getDatatype());
+        }
+        if (v.getLanguage() != null) {
+            result.put(ResultService.XML_LANG, v.getLanguage());
+        }
+        return wrapExtension(v, result);
+    }
 
-	protected Map<String, Object> wrap(final SelectBody results) throws ParseException {
-		final Map<String, Object> result = new HashMap<>();
-		if (results.getBindings() != null) {
-			try {
-				result.put(ResultService.BINDINGS,
-						results.getBindings().stream()
-								.map(FunctionWrapper.wrapper((final Map<String, Binding> b) -> wrap(b)))
-								.collect(Collectors.toList()));
-			} catch (final RuntimeException e) {
-				throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
-			}
-		}
-		return wrapExtension(results, result);
-	}
+    protected Map<String, Object> wrap(final ConstructResult result, final Map<String, Object> json)
+            throws ParseException {
+        json.put(ResultService.RESULTS, result.getData());
+        return wrapExtension(result, json);
+    }
 
-	protected Map<String, Object> wrap(final SelectResult result, final Map<String, Object> json)
-			throws ParseException {
-		json.put(ResultService.RESULTS, wrap(result.getResults()));
-		return wrapExtension(result, json);
-	}
+    protected Map<String, Object> wrap(final Header head) throws ParseException {
+        final Map<String, Object> result = new HashMap<>();
+        if (head.getLink() != null) {
+            result.put(ResultService.LINK, head.getLink().stream().map(URI::toString).collect(Collectors.toList()));
+        }
+        if (head.getVars() != null) {
+            result.put(ResultService.VARS, head.getVars());
+        }
+        return wrapExtension(head, result);
+    }
 
-	protected Map<String, Object> wrap(final SPARQLResult result, final Map<String, Object> json)
-			throws ParseException {
-		if (result instanceof AskResult) {
-			json.put(ResultService.HEAD, wrap(result.getHead()));
-			return wrap((AskResult) result, json);
-		}
-		if (result instanceof SelectResult) {
-			json.put(ResultService.HEAD, wrap(result.getHead()));
-			return wrap((SelectResult) result, json);
-		}
-		if (result instanceof ConstructResult) {
-			return wrap((ConstructResult) result, json);
-		}
-		return wrapExtension(result, json);
-	}
+    protected Map<String, Object> wrap(final Map<String, Binding> binding) throws ParseException {
+        final Map<String, Object> result = new HashMap<>();
+        binding.forEach(FunctionWrapper.wrapper((final String k, final Binding v) -> {
+            result.put(k, wrap(v));
+        }));
+        return wrapExtension(binding, result);
+    }
 
-	protected Map<String, Object> wrapExtension(final AskResult result, final Map<String, Object> json)
-			throws ParseException {
-		return json;
-	}
+    public Map<String, Object> wrap(final SPARQLResult result) throws ParseException {
+        final Map<String, Object> json = new HashMap<>();
+        return wrap(result, json);
+    }
 
-	protected Map<String, Object> wrapExtension(final Binding v, final Map<String, Object> result)
-			throws ParseException {
-		return result;
-	}
+    protected Map<String, Object> wrap(final SelectBody results) throws ParseException {
+        final Map<String, Object> result = new HashMap<>();
+        if (results.getBindings() != null) {
+            try {
+                result.put(ResultService.BINDINGS,
+                        results.getBindings().stream()
+                                .map(FunctionWrapper.wrapper((final Map<String, Binding> b) -> wrap(b)))
+                                .collect(Collectors.toList()));
+            } catch (final RuntimeException e) {
+                throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
+            }
+        }
+        return wrapExtension(results, result);
+    }
 
-	protected Map<String, Object> wrapExtension(final ConstructResult result, final Map<String, Object> json)
-			throws ParseException {
-		return json;
-	}
+    protected Map<String, Object> wrap(final SelectResult result, final Map<String, Object> json)
+            throws ParseException {
+        json.put(ResultService.RESULTS, wrap(result.getResults()));
+        return wrapExtension(result, json);
+    }
 
-	protected Map<String, Object> wrapExtension(final Header head, final Map<String, Object> result) {
-		return result;
-	}
+    protected Map<String, Object> wrap(final SPARQLResult result, final Map<String, Object> json)
+            throws ParseException {
+        if (result instanceof AskResult) {
+            json.put(ResultService.HEAD, wrap(result.getHead()));
+            return wrap((AskResult) result, json);
+        }
+        if (result instanceof SelectResult) {
+            json.put(ResultService.HEAD, wrap(result.getHead()));
+            return wrap((SelectResult) result, json);
+        }
+        if (result instanceof ConstructResult) {
+            return wrap((ConstructResult) result, json);
+        }
+        return wrapExtension(result, json);
+    }
 
-	protected Map<String, Object> wrapExtension(final Map<String, Binding> binding, final Map<String, Object> result)
-			throws ParseException {
-		return result;
-	}
+    protected Map<String, Object> wrapExtension(final AskResult result, final Map<String, Object> json)
+            throws ParseException {
+        return json;
+    }
 
-	protected Map<String, Object> wrapExtension(final SelectBody results, final Map<String, Object> result)
-			throws ParseException {
-		return result;
-	}
+    protected Map<String, Object> wrapExtension(final Binding v, final Map<String, Object> result)
+            throws ParseException {
+        return result;
+    }
 
-	protected Map<String, Object> wrapExtension(final SelectResult result, final Map<String, Object> json)
-			throws ParseException {
-		return json;
-	}
+    protected Map<String, Object> wrapExtension(final ConstructResult result, final Map<String, Object> json)
+            throws ParseException {
+        return json;
+    }
 
-	protected Map<String, Object> wrapExtension(final SPARQLResult result, final Map<String, Object> json)
-			throws ParseException {
-		throw new ParseException("Received unexpected subclass of SPARQLResult " + result.getClass().getCanonicalName(),
-				0);
-	}
+    protected Map<String, Object> wrapExtension(final Header head, final Map<String, Object> result) {
+        return result;
+    }
+
+    protected Map<String, Object> wrapExtension(final Map<String, Binding> binding, final Map<String, Object> result)
+            throws ParseException {
+        return result;
+    }
+
+    protected Map<String, Object> wrapExtension(final SelectBody results, final Map<String, Object> result)
+            throws ParseException {
+        return result;
+    }
+
+    protected Map<String, Object> wrapExtension(final SelectResult result, final Map<String, Object> json)
+            throws ParseException {
+        return json;
+    }
+
+    protected Map<String, Object> wrapExtension(final SPARQLResult result, final Map<String, Object> json)
+            throws ParseException {
+        throw new ParseException("Received unexpected subclass of SPARQLResult " + result.getClass().getCanonicalName(),
+                0);
+    }
 
 }

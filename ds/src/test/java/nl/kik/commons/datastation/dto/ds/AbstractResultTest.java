@@ -1,6 +1,6 @@
 package nl.kik.commons.datastation.dto.ds;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +12,7 @@ public abstract class AbstractResultTest {
 	protected List<SPARQLResult> messages;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		ask = AskResult.builder() //
 				.head(Header.builder().build()) //
 				.value(true) //
@@ -20,7 +20,7 @@ public abstract class AbstractResultTest {
 
 		select = SelectResult.builder() //
 				.head(Header.builder() //
-						.link(List.of(new URL("http://example.com"))) //
+						.link(List.of(URI.create("http://example.com"))) //
 						.vars(List.of("a", "b")) //
 						.build()) //
 				.results(SelectBody.builder() //
