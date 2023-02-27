@@ -50,6 +50,10 @@ import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiableCredential
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.credential.Visibility;
 import nl.kik.commons.datastation.dto.nuts.crypto.SignResultSet;
+import nl.kik.commons.datastation.dto.nuts.oauth.AccessToken;
+import nl.kik.commons.datastation.dto.nuts.oauth.CreateAccessToken;
+import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
+import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
 
 @RestController
 @Slf4j
@@ -229,6 +233,61 @@ public class SerializationController {
 
     @PostMapping("/nuts/signresultset")
     public SignResultSet signResultSet(@RequestBody SignResultSet create) {
+        return create;
+    }
+
+    @GetMapping("/nuts/createjwt")
+    public CreateJwtGrant createJwt() {
+        return CreateJwtGrant.builder() //
+                .authorizer(URI.create("urn:authorizer")) //
+                .requester(URI.create("urn:requester")) //
+                .identity(vp()) //
+                .credentials(List.of(query())) //
+                .service("service") //
+                .build();
+    }
+
+    @PostMapping("/nuts/createjwt")
+    public CreateJwtGrant createJwt(@RequestBody CreateJwtGrant create) {
+        return create;
+    }
+
+    @GetMapping("/nuts/grantedjwt")
+    public GrantedJwt grantedJwt() {
+        return GrantedJwt.builder() //
+                .bearer_token("token") //
+                .authorization_server_endpoint("endpoint") //
+                .build();
+    }
+
+    @PostMapping("/nuts/grantedjwt")
+    public GrantedJwt grantedJwt(@RequestBody GrantedJwt create) {
+        return create;
+    }
+
+    @GetMapping("/nuts/createtoken")
+    public CreateAccessToken createToken() {
+        return CreateAccessToken.builder() //
+                .assertion("jwt token") //
+                .build();
+    }
+
+    @PostMapping("/nuts/createtoken")
+    public CreateAccessToken createToken(@RequestBody CreateAccessToken create) {
+        return create;
+    }
+
+    @GetMapping("/nuts/token")
+    public AccessToken token() {
+        return AccessToken.builder() //
+                .access_token("token") //
+                .expires_in(600) //
+                .token_type("token type") //
+                .build();
+    }
+
+    @PostMapping("/nuts/token")
+    public AccessToken token(@RequestBody AccessToken create) {
         return create;
     }
 

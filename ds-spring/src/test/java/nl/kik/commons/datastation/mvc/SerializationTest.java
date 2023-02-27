@@ -386,6 +386,8 @@ class SerializationTest {
                 .andExpect(MockMvcResultMatchers.status().is(400));
     }
 
+    // NUTS crypto methods
+
     @Test
     void signResultSet() throws Exception {
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/signresultset")) //
@@ -410,6 +412,120 @@ class SerializationTest {
         Assertions.assertEquals(request, result.getResponse().getContentAsString());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/nuts/signresultset").content("AAAA" + request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+                .andExpect(MockMvcResultMatchers.status().is(400));
+    }
+
+    // NUTS auth methods
+
+    @Test
+    void createJwt() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/createjwt")) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        final String request = result.getResponse().getContentAsString();
+        SerializationTest.log.info("createJwt: {}", new JSONObject(request).toString(2));
+
+        result = mockMvc.perform(
+                MockMvcRequestBuilders.post("/nuts/createjwt").content(request).contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        result = mockMvc.perform(
+                MockMvcRequestBuilders.post("/nuts/createjwt").content(request).contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/nuts/createjwt").content("AAAA" + request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+                .andExpect(MockMvcResultMatchers.status().is(400));
+    }
+
+    @Test
+    void grantedJwt() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/grantedjwt")) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        final String request = result.getResponse().getContentAsString();
+        SerializationTest.log.info("grantedJwt: {}", new JSONObject(request).toString(2));
+
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/grantedjwt").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/grantedjwt").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/nuts/grantedjwt").content("AAAA" + request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+                .andExpect(MockMvcResultMatchers.status().is(400));
+    }
+
+    @Test
+    void createToken() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/createtoken")) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        final String request = result.getResponse().getContentAsString();
+        SerializationTest.log.info("createToken: {}", new JSONObject(request).toString(2));
+
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/createtoken").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        result = mockMvc.perform(MockMvcRequestBuilders.post("/nuts/createtoken").content(request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/nuts/createtoken").content("AAAA" + request)
+                .contentType(MediaType.APPLICATION_JSON)) //
+                .andExpect(MockMvcResultMatchers.status().is(400));
+    }
+
+    @Test
+    void token() throws Exception {
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/nuts/token")) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        final String request = result.getResponse().getContentAsString();
+        SerializationTest.log.info("token: {}", new JSONObject(request).toString(2));
+
+        result = mockMvc.perform(
+                MockMvcRequestBuilders.post("/nuts/token").content(request).contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        result = mockMvc.perform(
+                MockMvcRequestBuilders.post("/nuts/token").content(request).contentType(MediaType.APPLICATION_JSON)) //
+//              .andDo(print()) //
+                .andExpect(MockMvcResultMatchers.status().isOk()) //
+                .andReturn();
+        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/nuts/token").content("AAAA" + request)
                 .contentType(MediaType.APPLICATION_JSON)) //
                 .andExpect(MockMvcResultMatchers.status().is(400));
     }

@@ -4,6 +4,9 @@ import javax.naming.directory.SearchResult;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.danubetech.verifiablecredentials.VerifiablePresentation;
@@ -16,8 +19,10 @@ import nl.kik.commons.datastation.dto.nuts.credential.VerificationResult;
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiableCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.crypto.SignJws;
+import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
+import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
 
-public interface NutsNode {
+public interface NutsNode extends RemoteNutsNode {
     @PostMapping("/internal/vcr/v2/issuer/vc")
     VerifiableCredential issueVC(@RequestBody CreateVerifiableCredential body);
 
@@ -35,4 +40,10 @@ public interface NutsNode {
 
     @PostMapping("/internal/crypto/v1/sign_jws")
     String signJws(@RequestBody SignJws<?> body);
+
+    @PostMapping("/internal/auth/v1/jwt-grant")
+    GrantedJwt createJwtGrant(@RequestBody CreateJwtGrant body);
+
+    @RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
+    void verifyToken(@RequestHeader("Authorization") String token);
 }
