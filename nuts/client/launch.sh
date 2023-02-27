@@ -1,0 +1,1 @@
+docker run -p 15555:5555 -p 11323:1323 --mount type=bind,source="$(pwd)"/nuts.yaml,target=/opt/nuts/nuts.yaml,readonly --mount type=bind,source="$(pwd)"/data,target=/opt/nuts/data -e NUTS_CONFIGFILE=/opt/nuts/nuts.yaml nutsfoundation/nuts-node:v5

@@ -32,12 +32,12 @@
 			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
 
-		<dependency>
+<!--		<dependency>
 			<groupId>decentralized-identity</groupId>
 			<artifactId>uni-resolver-local</artifactId>
 			<version>0.5.0</version>
 		</dependency>
-
+-->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>

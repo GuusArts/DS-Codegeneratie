@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
 @SuperBuilder(toBuilder = true)
 @Getter
@@ -17,5 +18,6 @@ public abstract class Token {
 	private List<String> audience;
 	private String id;
 	private String keyId;
-	private ZonedDateTime validFrom, expiration, creation;
+	boolean publishedToNetwork;
+	private ZonedDateTime issuanceDate, expirationDate;
 }

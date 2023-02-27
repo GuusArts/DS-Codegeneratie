@@ -1,0 +1,6 @@
+datadir: /opt/nuts/data
+network:
+  enabletls: false
+  bootstrapnodes:
+    - host.docker.internal:5555
+    

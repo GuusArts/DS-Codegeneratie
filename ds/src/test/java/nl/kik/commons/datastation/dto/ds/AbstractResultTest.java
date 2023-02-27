@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 public abstract class AbstractResultTest {
 	private AskResult ask;
 	private SelectResult select;
-	protected List<Result> messages;
+	protected List<SPARQLResult> messages;
 
 	@BeforeEach
 	void setUp() throws Exception {

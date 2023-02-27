@@ -17,19 +17,14 @@ import nl.kik.commons.datastation.dto.ds.ConstructResult;
 import nl.kik.commons.datastation.dto.ds.Header;
 import nl.kik.commons.datastation.dto.ds.Header.HeaderBuilder;
 import nl.kik.commons.datastation.dto.ds.RDFType;
-import nl.kik.commons.datastation.dto.ds.Result;
 import nl.kik.commons.datastation.dto.ds.SPARQLResult;
 import nl.kik.commons.datastation.dto.ds.SPARQLResult.SPARQLResultBuilder;
 import nl.kik.commons.datastation.dto.ds.SelectBody;
 import nl.kik.commons.datastation.dto.ds.SelectResult;
 import nl.kik.commons.datastation.dto.ds.SelectResult.SelectResultBuilder;
 import nl.kik.commons.datastation.util.FunctionWrapper;
-import nl.kik.commons.datastation.util.FunctionWrapper.FunctionWithException;
 
 public class ResultService extends AbstractTokenService {
-	private static final String RESULT = "result";
-	private static final String ID = "id";
-	private static final String RESULTSET = "resultset";
 	private static final String XML_LANG = "xml:lang";
 	private static final String DATATYPE = "datatype";
 	private static final String VALUE = "value";
@@ -41,7 +36,7 @@ public class ResultService extends AbstractTokenService {
 	private static final String LINK = "link";
 	private static final String HEAD = "head";
 
-	public Result unwrap(final Map<String, Object> object) throws ParseException {
+	public SPARQLResult unwrap(final Map<String, Object> object) throws ParseException {
 		final Map<String, Object> head = JSONObjectUtils.getJSONObject(object, ResultService.HEAD);
 		if (head != null) {
 			return unwrapSPARQL(object, head) //
@@ -68,8 +63,9 @@ public class ResultService extends AbstractTokenService {
 	protected Map<String, Binding> unwrapBinding(final Map<String, Object> binding) throws ParseException {
 		try {
 			return binding.entrySet().stream() //
-					.collect(Collectors.toMap(Entry::getKey, FunctionWrapper
-							.wrapper((final Map.Entry<String, Object> e) -> unwrapBindingValue((Map<String, Object>) e.getValue()))));
+					.collect(Collectors.toMap(Entry::getKey,
+							FunctionWrapper.wrapper((final Map.Entry<String, Object> e) -> unwrapBindingValue(
+									(Map<String, Object>) e.getValue()))));
 		} catch (final RuntimeException e) {
 			throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
 		}
@@ -84,7 +80,8 @@ public class ResultService extends AbstractTokenService {
 				.build();
 	}
 
-	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapBody(final Map<String, Object> object) throws ParseException {
+	protected SPARQLResult.SPARQLResultBuilder<?, ?> unwrapBody(final Map<String, Object> object)
+			throws ParseException {
 		final Map<String, Object> results = JSONObjectUtils.getJSONObject(object, ResultService.RESULTS);
 		final Boolean value = getGeneric(object, ResultService.BOOLEAN, Boolean.class);
 		if (results != null) {
@@ -108,7 +105,7 @@ public class ResultService extends AbstractTokenService {
 		return result;
 	}
 
-	protected Result unwrapExtension(final Map<String, Object> object) throws ParseException {
+	protected SPARQLResult unwrapExtension(final Map<String, Object> object) throws ParseException {
 		throw new ParseException("Received unknown Result object", 0);
 	}
 
@@ -126,7 +123,8 @@ public class ResultService extends AbstractTokenService {
 		try {
 			final HeaderBuilder<?, ?> result = Header.builder() //
 					.link(link == null ? null
-							: link.stream().map(FunctionWrapper.wrapper((final String s) -> new URL(s))).collect(Collectors.toList())) //
+							: link.stream().map(FunctionWrapper.wrapper((final String s) -> new URL(s)))
+									.collect(Collectors.toList())) //
 					.vars(vars) //
 			;
 			return unwrapExtension(result);
@@ -140,24 +138,6 @@ public class ResultService extends AbstractTokenService {
 		return ConstructResult.builder() //
 				.data(results) //
 		;
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T, E extends Exception> Map<String, T> unwrapResultSet(final Map<String, Object> message,
-			final FunctionWithException<Map<String, Object>, T, E> mapper) throws E, ParseException {
-		try {
-			return getList(message, ResultService.RESULTSET, (Class<Map<String, Object>>) (Class) Map.class).stream() //
-					.collect(Collectors.toMap(
-							FunctionWrapper.wrapper((final Map<String, Object> o) -> getRequiredString(o, ResultService.ID)),
-							FunctionWrapper.wrapper(
-									(final Map<String, Object> o) -> mapper.apply(getRequiredJSONObject(o, ResultService.RESULT)))));
-		} catch (final RuntimeException e) {
-			final Throwable cause = e.getCause();
-			if (cause instanceof ParseException) {
-				throw (ParseException) cause;
-			}
-			throw (E) cause;
-		}
 	}
 
 	protected SelectResult.SelectResultBuilder<?, ?> unwrapSelect(final Map<String, Object> object,
@@ -174,7 +154,8 @@ public class ResultService extends AbstractTokenService {
 				(Class<Map<String, Object>>) (Class) Map.class);
 		try {
 			return SelectBody.builder() //
-					.bindings(bindings.stream().map(FunctionWrapper.wrapper((final Map<String, Object> o) -> unwrapBinding(o)))
+					.bindings(bindings.stream()
+							.map(FunctionWrapper.wrapper((final Map<String, Object> o) -> unwrapBinding(o)))
 							.collect(Collectors.toList())) //
 					.build();
 		} catch (final RuntimeException e) {
@@ -239,20 +220,19 @@ public class ResultService extends AbstractTokenService {
 		return wrapExtension(binding, result);
 	}
 
-	public Map<String, Object> wrap(final Result result) throws ParseException {
+	public Map<String, Object> wrap(final SPARQLResult result) throws ParseException {
 		final Map<String, Object> json = new HashMap<>();
-		if (result instanceof SPARQLResult) {
-			return wrap((SPARQLResult) result, json);
-		}
-		return wrapExtension(result, json);
+		return wrap(result, json);
 	}
 
 	protected Map<String, Object> wrap(final SelectBody results) throws ParseException {
 		final Map<String, Object> result = new HashMap<>();
 		if (results.getBindings() != null) {
 			try {
-				result.put(ResultService.BINDINGS, results.getBindings().stream()
-						.map(FunctionWrapper.wrapper((final Map<String, Binding> b) -> wrap(b))).collect(Collectors.toList()));
+				result.put(ResultService.BINDINGS,
+						results.getBindings().stream()
+								.map(FunctionWrapper.wrapper((final Map<String, Binding> b) -> wrap(b)))
+								.collect(Collectors.toList()));
 			} catch (final RuntimeException e) {
 				throw new ParseException("Failed parsing sub-elment: " + e.getCause().getMessage(), 0);
 			}
@@ -260,12 +240,14 @@ public class ResultService extends AbstractTokenService {
 		return wrapExtension(results, result);
 	}
 
-	protected Map<String, Object> wrap(final SelectResult result, final Map<String, Object> json) throws ParseException {
+	protected Map<String, Object> wrap(final SelectResult result, final Map<String, Object> json)
+			throws ParseException {
 		json.put(ResultService.RESULTS, wrap(result.getResults()));
 		return wrapExtension(result, json);
 	}
 
-	protected Map<String, Object> wrap(final SPARQLResult result, final Map<String, Object> json) throws ParseException {
+	protected Map<String, Object> wrap(final SPARQLResult result, final Map<String, Object> json)
+			throws ParseException {
 		if (result instanceof AskResult) {
 			json.put(ResultService.HEAD, wrap(result.getHead()));
 			return wrap((AskResult) result, json);
@@ -285,7 +267,8 @@ public class ResultService extends AbstractTokenService {
 		return json;
 	}
 
-	protected Map<String, Object> wrapExtension(final Binding v, final Map<String, Object> result) throws ParseException {
+	protected Map<String, Object> wrapExtension(final Binding v, final Map<String, Object> result)
+			throws ParseException {
 		return result;
 	}
 
@@ -303,11 +286,6 @@ public class ResultService extends AbstractTokenService {
 		return result;
 	}
 
-	protected Map<String, Object> wrapExtension(final Result result, final Map<String, Object> json)
-			throws ParseException {
-		throw new ParseException("Received unexpected subclass of Result " + result.getClass().getCanonicalName(), 0);
-	}
-
 	protected Map<String, Object> wrapExtension(final SelectBody results, final Map<String, Object> result)
 			throws ParseException {
 		return result;
@@ -320,26 +298,8 @@ public class ResultService extends AbstractTokenService {
 
 	protected Map<String, Object> wrapExtension(final SPARQLResult result, final Map<String, Object> json)
 			throws ParseException {
-		throw new ParseException("Received unexpected subclass of SPARQLResult " + result.getClass().getCanonicalName(), 0);
+		throw new ParseException("Received unexpected subclass of SPARQLResult " + result.getClass().getCanonicalName(),
+				0);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <E extends Exception> Map<String, Object> wrapResultSet(final Map<String, Result> s,
-			final FunctionWithException<Result, Map<String, Object>, E> mapper) throws E, ParseException {
-		try {
-			return Map.of(ResultService.RESULTSET, s.entrySet().stream() //
-					.map(FunctionWrapper.wrapper((final Map.Entry<String, Result> e) -> Map.of(//
-							ResultService.ID, e.getKey(), //
-							ResultService.RESULT, mapper.apply(e.getValue()) //
-					))) //
-					.collect(Collectors.toList()) //
-			);
-		} catch (final RuntimeException e) {
-			final Throwable cause = e.getCause();
-			if (cause instanceof ParseException) {
-				throw (ParseException) cause;
-			}
-			throw (E) cause;
-		}
-	}
 }

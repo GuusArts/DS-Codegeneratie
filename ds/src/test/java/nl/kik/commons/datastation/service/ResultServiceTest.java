@@ -15,38 +15,38 @@ import com.nimbusds.jose.util.JSONObjectUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.ds.AbstractResultTest;
-import nl.kik.commons.datastation.dto.ds.Result;
+import nl.kik.commons.datastation.dto.ds.SPARQLResult;
 import nl.kik.commons.datastation.util.FunctionWrapper;
 
 @Slf4j
 @TestInstance(Lifecycle.PER_CLASS)
 class ResultServiceTest extends AbstractResultTest {
-	private ResultService service;
+    private ResultService service;
 
-	@BeforeEach
-	void setUpService() throws Exception {
-		service = new ResultService();
-	}
+    @BeforeEach
+    void setUpService() throws Exception {
+        service = new ResultService();
+    }
 
-	@Test
-	void testLoad() throws ParseException, MalformedURLException, JOSEException {
-		for (final Result m : messages) {
-			final Map<String, Object> wrapped = service.wrap(m);
-			final String serialized = JSONObjectUtils.toJSONString(wrapped);
-			final Result unwrapped = service.unwrap(JSONObjectUtils.parse(serialized));
-			ResultServiceTest.log.trace("Comparing");
-			ResultServiceTest.log.trace("{}", m);
-			ResultServiceTest.log.trace("{}", unwrapped);
-			Assertions.assertEquals(m, unwrapped);
-		}
-	}
+    @Test
+    void testLoad() throws ParseException, MalformedURLException, JOSEException {
+        for (final SPARQLResult m : messages) {
+            final Map<String, Object> wrapped = service.wrap(m);
+            final String serialized = JSONObjectUtils.toJSONString(wrapped);
+            final SPARQLResult unwrapped = service.unwrap(JSONObjectUtils.parse(serialized));
+            ResultServiceTest.log.trace("Comparing");
+            ResultServiceTest.log.trace("{}", m);
+            ResultServiceTest.log.trace("{}", unwrapped);
+            Assertions.assertEquals(m, unwrapped);
+        }
+    }
 
-	@Test
-	void testSave() {
-		messages.forEach(FunctionWrapper.wrapper(m -> {
-			final Map<String, Object> wrapped = service.wrap(m);
-			System.out.println(wrapped);
-		}));
-	}
+    @Test
+    void testSave() {
+        messages.forEach(FunctionWrapper.wrapper(m -> {
+            final Map<String, Object> wrapped = service.wrap(m);
+            System.out.println(wrapped);
+        }));
+    }
 
 }
