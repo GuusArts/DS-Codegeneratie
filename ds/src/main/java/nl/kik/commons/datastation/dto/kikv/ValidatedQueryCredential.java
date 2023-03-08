@@ -26,6 +26,7 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 	public static final String TYPE = "ValidatedQueryCredential";
 	public static final URI URL = URI.create("https://kik-v-nuts.ams3.cdn.digitaloceanspaces.com");
 
+	public static final String IDENTIFIER = "identifier";
 	public static final String NAME = "name";
 	public static final String PARAMS_SHACL = "paramsSHACL";
 	public static final String SPARQL = "sparql";
@@ -98,6 +99,13 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 		public B name(String name) {
 			ensureClaims();
 			claims.put(NAME, name);
+			return (B) this;
+		}
+
+		@SuppressWarnings("unchecked")
+		public B identifier(String identifier) {
+			ensureClaims();
+			claims.put(IDENTIFIER, identifier);
 			return (B) this;
 		}
 
@@ -190,8 +198,8 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 				.orElse(null);
 	}
 
-	public URI getQueryId() {
-		return getFromSubject(s -> s.getId());
+	public String getIdentifier() {
+		return getFromSubject(IDENTIFIER, String.class);
 	}
 
 	public String getName() {

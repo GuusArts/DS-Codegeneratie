@@ -21,6 +21,6 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PresentationVerificationResult extends VerificationResult {
-	@Singular
+	@Singular(ignoreNullCollections = true)
 	private List<VerifiableCredential> credentials;
 }

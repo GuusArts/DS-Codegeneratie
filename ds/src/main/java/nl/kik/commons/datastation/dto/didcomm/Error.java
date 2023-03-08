@@ -24,7 +24,7 @@ import nl.kik.commons.datastation.json.ListOrSingle;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Error extends Message<ProblemReport> {
-	@Singular("singleAck")
+	@Singular(value = "singleAck", ignoreNullCollections = true)
 	@JsonSerialize(using = ListOrSingle.Serialize.class)
 	@JsonDeserialize(using = ListOrSingle.DeserializeUUID.class)
 	private List<UUID> ack;

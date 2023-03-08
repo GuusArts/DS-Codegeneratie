@@ -20,7 +20,7 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SearchResult {
-	@Singular
+	@Singular(ignoreNullCollections = true)
     private List<VerifiableCredentialSearchResult> verifiableCredentials;
 
 }

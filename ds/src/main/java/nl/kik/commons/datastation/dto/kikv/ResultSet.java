@@ -20,6 +20,6 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultSet {
-    @Singular("result")
+	@Singular(value = "result", ignoreNullCollections = true)
 	private List<Result> resultset;
 }

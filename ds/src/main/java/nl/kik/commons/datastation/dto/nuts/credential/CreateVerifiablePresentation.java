@@ -21,7 +21,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateVerifiablePresentation {
-	@Singular
+	@Singular(ignoreNullCollections = true)
 	private List<VerifiableCredential> verifiableCredentials;
 	private URI signerDID;
 	private ProofPurpose proofPurpose;

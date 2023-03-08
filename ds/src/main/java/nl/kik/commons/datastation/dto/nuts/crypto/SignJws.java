@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class SignJws<P> {
     private URI kid;
-    @Singular
+	@Singular(ignoreNullCollections = true)
     private Map<String, String> headers;
     private boolean detached;
     

@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 public class Code {
 	private Sorter sorter;
 	private Scope scope;
-	@Singular
+	@Singular(ignoreNullCollections = true)
 	private List<String> descriptors;
 	private String otherScope;
 }

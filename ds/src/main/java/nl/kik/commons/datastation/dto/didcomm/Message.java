@@ -37,7 +37,7 @@ import nl.kik.commons.datastation.json.ListOrSingle;
 public abstract class Message<T> {
 	private UUID id, thid, pthid;
 	private URI from;
-	@Singular("singleTo")
+	@Singular(value = "singleTo", ignoreNullCollections = true)
 	@JsonSerialize(using = ListOrSingle.Serialize.class)
 	@JsonDeserialize(using = ListOrSingle.DeserializeURI.class)
 	private List<URI> to;

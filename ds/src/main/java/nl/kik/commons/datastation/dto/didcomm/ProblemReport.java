@@ -28,7 +28,7 @@ public class ProblemReport {
 	@JsonDeserialize(using = CodeSerialization.Deserialize.class)
 	private Code code;
 	private String comment;
-	@Singular
+	@Singular(ignoreNullCollections = true)
 	@JsonSerialize(using = ListOrSingle.Serialize.class)
 	@JsonDeserialize(using = ListOrSingle.DeserializeString.class)
 	private List<String> args;
