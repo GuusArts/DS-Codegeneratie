@@ -1,37 +1,30 @@
 package nl.kik.commons.gids.service;
 
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.CookieHandler;
-import java.net.ProxySelector;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandler;
-import java.net.http.HttpResponse.PushPromiseHandler;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
-import javax.validation.constraints.NotNull;
-
+import lombok.extern.slf4j.Slf4j;
+import nl.kik.commons.dto.Graph;
+import nl.kik.commons.dto.RDFObject;
+import nl.kik.commons.gids.dto.Address;
+import nl.kik.commons.gids.dto.CareOffice;
+import nl.kik.commons.gids.dto.Changeable;
+import nl.kik.commons.gids.dto.Concessionaire;
+import nl.kik.commons.gids.dto.DeliveryMethod;
+import nl.kik.commons.gids.dto.GidsAttribute;
+import nl.kik.commons.gids.dto.GidsObject;
+import nl.kik.commons.gids.dto.GraphOrRemote;
+import nl.kik.commons.gids.dto.HasAddress;
+import nl.kik.commons.gids.dto.HasAgb;
+import nl.kik.commons.gids.dto.HasCak;
+import nl.kik.commons.gids.dto.HasKvk;
+import nl.kik.commons.gids.dto.HasName;
+import nl.kik.commons.gids.dto.HasNames;
+import nl.kik.commons.gids.dto.HasNza;
+import nl.kik.commons.gids.dto.HasSbi;
+import nl.kik.commons.gids.dto.Location;
+import nl.kik.commons.gids.dto.Organisation;
+import nl.kik.commons.gids.dto.Region;
+import nl.kik.commons.gids.dto.Source;
+import nl.kik.commons.service.AbstractRDFService;
+import nl.kik.commons.service.RDFService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -67,29 +60,36 @@ import org.apache.jena.update.UpdateAction;
 import org.apache.jena.vocabulary.RDF;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
-import nl.kik.commons.dto.Graph;
-import nl.kik.commons.dto.RDFObject;
-import nl.kik.commons.gids.dto.Address;
-import nl.kik.commons.gids.dto.CareOffice;
-import nl.kik.commons.gids.dto.Changeable;
-import nl.kik.commons.gids.dto.Concessionaire;
-import nl.kik.commons.gids.dto.DeliveryMethod;
-import nl.kik.commons.gids.dto.GidsAttribute;
-import nl.kik.commons.gids.dto.GidsObject;
-import nl.kik.commons.gids.dto.GraphOrRemote;
-import nl.kik.commons.gids.dto.HasAddress;
-import nl.kik.commons.gids.dto.HasAgb;
-import nl.kik.commons.gids.dto.HasKvk;
-import nl.kik.commons.gids.dto.HasName;
-import nl.kik.commons.gids.dto.HasNames;
-import nl.kik.commons.gids.dto.HasSbi;
-import nl.kik.commons.gids.dto.Location;
-import nl.kik.commons.gids.dto.Organisation;
-import nl.kik.commons.gids.dto.Region;
-import nl.kik.commons.gids.dto.Source;
-import nl.kik.commons.service.AbstractRDFService;
-import nl.kik.commons.service.RDFService;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.CookieHandler;
+import java.net.ProxySelector;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandler;
+import java.net.http.HttpResponse.PushPromiseHandler;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 @Slf4j
@@ -117,6 +117,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 		public static final Property agb = Vocabulary.property("agb");
 		public static final Property sbi = Vocabulary.property("sbi");
 		public static final Property kvk = Vocabulary.property("kvk");
+		public static final Property cak = Vocabulary.property("cak");
+		public static final Property nza = Vocabulary.property("nza");
 		public static final Property endpoint = Vocabulary.property("endpoint");
 		public static final Property code = Vocabulary.property("code");
 		public static final Property houseLetter = Vocabulary.property("houseLetter");
@@ -530,6 +532,14 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 	 */
 	protected void addKvk(final Graph<? extends Model> g, final Resource resource, final HasKvk object) {
 		addProperty(g, resource, Vocabulary.kvk, object.getKvk());
+	}
+
+	protected void addCak(final Graph<? extends Model> g, final Resource resource, final HasCak object) {
+		addProperty(g, resource, Vocabulary.cak, object.getCak());
+	}
+
+	protected void addNza(final Graph<? extends Model> g, final Resource resource, final HasNza object) {
+		addProperty(g, resource, Vocabulary.nza, object.getNza());
 	}
 
 	/**
@@ -1035,6 +1045,10 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.sbi(getAlternativesList(graph, resource, properties, sources, Vocabulary.sbi, RDFService::getString)) //
 				.kvk(getAlternatives(graph, resource, properties, sources,
 						Vocabulary.kvk, RDFService::getString)) //
+				.cak(getAlternatives(graph, resource, properties, sources,
+					Vocabulary.cak, RDFService::getString)) //
+				.nza(getAlternatives(graph, resource, properties, sources,
+					Vocabulary.nza, RDFService::getString)) //
 				.endpoint(getAlternatives(graph, resource, properties, sources, Vocabulary.endpoint,
 						RDFService::getString)) //
 				.location(getAlternativesList(graph, resource, properties, sources, Vocabulary.location,
@@ -1394,6 +1408,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 			addAgb(g, resource, object);
 			addSbi(g, resource, object);
 			addKvk(g, resource, object);
+			addCak(g, resource, object);
+			addNza(g, resource, object);
 			addProperty(g, resource, Vocabulary.endpoint, object.getEndpoint());
 			addObjects(g, resource, Vocabulary.location, object.getLocation(), true);
 			addEnum(g, resource, Vocabulary.deliveryMethod, object.getDeliveryMethod(), GidsService.deliveryMethods);
@@ -1469,6 +1485,8 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				.agb(trim(a.getAgb(), s, from, to)) //
 				.sbi(trim(a.getSbi(), s, from, to)) //
 				.kvk(trim(a.getKvk(), s, from, to)) //
+				.cak(trim(a.getCak(), s, from, to)) //
+				.nza(trim(a.getNza(), s, from, to)) //
 				.endpoint(trim(a.getEndpoint(), s, from, to)) //
 				.deliveryMethod(trim(a.getDeliveryMethod(), s, from, to)) //
 				.build();

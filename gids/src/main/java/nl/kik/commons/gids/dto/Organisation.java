@@ -1,26 +1,25 @@
 package nl.kik.commons.gids.dto;
 
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import nl.kik.commons.dto.Projectable;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 @SuperBuilder(toBuilder = true)
 @Getter
 @ToString(callSuper = true)
 @JsonInclude(Include.NON_NULL)
 @EqualsAndHashCode(callSuper = true)
-public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi, HasKvk, HasAddress, Changeable,
+public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi, HasKvk, HasCak, HasNza, HasAddress, Changeable,
 		Projectable<Source, Organisation>, Comparable<Organisation> {
 	private GidsAttribute<Address> address;
 	private GidsAttribute<CareOffice> office;
@@ -30,6 +29,8 @@ public class Organisation extends GidsObject implements HasNames, HasAgb, HasSbi
 	private List<GidsAttribute<String>> agb;
 	private List<GidsAttribute<String>> sbi;
 	private GidsAttribute<String> kvk;
+	private GidsAttribute<String> cak;
+	private GidsAttribute<String> nza;
 	private List<GidsAttribute<Location>> location;
 	private GidsAttribute<DeliveryMethod> deliveryMethod;
 	private GidsAttribute<String> endpoint;
