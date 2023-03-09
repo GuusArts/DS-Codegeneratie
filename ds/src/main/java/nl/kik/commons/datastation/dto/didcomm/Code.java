@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode
-@ToString(callSuper = true)
+@ToString
 public class Code {
 	private Sorter sorter;
 	private Scope scope;

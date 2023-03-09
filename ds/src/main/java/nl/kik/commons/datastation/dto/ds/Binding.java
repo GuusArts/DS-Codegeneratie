@@ -7,7 +7,7 @@ import lombok.experimental.SuperBuilder;
 
 @SuperBuilder(toBuilder = true)
 @Getter
-@ToString(callSuper = true)
+@ToString
 @EqualsAndHashCode
 public class Binding {
 	private RDFType type;
