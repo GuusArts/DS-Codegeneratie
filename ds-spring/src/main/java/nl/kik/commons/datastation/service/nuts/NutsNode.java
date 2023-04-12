@@ -33,7 +33,7 @@ import nl.kik.commons.datastation.dto.nuts.didman.ServiceEndpoint;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
 
-public interface NutsNode extends RemoteNutsNode {
+public interface NutsNode {
 	@PostMapping("/internal/vcr/v2/issuer/vc")
 	VerifiableCredential issueVC(@RequestBody CreateVerifiableCredential body);
 
