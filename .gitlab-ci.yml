@@ -7,13 +7,14 @@ default:
       image: maven:3.8-openjdk-17-slim
 
 .testphase:
-      only: 
-      - external
+  rules:
+    - when: never
 
 .deploy:
-      only: 
-       - external
+  rules:
+    - when: never
 
 .golive:
-      only: 
-       - external
+  rules:
+    - when: never
+
