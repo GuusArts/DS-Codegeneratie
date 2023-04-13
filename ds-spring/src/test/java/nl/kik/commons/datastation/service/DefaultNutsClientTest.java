@@ -101,4 +101,5 @@ public class DefaultNutsClientTest {
 		assertThrows(HttpClientErrorException.NotAcceptable.class,
 				() -> client.retrieveEndpoint(DID, "hello", "world", null));
 	}
+	
 }
