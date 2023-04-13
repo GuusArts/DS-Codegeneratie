@@ -18,4 +18,5 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CreatedCompoundService extends CompoundService {
 	private String id;
+
 }

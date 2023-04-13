@@ -68,7 +68,7 @@ public interface NutsNode {
 	@DeleteMapping("/internal/didman/v1/did/{did}/endpoint/{type}")
 	void deleteServiceEndpoint(@PathVariable String did, @PathVariable String type);
 
-	@PostMapping("/internal/didman/v1/did/{did}/compountservice")
+	@PostMapping("/internal/didman/v1/did/{did}/compoundservice")
 	CreatedCompoundService addCompoundService(@PathVariable String did, @RequestBody CompoundService service);
 
 	@GetMapping("/internal/didman/v1/did/{did}/compoundservice")

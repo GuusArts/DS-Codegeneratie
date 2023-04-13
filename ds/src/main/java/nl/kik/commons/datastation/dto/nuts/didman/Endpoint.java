@@ -17,5 +17,5 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Endpoint {
-    private String endpojnt;
+    private String endpoint;
 }
