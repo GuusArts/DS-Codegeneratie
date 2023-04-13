@@ -13,11 +13,3 @@ stop test:
   rules:
     - when: never
 
-.deploy:
-  rules:
-    - when: never
-
-.golive:
-  rules:
-    - when: never
-
