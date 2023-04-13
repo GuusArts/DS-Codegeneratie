@@ -9,6 +9,9 @@ default:
 .testphase:
   rules:
     - when: never
+stop test:
+  rules:
+    - when: never
 
 .deploy:
   rules:
