@@ -2,8 +2,6 @@ package nl.kik.commons.datastation.service.nuts;
 
 import java.util.List;
 
-import javax.naming.directory.SearchResult;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,18 +18,21 @@ import com.danubetech.verifiablecredentials.VerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.credential.PresentationVerificationResult;
+import nl.kik.commons.datastation.dto.nuts.credential.SearchResult;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchVerifiableCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.VerificationResult;
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiableCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.crypto.SignJws;
 import nl.kik.commons.datastation.dto.nuts.didman.CompoundService;
+import nl.kik.commons.datastation.dto.nuts.didman.ContactInformation;
 import nl.kik.commons.datastation.dto.nuts.didman.CreatedCompoundService;
 import nl.kik.commons.datastation.dto.nuts.didman.CreatedEndpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.Endpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.ServiceEndpoint;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
+import nl.kik.commons.datastation.dto.nuts.vdr.DIDResolutionResult;
 
 public interface NutsNode {
 	@PostMapping("/internal/vcr/v2/issuer/vc")
@@ -48,6 +49,9 @@ public interface NutsNode {
 
 	@PostMapping("/internal/vcr/v2/verifier/vp")
 	PresentationVerificationResult verifyVP(@RequestBody VerifyVerifiablePresentation body);
+	
+	@GetMapping("/internal/vdr/v1/did/{did}")
+	DIDResolutionResult resolveDID(@PathVariable String did);
 
 	@PostMapping("/internal/crypto/v1/sign_jws")
 	String signJws(@RequestBody SignJws<?> body);
@@ -58,9 +62,12 @@ public interface NutsNode {
 	@RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
 	void verifyToken(@RequestHeader("Authorization") String token);
 
-	@GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
-	Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
-			@PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
+    @GetMapping("/internal/didman/v1/did/{did}/contactinfo")
+    ContactInformation getContactInfo(@PathVariable String did);
+
+    @GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
+    Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
+            @PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
 
 	@PostMapping("/internal/didman/v1/did/{did}/endpoint")
 	CreatedEndpoint addServiceEndpoint(@PathVariable String did, @RequestBody ServiceEndpoint endpoint);
