@@ -30,6 +30,7 @@ import nl.kik.commons.datastation.dto.nuts.didman.CreatedCompoundService;
 import nl.kik.commons.datastation.dto.nuts.didman.CreatedEndpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.Endpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.ServiceEndpoint;
+import nl.kik.commons.datastation.dto.nuts.oauth.AccessToken;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
 import nl.kik.commons.datastation.dto.nuts.vdr.DIDResolutionResult;
@@ -58,6 +59,9 @@ public interface NutsNode {
 
 	@PostMapping("/internal/auth/v1/jwt-grant")
 	GrantedJwt createJwtGrant(@RequestBody CreateJwtGrant body);
+
+	@PostMapping("/internal/auth/v1/request-access-token")
+	AccessToken requestAccessToken(@RequestBody CreateJwtGrant body);
 
 	@RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
 	void verifyToken(@RequestHeader("Authorization") String token);

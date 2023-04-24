@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,8 @@ import org.springframework.web.client.RestTemplate;
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.nuts.NutsOrganizationCredential;
@@ -34,6 +37,8 @@ import nl.kik.commons.datastation.dto.nuts.didman.CreatedCompoundService;
 import nl.kik.commons.datastation.dto.nuts.didman.CreatedEndpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.Endpoint;
 import nl.kik.commons.datastation.dto.nuts.didman.ServiceEndpoint;
+import nl.kik.commons.datastation.dto.nuts.oauth.AccessToken;
+import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.vdr.DIDResolutionResult;
 import nl.kik.commons.datastation.service.nuts.DefaultNutsClient;
 
@@ -42,118 +47,160 @@ import nl.kik.commons.datastation.service.nuts.DefaultNutsClient;
 @Disabled
 public class DefaultNutsClientTest {
 
-    static {
-        System.setProperty("javax.net.ssl.trustStore",
-                "/Users/michael/java/kik-station/decentral/src/main/resources/simulatie.jks");
-        System.setProperty("javax.net.ssl.trustStorePassword", "simulatie");
-    }
+	static {
+		System.setProperty("javax.net.ssl.trustStore",
+				"/Users/michael/java/kik-station/decentral/src/main/resources/simulatie.jks");
+		System.setProperty("javax.net.ssl.trustStorePassword", "simulatie");
+	}
 
-    private static final String VDID = "did:nuts:HXWJzajdPSmCGk6vboiBM4wEhJKJmYSBrrakMsnVnyC6";
-    private static final String DID = "did:nuts:AoQrzMTiLLfCqmK8CK1nkKShPdi4QUv2869oJzT2nAFt";
-    private static final String ENDPOINT = "http://localhost:8080/";
+	private static final String VDID = "did:nuts:HXWJzajdPSmCGk6vboiBM4wEhJKJmYSBrrakMsnVnyC6";
+	private static final String DID = "did:nuts:AoQrzMTiLLfCqmK8CK1nkKShPdi4QUv2869oJzT2nAFt";
+	private static final String ADID = "did:nuts:DZx5TChA4QmTF5iBtYGyTgcmyjuWqEjm7Zas9hXbSF7F";
+	private static final String ENDPOINT = "http://localhost:8080/";
+	private static final String NUTS = "https://nuts-internal.acceptance.zin.ocs.nu";
+	private static final String NUTS_N2N = "https://nuts-n2n.acceptance.zin.ocs.nu";
 
-    @SpringBootApplication(scanBasePackages = "nl.kik.commons.datastation")
-    public static class Context {
-        @Bean
-        RestTemplate restTemplate(ObjectMapper objectMapper) {
-            RestTemplate result = new RestTemplate();
-            result.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
-            result.getMessageConverters().removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
-            result.getMessageConverters().add(new MappingJackson2HttpMessageConverter(objectMapper));
-            return result;
-        }
+	@SpringBootApplication(scanBasePackages = "nl.kik.commons.datastation")
+	public static class Context {
 
-        @Bean
-        DefaultNutsClient client(RestTemplate rest) {
-            return new DefaultNutsClient("https://nuts-internal.acceptance.zin.ocs.nu", rest);
-        }
-    }
+		@Bean
+		RestTemplate restTemplate(ObjectMapper objectMapper) {
+			RestTemplate result = new RestTemplate();
+			result.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+			result.getMessageConverters().removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
+			result.getMessageConverters().add(new MappingJackson2HttpMessageConverter(objectMapper));
+			return result;
+		}
 
-    @Autowired
-    private DefaultNutsClient client;
+		@Bean
+		DefaultNutsClient client(RestTemplate rest) {
+			return new DefaultNutsClient(NUTS, rest);
+		}
+	}
 
-    @Test
-    void textContactInfo() {
-        DIDResolutionResult resolveDID = client.resolveDID(DID);
-        log.info("DID {}", resolveDID);
-        log.info("{}", resolveDID.getDocument().toJson(true));
-        List<String> controllers = resolveDID.getDocument().getControllers();
-        log.info("Controllers {}", controllers);
-        assertEquals(1, controllers.size());
+	@Autowired
+	private DefaultNutsClient client;
 
-        SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
-                .query(VerifiableCredential.builder() //
-                        .type("NutsOrganizationCredential") //
-                        .credentialSubject(CredentialSubject.builder() //
-                                .id(URI.create(DID)) //
-                                .build()) //
-                        .build())
-                .searchOptions(SearchOptions.builder() //
-                        .allowUntrustedIssuer(false) //
-                        .build())
-                .build());
-        log.info("Search {}", result);
-        assertEquals(1, result.getVerifiableCredentials().size());
-        result = client.searchVC(SearchVerifiableCredential.builder() //
-                .query(NutsOrganizationCredential.builder() //
-                		.orgId(URI.create(DID)) //
-                		.build()) //
-                .searchOptions(SearchOptions.builder() //
-                        .allowUntrustedIssuer(false) //
-                        .build())
-                .build());
-        log.info("Search {}", result);
-        assertEquals(1, result.getVerifiableCredentials().size());
-        result.getVerifiableCredentials()
-                .forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
+	@Test
+	void testOauth() throws ParseException {
+		try {
+			CreatedEndpoint endpoint = client.addServiceEndpoint(DID, ServiceEndpoint.builder() //
+					.type("test") //
+					.endpoint(NUTS_N2N + "/n2n/auth/v1/accesstoken") //
+					.build());
+			log.info("Created endpoint {}", endpoint);
+			try {
+				CreatedCompoundService compoundService = client.addCompoundService(DID, CompoundService.builder() //
+						.type("hello") //
+						.serviceEndpoint(Map.of("oauth", DID + "/serviceEndpoint?type=test")) //
+						.build());
+				log.info("Created compound service {}", compoundService);
 
-        NutsOrganizationCredential organization = NutsOrganizationCredential
-                .fromJsonLDObject(result.getVerifiableCredentials().iterator().next().getVerifiableCredential());
-        log.info("Organisation {}, City {}", organization.getName(), organization.getCity());
+				AccessToken accessToken = client.requestAccessToken(CreateJwtGrant.builder() //
+						.authorizer(URI.create(DID)) //
+						.requester(URI.create(ADID)) //
+						.service("hello") //
+						.build());
+				log.info("Access token {}", accessToken);
+				JWT token = JWTParser.parse(accessToken.getAccess_token());
+				client.verifyToken(accessToken.getAccess_token());
+				log.info("Header {}", token.getHeader());
+				log.info("Body {}", token.getJWTClaimsSet());
+				assertEquals(ADID, token.getJWTClaimsSet().getSubject());
+				assertEquals(DID, token.getJWTClaimsSet().getIssuer());
+				assertEquals("hello", token.getJWTClaimsSet().getStringClaim("service"));
+				assertThrows(HttpClientErrorException.Forbidden.class, () -> client.verifyToken("fake"));
+			} finally {
+				client.deleteServiceEndpoint(DID, "hello");
+			}
+		} finally {
+			client.deleteServiceEndpoint(DID, "test");
+		}
 
-        ContactInformation contact = client.getContactInfo(VDID);
-        log.info("Contact {}", contact);
-        assertThrows(HttpClientErrorException.NotFound.class, () -> client.getContactInfo(DID));
-    }
+	}
 
-    @Test
-    void testEdnpoints() {
-        assertThrows(HttpClientErrorException.NotAcceptable.class,
-                () -> client.retrieveEndpoint(DID, "hello", "world", null));
-        List<CreatedCompoundService> list = client.listCompountServices(DID);
-        log.info("List<CreatedCompoundService> {}", list);
-        assertEquals(0, list.size());
-        try {
-            CreatedEndpoint endpoint = client.addServiceEndpoint(DID, ServiceEndpoint.builder() //
-                    .type("test") //
-                    .endpoint(ENDPOINT) //
-                    .build());
-            log.info("CreatedEndpoint {}", endpoint);
-            try {
-                CreatedCompoundService compound = client.addCompoundService(DID, CompoundService.builder() //
-                        .type("hello") //
-                        .serviceEndpoint(Map.of("world", DID + "/serviceEndpoint?type=test")) //
-                        .build());
-                log.info("CreatedCompoundService {}", compound);
-                list = client.listCompountServices(DID);
-                log.info("List<CreatedCompoundService> {}", list);
-                Endpoint resolved = client.retrieveEndpoint(DID, "hello", "world", null);
-                log.info("Endpoint {}", resolved);
-                assertEquals(ENDPOINT, resolved.getEndpoint());
-                resolved = client.retrieveEndpoint(DID, "hello", "world", true);
-                log.info("Endpoint {}", resolved);
-                assertEquals(ENDPOINT, resolved.getEndpoint());
-                resolved = client.retrieveEndpoint(DID, "hello", "world", false);
-                log.info("Endpoint {}", resolved);
-                assertNotEquals(ENDPOINT, resolved.getEndpoint());
-            } finally {
-                client.deleteServiceEndpoint(DID, "hello");
-            }
-        } finally {
-            client.deleteServiceEndpoint(DID, "test");
-        }
-        assertThrows(HttpClientErrorException.NotAcceptable.class,
-                () -> client.retrieveEndpoint(DID, "hello", "world", null));
-    }
+	@Test
+	void textContactInfo() {
+		DIDResolutionResult resolveDID = client.resolveDID(DID);
+		log.info("DID {}", resolveDID);
+		log.info("{}", resolveDID.getDocument().toJson(true));
+		List<String> controllers = resolveDID.getDocument().getControllers();
+		log.info("Controllers {}", controllers);
+		assertEquals(1, controllers.size());
+
+		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
+				.query(VerifiableCredential.builder() //
+						.type("NutsOrganizationCredential") //
+						.credentialSubject(CredentialSubject.builder() //
+								.id(URI.create(DID)) //
+								.build()) //
+						.build())
+				.searchOptions(SearchOptions.builder() //
+						.allowUntrustedIssuer(false) //
+						.build())
+				.build());
+		log.info("Search {}", result);
+		assertEquals(1, result.getVerifiableCredentials().size());
+		result = client.searchVC(SearchVerifiableCredential.builder() //
+				.query(NutsOrganizationCredential.builder() //
+						.orgId(URI.create(DID)) //
+						.build()) //
+				.searchOptions(SearchOptions.builder() //
+						.allowUntrustedIssuer(false) //
+						.build())
+				.build());
+		log.info("Search {}", result);
+		assertEquals(1, result.getVerifiableCredentials().size());
+		result.getVerifiableCredentials()
+				.forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
+
+		NutsOrganizationCredential organization = NutsOrganizationCredential
+				.fromJsonLDObject(result.getVerifiableCredentials().iterator().next().getVerifiableCredential());
+		log.info("Organisation {}, City {}", organization.getName(), organization.getCity());
+
+		ContactInformation contact = client.getContactInfo(VDID);
+		log.info("Contact {}", contact);
+		assertThrows(HttpClientErrorException.NotFound.class, () -> client.getContactInfo(DID));
+	}
+
+	@Test
+	void testEdnpoints() {
+		assertThrows(HttpClientErrorException.NotAcceptable.class,
+				() -> client.retrieveEndpoint(DID, "hello", "world", null));
+		List<CreatedCompoundService> list = client.listCompountServices(DID);
+		log.info("List<CreatedCompoundService> {}", list);
+		assertEquals(0, list.size());
+		try {
+			CreatedEndpoint endpoint = client.addServiceEndpoint(DID, ServiceEndpoint.builder() //
+					.type("test") //
+					.endpoint(ENDPOINT) //
+					.build());
+			log.info("CreatedEndpoint {}", endpoint);
+			try {
+				CreatedCompoundService compound = client.addCompoundService(DID, CompoundService.builder() //
+						.type("hello") //
+						.serviceEndpoint(Map.of("world", DID + "/serviceEndpoint?type=test")) //
+						.build());
+				log.info("CreatedCompoundService {}", compound);
+				list = client.listCompountServices(DID);
+				log.info("List<CreatedCompoundService> {}", list);
+				Endpoint resolved = client.retrieveEndpoint(DID, "hello", "world", null);
+				log.info("Endpoint {}", resolved);
+				assertEquals(ENDPOINT, resolved.getEndpoint());
+				resolved = client.retrieveEndpoint(DID, "hello", "world", true);
+				log.info("Endpoint {}", resolved);
+				assertEquals(ENDPOINT, resolved.getEndpoint());
+				resolved = client.retrieveEndpoint(DID, "hello", "world", false);
+				log.info("Endpoint {}", resolved);
+				assertNotEquals(ENDPOINT, resolved.getEndpoint());
+			} finally {
+				client.deleteServiceEndpoint(DID, "hello");
+			}
+		} finally {
+			client.deleteServiceEndpoint(DID, "test");
+		}
+		assertThrows(HttpClientErrorException.NotAcceptable.class,
+				() -> client.retrieveEndpoint(DID, "hello", "world", null));
+	}
 
 }
