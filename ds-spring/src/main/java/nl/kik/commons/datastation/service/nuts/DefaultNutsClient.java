@@ -191,7 +191,7 @@ public class DefaultNutsClient implements NutsNode {
                 .path(path);
         b = extra == null ? b : extra.apply(b);
         URI uri = b.build(pathParameters);
-        log.info("url {}", uri);
+        log.trace("url {}", uri);
         return uri;
     }
 

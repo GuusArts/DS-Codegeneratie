@@ -160,7 +160,7 @@ public class NutsOrganizationCredential extends VerifiableCredential {
 				.map(CredentialSubject::getClaims) // //
 				.map(claims -> claims.get(ORGANIZATION)) //
 				.stream() //
-				.peek(c -> log.info("Claims {}: {}", c, c.getClass())) //
+				.peek(c -> log.trace("Claims {}: {}", c, c.getClass())) //
 				.filter(Map.class::isInstance) //
 				.map(Map.class::cast) //
 				.findFirst() //
