@@ -94,6 +94,16 @@ public class DefaultNutsClientTest {
                 .build());
         log.info("Search {}", result);
         assertEquals(1, result.getVerifiableCredentials().size());
+        result = client.searchVC(SearchVerifiableCredential.builder() //
+                .query(NutsOrganizationCredential.builder() //
+                		.orgId(URI.create(DID)) //
+                		.build()) //
+                .searchOptions(SearchOptions.builder() //
+                        .allowUntrustedIssuer(false) //
+                        .build())
+                .build());
+        log.info("Search {}", result);
+        assertEquals(1, result.getVerifiableCredentials().size());
         result.getVerifiableCredentials()
                 .forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
 
