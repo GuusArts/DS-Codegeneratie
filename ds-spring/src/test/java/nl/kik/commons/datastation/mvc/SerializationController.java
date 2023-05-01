@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.danubetech.verifiablecredentials.VerifiablePresentation;
-
 import foundation.identity.jsonld.JsonLDUtils;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.didcomm.Code;
@@ -54,6 +52,7 @@ import nl.kik.commons.datastation.dto.nuts.oauth.AccessToken;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateAccessToken;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 @RestController
 @Slf4j

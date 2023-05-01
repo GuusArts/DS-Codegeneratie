@@ -1,8 +1,12 @@
 package nl.kik.commons.datastation.dto.kikv;
 
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import com.danubetech.verifiablecredentials.VerifiablePresentation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,6 +16,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 @Getter
 @SuperBuilder(toBuilder = true)
@@ -28,18 +33,28 @@ public class QueryRequest {
 	private CredentialSubject credentialSubject;
 	private String param_values;
 
-	public CredentialSubject getCredentialSubject() {
+	public Collection<CredentialSubject> getCredentialSubjects() {
 		if (credentialSubject != null) {
-			return credentialSubject;
+			return List.of(credentialSubject);
 		}
 		if (vp == null)
 			return null;
-		VerifiableCredential credential = vp.getVerifiableCredential();
-		if (credential == null)
-			return null;
-		return credential.getCredentialSubject();
+		return CollectionUtils.emptyIfNull(vp.getVerifiableCredentials()).stream() //
+				.map(VerifiableCredential::getCredentialSubject) //
+				.toList();
 	}
-	
+
+	public CredentialSubject getCredentialSubject() {
+		Collection<CredentialSubject> vcs = getCredentialSubjects();
+		if (CollectionUtils.isEmpty(vcs)) {
+			return null;
+		}
+		if (vcs.size() > 1) {
+			throw new IllegalArgumentException("Cannot use simplified mode with more than one subject");
+		}
+		return vcs.iterator().next();
+	}
+
 	public VerifiablePresentation getVp() {
 		if (vp != null) {
 			return vp;

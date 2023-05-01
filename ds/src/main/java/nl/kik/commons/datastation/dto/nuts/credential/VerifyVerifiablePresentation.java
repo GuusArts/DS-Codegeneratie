@@ -2,7 +2,6 @@ package nl.kik.commons.datastation.dto.nuts.credential;
 
 import java.time.ZonedDateTime;
 
-import com.danubetech.verifiablecredentials.VerifiablePresentation;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -12,6 +11,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 @Getter
 @SuperBuilder(toBuilder = true)

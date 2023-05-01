@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.commons.codec.binary.Base64;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import com.danubetech.verifiablecredentials.VerifiablePresentation;
 import com.danubetech.verifiablecredentials.jsonld.VerifiableCredentialKeywords;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -18,6 +17,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import foundation.identity.jsonld.JsonLDObject;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 @Slf4j
 public class Base64EncodedJSONLD {
