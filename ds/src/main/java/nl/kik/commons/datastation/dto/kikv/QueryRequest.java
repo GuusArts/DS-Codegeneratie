@@ -7,9 +7,10 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
+import nl.kik.commons.datastation.json.Base64EncodedJSONLD;
 
 @Getter
 @SuperBuilder(toBuilder = true)
@@ -26,22 +28,22 @@ import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class QueryRequest {
-	@JsonIgnore
-//	@JsonSerialize(using = Base64EncodedJSONLD.Serialize.class)
-//	@JsonDeserialize(using = Base64EncodedJSONLD.Deserialize.class)
+	@JsonSerialize(using = Base64EncodedJSONLD.Serialize.class)
+	@JsonDeserialize(using = Base64EncodedJSONLD.Deserialize.class)
 	private VerifiablePresentation vp;
 	private CredentialSubject credentialSubject;
 	private String param_values;
 
 	public Collection<CredentialSubject> getCredentialSubjects() {
-		if (credentialSubject != null) {
-			return List.of(credentialSubject);
+		if (vp != null) {
+			return CollectionUtils.emptyIfNull(vp.getVerifiableCredentials()).stream() //
+					.map(VerifiableCredential::getCredentialSubject) //
+					.toList();
 		}
-		if (vp == null)
-			return null;
-		return CollectionUtils.emptyIfNull(vp.getVerifiableCredentials()).stream() //
-				.map(VerifiableCredential::getCredentialSubject) //
-				.toList();
+		if (credentialSubject == null) {
+			return List.of();
+		}
+		return List.of(credentialSubject);
 	}
 
 	public CredentialSubject getCredentialSubject() {
