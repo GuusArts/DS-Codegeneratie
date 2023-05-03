@@ -49,10 +49,10 @@ public class GraphService {
 		}
 	}
 
-	public synchronized static void checkActive() {
-		log.info("Checking stale storages ({} total)", active.size());
-		ZonedDateTime cutoff = ZonedDateTime.now().minusMinutes(1);
-		ZonedDateTime errorCutoff = ZonedDateTime.now().minusMinutes(5);
+	public synchronized static void checkActive(int warning, int error) {
+		log.trace("Checking stale storages ({} total)", active.size());
+		ZonedDateTime cutoff = ZonedDateTime.now().minusMinutes(warning);
+		ZonedDateTime errorCutoff = ZonedDateTime.now().minusMinutes(error);
 		active.entrySet().stream() //
 				.filter(e -> e.getValue().getCreated().isBefore(cutoff)) //
 				.filter(e -> !e.getValue().getCreated().isBefore(errorCutoff)) //
