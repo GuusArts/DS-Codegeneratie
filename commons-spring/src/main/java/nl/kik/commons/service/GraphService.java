@@ -49,7 +49,7 @@ public class GraphService {
 		}
 	}
 
-	public synchronized void checkActive() {
+	public synchronized static void checkActive() {
 		log.info("Checking stale storages ({} total)", active.size());
 		ZonedDateTime cutoff = ZonedDateTime.now().minusMinutes(1);
 		ZonedDateTime errorCutoff = ZonedDateTime.now().minusMinutes(5);
