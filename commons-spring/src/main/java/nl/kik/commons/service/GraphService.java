@@ -56,13 +56,14 @@ public class GraphService {
 		active.entrySet().stream() //
 				.filter(e -> e.getValue().getCreated().isBefore(cutoff)) //
 				.filter(e -> !e.getValue().getCreated().isBefore(errorCutoff)) //
-				.forEach(i -> log.warn("Storage live for over 1 minute {}, depth {}", i.getKey(),
+				.forEach(i -> log.warn("Storage live for over {} minute {}, depth {}", warning, i.getKey(),
 						i.getValue().getCount()));
 
 		active.entrySet().stream() //
 				.filter(e -> e.getValue().getCreated().isBefore(errorCutoff)) //
 				.forEach(e -> {
-					log.error("Storage live for over 10 minutes {}", e.getKey(), e.getValue().getCount());
+					log.error("Storage live for over {} minutes {}, depth {}", error, e.getKey(),
+							e.getValue().getCount());
 					e.getValue().getStacks().forEach(ex -> log.info(" - entry point: ", ex));
 				});
 	}
