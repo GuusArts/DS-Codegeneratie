@@ -234,7 +234,7 @@ public class Graph<G extends Model> implements Source {
 	 */
 	@Override
 	public void end() {
-		GraphService.commit(this);
+		GraphService.leave(this);
 		if (delegate != null) {
 			delegate.end();
 		} else {
