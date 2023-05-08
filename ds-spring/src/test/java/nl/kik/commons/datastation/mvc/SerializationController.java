@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.jena.vocabulary.VCARD;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -301,6 +302,43 @@ public class SerializationController {
 						.toZonedDateTime()) //
 				.body(QueryRequest.builder() //
 						.vp(vp()) //
+						.param_values("params") //
+						.build()) //
+				.build();
+	}
+
+	@GetMapping("/didcomm/request2")
+	public Request request2() {
+		return Request.builder() //
+				.id(UUID.fromString("547429be-0b8c-4eb0-966d-6e1ab858127c")) //
+				.from(URI.create("urn:from")) //
+				.singleTo(URI.create("urn:to")) //
+				.created_time(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.expires_time(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.body(QueryRequest.builder() //
+						.credentialSubject(query().getCredentialSubject()) //
+						.param_values("params") //
+						.build()) //
+				.build();
+	}
+
+	@GetMapping("/didcomm/request3")
+	public Request request3() {
+		return Request.builder() //
+				.id(UUID.fromString("547429be-0b8c-4eb0-966d-6e1ab858127c")) //
+				.from(URI.create("urn:from")) //
+				.singleTo(URI.create("urn:to")) //
+				.created_time(ZonedDateTime.of(2020, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.expires_time(ZonedDateTime.of(2030, 1, 25, 0, 0, 0, 0, SerializationController.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.body(QueryRequest.builder() //
+						.vp(VerifiablePresentation.builder() //
+								.verifiableCredential(query()) //
+								.verifiableCredential(query()) //
+								.build()) //
 						.param_values("params") //
 						.build()) //
 				.build();

@@ -183,6 +183,9 @@ public class VerifiablePresentation extends JsonLDObject {
 		if (o instanceof Map<?, ?> map) {
 			return VerifiableCredential.fromMap((Map<String, Object>) map);
 		}
+		if (o instanceof JsonLDObject ld) {
+			return VerifiableCredential.fromJsonLDObject(ld);
+		}
 		throw new IllegalArgumentException("Received unexpected JSON-LD object of type " + o.getClass());
 	}
 

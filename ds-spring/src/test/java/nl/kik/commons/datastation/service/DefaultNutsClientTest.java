@@ -44,7 +44,7 @@ import nl.kik.commons.datastation.service.nuts.DefaultNutsClient;
 
 @Slf4j
 @SpringBootTest(classes = DefaultNutsClientTest.Context.class)
-@Disabled
+//@Disabled
 public class DefaultNutsClientTest {
 
 	static {

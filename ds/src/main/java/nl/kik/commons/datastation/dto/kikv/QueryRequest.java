@@ -7,6 +7,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -34,6 +35,7 @@ public class QueryRequest {
 	private CredentialSubject credentialSubject;
 	private String param_values;
 
+	@JsonIgnore
 	public Collection<CredentialSubject> getCredentialSubjects() {
 		if (vp != null) {
 			return CollectionUtils.emptyIfNull(vp.getVerifiableCredentials()).stream() //
@@ -52,7 +54,7 @@ public class QueryRequest {
 			return null;
 		}
 		if (vcs.size() > 1) {
-			throw new IllegalArgumentException("Cannot use simplified mode with more than one subject");
+			return null; // Cannot use simplified mode with >1 subject
 		}
 		return vcs.iterator().next();
 	}
