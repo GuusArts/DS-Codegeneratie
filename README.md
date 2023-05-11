@@ -46,4 +46,4 @@ Create [issues](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/is
 
 # Contributing
 
-Make a merge request
+Make a [merge request](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/merge_requests)
