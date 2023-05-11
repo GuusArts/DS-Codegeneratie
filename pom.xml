@@ -19,21 +19,31 @@
 		<nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
 		<junit.version>5.9.2</junit.version>
 		<jena.version>4.8.0</jena.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<dependency.skip>true</dependency.skip>
+		<dependency.update>false</dependency.update>
+		<dependency.connection>
+			jdbc:postgresql://cicd-do-user-6501721-0.db.ondigitalocean.com:25061/cvecheck8?sslmode=require</dependency.connection>
+		<dependency.user>cvecheckreader</dependency.user>
+		<dependency.password>lolnope</dependency.password>
+		<sonar.host.url>https://sonar.square.opencirclesolutions.nl</sonar.host.url>
+		<sonar.login>2f561162353a1479928ecbd8c81690029980127a</sonar.login>
+		<junit.version>5.9.1</junit.version>
+		<maven.site.deploy.skip>true</maven.site.deploy.skip>
+		<spotbugs.threshold>High</spotbugs.threshold>
 	</properties>
-	<parent>
-		<groupId>com.ocs.cicd</groupId>
-		<artifactId>parent</artifactId>
-		<version>[1.1.28,1.2.0)</version>
-		<relativePath />
-	</parent>
 	<repositories>
 		<repository>
 			<id>gitlab-maven-ocs</id>
-			<url>https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
+			<url>
+				https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
 		</repository>
 		<repository>
 			<id>gitlab-maven-zin</id>
-			<url>https://gitlab.opencirclesolutions.nl/api/v4/groups/zin/-/packages/maven</url>
+			<url>
+				https://gitlab.opencirclesolutions.nl/api/v4/groups/zin/-/packages/maven</url>
 		</repository>
 		<repository>
 			<id>danubetech-maven-releases</id>
@@ -47,13 +57,15 @@
 	<pluginRepositories>
 		<pluginRepository>
 			<id>gitlab-maven-ocs</id>
-			<url>https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
+			<url>
+				https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<distributionManagement>
 		<repository>
 			<id>gitlab-maven-ocs</id>
-			<url>https://gitlab.opencirclesolutions.nl/api/v4/projects/258/packages/maven</url>
+			<url>
+				https://gitlab.opencirclesolutions.nl/api/v4/projects/258/packages/maven</url>
 		</repository>
 	</distributionManagement>
 	<dependencyManagement>
@@ -106,6 +118,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
 			<scope>test</scope>
 		</dependency>
@@ -119,14 +136,176 @@
 		<module>gids-spring</module>
 	</modules>
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>3.9.1.2184</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>4.0.0-M4</version>
+				</plugin>
+				<plugin>
+					<groupId>pl.project13.maven</groupId>
+					<artifactId>git-commit-id-plugin</artifactId>
+					<version>4.9.10</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.10.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>0.8.8</version>
+				</plugin>
+				<plugin>
+					<groupId>org.owasp</groupId>
+					<artifactId>dependency-check-maven</artifactId>
+					<version>8.1.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.0.0-M7</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>3.4.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>2.10</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.spotbugs</groupId>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<version>4.7.3.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<jdkToolchain>
+						<version>${maven.compiler.source}</version>
+					</jdkToolchain>
+					<compilerArgument>-Xlint:all</compilerArgument>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>jacoco-initialize</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>jacoco-site</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.postgresql</groupId>
+						<artifactId>postgresql</artifactId>
+						<version>42.5.1</version>
+					</dependency>
+				</dependencies>
 				<configuration>
+					<skip>${dependency.skip}</skip>
+					<retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+					<format>JUNIT</format>
+					<autoUpdate>${dependency.update}</autoUpdate>
+					<failBuildOnCVSS>8</failBuildOnCVSS>
+					<junitFailOnCVSS>8</junitFailOnCVSS>
+					<databaseDriverName>org.postgresql.Driver</databaseDriverName>
+					<connectionString>${dependency.connection}</connectionString>
+					<databaseUser>${dependency.user}</databaseUser>
+					<databasePassword>${dependency.password}</databasePassword>
 					<suppressionFiles>
 						<suppressionFile>project-suppression.xml</suppressionFile>
 					</suppressionFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.jupiter</groupId>
+						<artifactId>junit-jupiter-engine</artifactId>
+						<version>${junit.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<configuration>
+					<rules>
+						<requireReleaseDeps>
+							<message>No Snapshots Allowed!</message>
+							<failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+						</requireReleaseDeps>
+					</rules>
+					<fail>true</fail>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<additionalProjectnatures>
+						<projectnature>
+							org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+					<additionalBuildcommands>
+						<buildcommand>
+							org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+					</additionalBuildcommands>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
 			</plugin>
 		</plugins>
