@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import nl.kik.commons.datastation.service.CatalogService;
-import nl.kik.commons.datastation.service.NoopValidationService;
+import nl.kik.commons.datastation.service.CryptoService;
+import nl.kik.commons.datastation.service.NoopCryptoService;
 import nl.kik.commons.datastation.service.ResultService;
 import nl.kik.commons.datastation.service.SPARQLService;
-import nl.kik.commons.datastation.service.ValidationService;
 
 @Configuration
 public class DatastationConfig {
@@ -32,8 +32,8 @@ public class DatastationConfig {
 
 	@Bean
 	@ConditionalOnMissingBean
-	ValidationService validationService() {
-		return new NoopValidationService();
+	CryptoService validationService() {
+		return new NoopCryptoService();
 	}
 
 }

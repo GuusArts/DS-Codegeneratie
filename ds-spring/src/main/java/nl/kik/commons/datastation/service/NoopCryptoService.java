@@ -8,10 +8,8 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.Ed25519Signer;
-import com.nimbusds.jose.crypto.Ed25519Verifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.OctetKeyPair;
@@ -19,13 +17,14 @@ import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 @Slf4j
-public class NoopValidationService implements ValidationService {
+public class NoopCryptoService implements CryptoService {
 	private OctetKeyPair jwk;
 	protected JWK publicJwk;
 	private JWSSigner signer;
-	private JWSVerifier verifier;
+	private ObjectMapper mapper;
 
 	@PostConstruct
 	public void init() throws JOSEException {
@@ -34,14 +33,13 @@ public class NoopValidationService implements ValidationService {
 				.generate();
 		signer = new Ed25519Signer(jwk);
 		final OctetKeyPair publicKey = jwk.toPublicJWK();
-		verifier = new Ed25519Verifier(publicKey);
 		publicJwk = publicKey;
+		mapper = new ObjectMapper();
 	}
 
 	@Override
 	public JWSObject sign(ResultSet value) throws Exception {
-		log.info("Signing {}", value);
-		ObjectMapper mapper = new ObjectMapper();
+		log.trace("Signing {}", value);
 		String serialized = mapper.writeValueAsString(value);
 		Payload payload = new Payload(serialized);
 		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.EdDSA) //
@@ -50,6 +48,18 @@ public class NoopValidationService implements ValidationService {
 		JWSObject jws = new JWSObject(header, payload);
 		jws.sign(signer);
 		return jws;
+	}
+
+	@Override
+	public ResultSet validate(JWSObject value) throws Exception {
+		log.warn("Not actually validating result; please only use {} for testing",
+				NoopCryptoService.class.getSimpleName());
+		return mapper.readValue(value.getPayload().toBytes(), ResultSet.class);
+	}
+
+	@Override
+	public void check(VerifiablePresentation vp) throws Exception {
+		log.warn("Not actually validating vp; please only use {} for testing", NoopCryptoService.class.getSimpleName());
 	}
 
 }
