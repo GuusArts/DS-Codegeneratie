@@ -24,6 +24,10 @@ This code includes partial DCAT implementation that is not used presently; it is
 
 Provides DTO + service for communicating with the ZA Gids in KIK-Starter.
 
+# Using
+
+Use the [maven repository](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/packages).  Make sure you have set up a key to access.
+
 # Building
 
 Should build using Maven 3.8 using 
