@@ -36,7 +36,6 @@ import nl.kik.commons.datastation.util.FunctionWrapper;
 
 @Slf4j
 public class NutsCryptoService implements CryptoService {
-	@Autowired
 	private NutsNode nuts;
 	@Autowired
 	private ObjectMapper mapper;
@@ -45,8 +44,14 @@ public class NutsCryptoService implements CryptoService {
 	@Setter
 	private int ttl = 30;
 
-	private Map<String, Pair<NutsDIDDocument, Instant>> didcache = new HashMap<>();
-	private Map<String, Pair<ECPublicKey, Instant>> keycache = new HashMap<>();
+	public NutsCryptoService(NutsNode nuts, ObjectMapper mapper) {
+		super();
+		this.nuts = nuts;
+		this.mapper = mapper;
+	}
+
+	private final Map<String, Pair<NutsDIDDocument, Instant>> didcache = new HashMap<>();
+	private final Map<String, Pair<ECPublicKey, Instant>> keycache = new HashMap<>();
 
 	@Override
 	public JWSObject sign(URI sender, ResultSet value) {
