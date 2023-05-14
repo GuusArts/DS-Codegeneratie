@@ -1,5 +1,7 @@
 package nl.kik.commons.datastation.service;
 
+import java.net.URI;
+
 import javax.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,8 +40,8 @@ public class NoopCryptoService implements CryptoService {
 	}
 
 	@Override
-	public JWSObject sign(ResultSet value) throws Exception {
-		log.trace("Signing {}", value);
+	public JWSObject sign(URI sender, ResultSet value) throws Exception {
+		log.trace("Signing {} for {}", value, sender);
 		String serialized = mapper.writeValueAsString(value);
 		Payload payload = new Payload(serialized);
 		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.EdDSA) //

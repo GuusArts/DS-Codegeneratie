@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.service.nuts;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.danubetech.verifiablecredentials.VerifiablePresentation;
+import com.nimbusds.jose.JWSObject;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
@@ -87,9 +89,13 @@ public class DefaultNutsClient implements NutsNode {
 	}
 
 	@Override
-	public String signJws(SignJws<?> body) {
-		return requireResponse(
-				internalNutsRestClient.postForEntity(url("internal/crypto/v1/sign_jws", Map.of()), body, String.class));
+	public JWSObject signJws(SignJws<?> body) {
+		try {
+			return JWSObject.parse(requireResponse(internalNutsRestClient
+					.postForEntity(url("internal/crypto/v1/sign_jws", Map.of()), body, String.class)));
+		} catch (ParseException e) {
+			throw new NutsException(0, e.getMessage());
+		}
 	}
 
 	@Override

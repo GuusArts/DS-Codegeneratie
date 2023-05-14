@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.danubetech.verifiablecredentials.VerifiablePresentation;
+import com.nimbusds.jose.JWSObject;
 
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiablePresentation;
@@ -50,12 +51,12 @@ public interface NutsNode {
 
 	@PostMapping("/internal/vcr/v2/verifier/vp")
 	PresentationVerificationResult verifyVP(@RequestBody VerifyVerifiablePresentation body);
-	
+
 	@GetMapping("/internal/vdr/v1/did/{did}")
 	DIDResolutionResult resolveDID(@PathVariable String did);
 
 	@PostMapping("/internal/crypto/v1/sign_jws")
-	String signJws(@RequestBody SignJws<?> body);
+	JWSObject signJws(@RequestBody SignJws<?> body);
 
 	@PostMapping("/internal/auth/v1/jwt-grant")
 	GrantedJwt createJwtGrant(@RequestBody CreateJwtGrant body);
@@ -66,12 +67,12 @@ public interface NutsNode {
 	@RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
 	void verifyToken(@RequestHeader("Authorization") String token);
 
-    @GetMapping("/internal/didman/v1/did/{did}/contactinfo")
-    ContactInformation getContactInfo(@PathVariable String did);
+	@GetMapping("/internal/didman/v1/did/{did}/contactinfo")
+	ContactInformation getContactInfo(@PathVariable String did);
 
-    @GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
-    Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
-            @PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
+	@GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
+	Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
+			@PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
 
 	@PostMapping("/internal/didman/v1/did/{did}/endpoint")
 	CreatedEndpoint addServiceEndpoint(@PathVariable String did, @RequestBody ServiceEndpoint endpoint);

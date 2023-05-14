@@ -3,8 +3,10 @@ package nl.kik.commons.datastation.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -23,14 +25,29 @@ import org.springframework.web.client.RestTemplate;
 import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.kik.commons.datastation.dto.ds.AskResult;
+import nl.kik.commons.datastation.dto.ds.Binding;
+import nl.kik.commons.datastation.dto.ds.Header;
+import nl.kik.commons.datastation.dto.ds.RDFType;
+import nl.kik.commons.datastation.dto.ds.SelectBody;
+import nl.kik.commons.datastation.dto.ds.SelectResult;
+import nl.kik.commons.datastation.dto.kikv.Result;
+import nl.kik.commons.datastation.dto.kikv.ResultSet;
 import nl.kik.commons.datastation.dto.nuts.NutsOrganizationCredential;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchOptions;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchResult;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.crypto.SignResultSet;
 import nl.kik.commons.datastation.dto.nuts.didman.CompoundService;
 import nl.kik.commons.datastation.dto.nuts.didman.ContactInformation;
 import nl.kik.commons.datastation.dto.nuts.didman.CreatedCompoundService;
@@ -82,6 +99,38 @@ public class DefaultNutsClientTest {
 	private DefaultNutsClient client;
 
 	@Test
+	void testSign() throws JOSEException, ParseException {
+		DIDResolutionResult resolveDID = client.resolveDID(DID);
+		URI keyId = resolveDID.getDocument().getKeyAgreementVerificationMethods().stream() //
+				.map(k -> k.getId()) //
+				.findFirst().orElseThrow();
+
+		JWSObject jws = client.signJws(SignResultSet.builder() //
+				.detached(false) //
+				.kid(keyId) //
+				.payload(resultset()) //
+				.build()); //
+		log.info("Signed {}", jws);
+		assertEquals("ES256", jws.getHeader().getAlgorithm().getName());
+
+		Map<String, Object> jwkJson = resolveDID.getDocument().getKeyAgreementVerificationMethods().stream() //
+				.filter(k -> k.getId().toString().equals(jws.getHeader().getKeyID())) //
+				.map(k -> k.getPublicKeyJwk()) //
+				.findFirst().orElseThrow();
+		JWK jwk = JWK.parse(jwkJson);
+		log.info("JWK {}", jwk);
+		ECKey eckey = jwk.toECKey();
+		log.info("ECKey {}", eckey);
+		ECPublicKey key = eckey.toECPublicKey();
+		log.info("Key {}", key);
+
+		JWSVerifier verifier = new DefaultJWSVerifierFactory().createJWSVerifier(jws.getHeader(), key);
+		boolean valid = jws.verify(verifier);
+		log.info("Validates {}", valid);
+		assertTrue(valid);
+	}
+
+	@Test
 	void testOauth() throws ParseException {
 		try {
 			CreatedEndpoint endpoint = client.addServiceEndpoint(DID, ServiceEndpoint.builder() //
@@ -104,6 +153,7 @@ public class DefaultNutsClientTest {
 				log.info("Access token {}", accessToken);
 				JWT token = JWTParser.parse(accessToken.getAccess_token());
 				client.verifyToken(accessToken.getAccess_token());
+				client.verifyToken(accessToken.getAccess_token()); // Test tokens can be re-used
 				log.info("Header {}", token.getHeader());
 				log.info("Body {}", token.getJWTClaimsSet());
 				assertEquals(ADID, token.getJWTClaimsSet().getSubject());
@@ -120,7 +170,7 @@ public class DefaultNutsClientTest {
 	}
 
 	@Test
-	void textContactInfo() {
+	void testContactInfo() {
 		DIDResolutionResult resolveDID = client.resolveDID(DID);
 		log.info("DID {}", resolveDID);
 		log.info("{}", resolveDID.getDocument().toJson(true));
@@ -164,7 +214,7 @@ public class DefaultNutsClientTest {
 	}
 
 	@Test
-	void testEdnpoints() {
+	void testEndpoints() {
 		assertThrows(HttpClientErrorException.NotAcceptable.class,
 				() -> client.retrieveEndpoint(DID, "hello", "world", null));
 		List<CreatedCompoundService> list = client.listCompountServices(DID);
@@ -201,6 +251,52 @@ public class DefaultNutsClientTest {
 		}
 		assertThrows(HttpClientErrorException.NotAcceptable.class,
 				() -> client.retrieveEndpoint(DID, "hello", "world", null));
+	}
+
+	private ResultSet resultset() {
+		return ResultSet.builder() //
+				.result(Result.builder() //
+						.messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
+						.queryId("b7285a98-507c-49d0-9a96-3b76d197c99b") //
+						.result(ask()) //
+						.build()) //
+				.result(Result.builder() //
+						.messageId("547429be-0b8c-4eb0-966d-6e1ab858127c") //
+						.queryId("b7285a98-507c-49d0-9a96-3b76d197c99b") //
+						.result(select()) //
+						.build()) //
+				.build();
+	}
+
+	private SelectResult select() {
+		return SelectResult.builder() //
+				.head(Header.builder() //
+						.link(List.of(URI.create("http://example.com"))) //
+						.vars(List.of("a", "b")) //
+						.build()) //
+				.results(SelectBody.builder() //
+						.bindings(List.of( //
+								Map.of("a", Binding.builder().value("1").type(RDFType.literal).build()), //
+								Map.of("a", Binding.builder().value("http://example.com").type(RDFType.uri).build()), //
+								Map.of("b",
+										Binding.builder().value("hello").type(RDFType.literal).language("en").build()), //
+								Map.of("a",
+										Binding.builder().value("world").type(RDFType.literal).datatype("xsd:string")
+												.build(), //
+										"b", Binding.builder().value("b23").type(RDFType.bnode).build()) //
+						)) //
+						.build())//
+				.build();
+	}
+
+	/**
+	 * @return
+	 */
+	private AskResult ask() {
+		return AskResult.builder() //
+				.head(Header.builder().build()) //
+				.value(true) //
+				.build();
 	}
 
 }

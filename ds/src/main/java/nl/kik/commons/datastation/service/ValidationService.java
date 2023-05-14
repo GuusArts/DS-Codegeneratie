@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.danubetech.verifiablecredentials.CredentialSubject;
-import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 

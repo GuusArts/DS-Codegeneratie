@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.json;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.inject.Inject;
 
@@ -14,6 +15,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.nimbusds.jose.JWSObject;
 
+import nl.kik.commons.datastation.dto.kikv.QueryResponse;
+import nl.kik.commons.datastation.dto.kikv.Response;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
 import nl.kik.commons.datastation.service.CryptoService;
 
@@ -30,11 +33,23 @@ public class JWSSignedResultSet {
 				gen.writeNull();
 				return;
 			}
-			try {
-				gen.writeString((validator == null ? JWSSignedResultSet.validator : validator).sign(value).serialize());
-			} catch (Exception e) {
-				throw new IOException(e);
+			Object queryresponse = gen.getOutputContext().getCurrentValue();
+			if (queryresponse instanceof QueryResponse qr) {
+				Object response = gen.getOutputContext().getParent().getCurrentValue();
+				if (response instanceof Response r) {
+					URI sender = r.getFrom();
+					if (sender != null) {
+						try {
+							gen.writeString((validator == null ? JWSSignedResultSet.validator : validator)
+									.sign(sender, value).serialize());
+							return;
+						} catch (Exception e) {
+							throw new IOException(e);
+						}
+					}
+				}
 			}
+			throw new IOException("Cannot infer sender");
 		}
 	}
 
