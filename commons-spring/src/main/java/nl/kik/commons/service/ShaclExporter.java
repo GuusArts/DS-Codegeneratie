@@ -131,8 +131,8 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		}
 		CollectionUtils.emptyIfNull(nodeShape.getMessages())
 				.forEach(m -> model.add(nodeResource, toProperty(SHACL.message), toLiteral(m)));
-		CollectionUtils.emptyIfNull(nodeShape.getTargets())
-				.forEach(t -> model.add(nodeResource, toProperty(t.getTargetType().predicate), toResource(t.getObject())));
+		CollectionUtils.emptyIfNull(nodeShape.getTargets()).forEach(
+				t -> model.add(nodeResource, toProperty(t.getTargetType().predicate), toResource(t.getObject())));
 
 		CollectionUtils.emptyIfNull(nodeShape.getConstraints()).forEach(c -> c.visit(this));
 		CollectionUtils.emptyIfNull(nodeShape.getPropertyShapes()).forEach(p -> p.visit(this));
@@ -150,7 +150,8 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
 		if (!CollectionUtils.isEmpty(shapes.getImports())) {
 			model.add(ontology, RDF.type, OWL.Ontology);
-			CollectionUtils.emptyIfNull(shapes.getImports()).forEach(i -> model.add(ontology, OWL.imports, toResource(i)));
+			CollectionUtils.emptyIfNull(shapes.getImports())
+					.forEach(i -> model.add(ontology, OWL.imports, toResource(i)));
 		}
 		if (shapes.getGraph() != null && shapes.getGraph().getPrefixMapping() != null) {
 			model.setNsPrefixes(shapes.getGraph().getPrefixMapping());
@@ -249,8 +250,8 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 			throw new IllegalArgumentException();
 		}
 		if (n instanceof Node_Blank) {
-			final Resource resource = model
-					.createResource(n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
+			final Resource resource = model.createResource(
+					n.getBlankNodeLabel() == null ? AnonId.create() : AnonId.create(n.getBlankNodeLabel()));
 			resources.put(n, resource);
 			return resource;
 		}
@@ -516,7 +517,14 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 
 	@Override
 	public void visit(final ShAnd constraint) {
-		throw new NotImplementedException();
+		final Resource savedParent = parent;
+		constraint.getOthers().forEach(o -> {
+			final Resource nodeResource = toResource(getNode(o));
+			parent = nodeResource;
+			model.add(savedParent, toProperty(SHACL.and), nodeResource);
+			o.visit(this);
+		});
+		parent = savedParent;
 	}
 
 	@Override
@@ -536,7 +544,14 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 
 	@Override
 	public void visit(final ShOr constraint) {
-		throw new NotImplementedException();
+		final Resource savedParent = parent;
+		constraint.getOthers().forEach(o -> {
+			final Resource nodeResource = toResource(getNode(o));
+			parent = nodeResource;
+			model.add(savedParent, toProperty(SHACL.or), nodeResource);
+			o.visit(this);
+		});
+		parent = savedParent;
 	}
 
 	@Override
