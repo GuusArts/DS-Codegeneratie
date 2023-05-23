@@ -518,12 +518,13 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	@Override
 	public void visit(final ShAnd constraint) {
 		final Resource savedParent = parent;
-		constraint.getOthers().forEach(o -> {
+		List<Resource> children = constraint.getOthers().stream().map(o -> {
 			final Resource nodeResource = toResource(getNode(o));
 			parent = nodeResource;
-			model.add(savedParent, toProperty(SHACL.and), nodeResource);
 			o.visit(this);
-		});
+			return nodeResource;
+		}).toList();
+		model.add(savedParent, toProperty(SHACL.and), model.createList(children.iterator()));
 		parent = savedParent;
 	}
 
@@ -545,12 +546,13 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	@Override
 	public void visit(final ShOr constraint) {
 		final Resource savedParent = parent;
-		constraint.getOthers().forEach(o -> {
+		List<Resource> children = constraint.getOthers().stream().map(o -> {
 			final Resource nodeResource = toResource(getNode(o));
 			parent = nodeResource;
-			model.add(savedParent, toProperty(SHACL.or), nodeResource);
 			o.visit(this);
-		});
+			return nodeResource;
+		}).toList();
+		model.add(savedParent, toProperty(SHACL.or), model.createList(children.iterator()));
 		parent = savedParent;
 	}
 
