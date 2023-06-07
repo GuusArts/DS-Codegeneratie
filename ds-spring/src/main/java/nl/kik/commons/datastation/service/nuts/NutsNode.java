@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.danubetech.verifiablecredentials.VerifiableCredential;
-import com.danubetech.verifiablecredentials.VerifiablePresentation;
 import com.nimbusds.jose.JWSObject;
 
 import nl.kik.commons.datastation.dto.nuts.credential.CreateVerifiableCredential;
@@ -35,57 +34,58 @@ import nl.kik.commons.datastation.dto.nuts.oauth.AccessToken;
 import nl.kik.commons.datastation.dto.nuts.oauth.CreateJwtGrant;
 import nl.kik.commons.datastation.dto.nuts.oauth.GrantedJwt;
 import nl.kik.commons.datastation.dto.nuts.vdr.DIDResolutionResult;
+import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 public interface NutsNode {
-	@PostMapping("/internal/vcr/v2/issuer/vc")
-	VerifiableCredential issueVC(@RequestBody CreateVerifiableCredential body);
+    @PostMapping("/internal/vcr/v2/issuer/vc")
+    VerifiableCredential issueVC(@RequestBody CreateVerifiableCredential body);
 
-	@PostMapping("/internal/vcr/v2/verifier/vc")
-	VerificationResult verifyVC(@RequestBody VerifyVerifiableCredential body);
+    @PostMapping("/internal/vcr/v2/verifier/vc")
+    VerificationResult verifyVC(@RequestBody VerifyVerifiableCredential body);
 
-	@PostMapping("/internal/vcr/v2/search")
-	SearchResult searchVC(@RequestBody SearchVerifiableCredential body);
+    @PostMapping("/internal/vcr/v2/search")
+    SearchResult searchVC(@RequestBody SearchVerifiableCredential body);
 
-	@PostMapping("/internal/vcr/v2/holder/vp")
-	VerifiablePresentation issueVP(@RequestBody CreateVerifiablePresentation body);
+    @PostMapping("/internal/vcr/v2/holder/vp")
+    VerifiablePresentation issueVP(@RequestBody CreateVerifiablePresentation body);
 
-	@PostMapping("/internal/vcr/v2/verifier/vp")
-	PresentationVerificationResult verifyVP(@RequestBody VerifyVerifiablePresentation body);
+    @PostMapping("/internal/vcr/v2/verifier/vp")
+    PresentationVerificationResult verifyVP(@RequestBody VerifyVerifiablePresentation body);
 
-	@GetMapping("/internal/vdr/v1/did/{did}")
-	DIDResolutionResult resolveDID(@PathVariable String did);
+    @GetMapping("/internal/vdr/v1/did/{did}")
+    DIDResolutionResult resolveDID(@PathVariable String did);
 
-	@PostMapping("/internal/crypto/v1/sign_jws")
-	JWSObject signJws(@RequestBody SignJws<?> body);
+    @PostMapping("/internal/crypto/v1/sign_jws")
+    JWSObject signJws(@RequestBody SignJws<?> body);
 
-	@PostMapping("/internal/auth/v1/jwt-grant")
-	GrantedJwt createJwtGrant(@RequestBody CreateJwtGrant body);
+    @PostMapping("/internal/auth/v1/jwt-grant")
+    GrantedJwt createJwtGrant(@RequestBody CreateJwtGrant body);
 
-	@PostMapping("/internal/auth/v1/request-access-token")
-	AccessToken requestAccessToken(@RequestBody CreateJwtGrant body);
+    @PostMapping("/internal/auth/v1/request-access-token")
+    AccessToken requestAccessToken(@RequestBody CreateJwtGrant body);
 
-	@RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
-	void verifyToken(@RequestHeader("Authorization") String token);
+    @RequestMapping(method = RequestMethod.HEAD, path = "/internal/auth/v1/accesstoken/verify")
+    void verifyToken(@RequestHeader("Authorization") String token);
 
-	@GetMapping("/internal/didman/v1/did/{did}/contactinfo")
-	ContactInformation getContactInfo(@PathVariable String did);
+    @GetMapping("/internal/didman/v1/did/{did}/contactinfo")
+    ContactInformation getContactInfo(@PathVariable String did);
 
-	@GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
-	Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
-			@PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
+    @GetMapping("/internal/didman/v1/did/{did}/counpundservice/{compoundServiceType}/endpoint/{endpointType}")
+    Endpoint retrieveEndpoint(@PathVariable String did, @PathVariable String compoundServiceType,
+            @PathVariable String endpointType, @RequestParam(required = false) Boolean resolve);
 
-	@PostMapping("/internal/didman/v1/did/{did}/endpoint")
-	CreatedEndpoint addServiceEndpoint(@PathVariable String did, @RequestBody ServiceEndpoint endpoint);
+    @PostMapping("/internal/didman/v1/did/{did}/endpoint")
+    CreatedEndpoint addServiceEndpoint(@PathVariable String did, @RequestBody ServiceEndpoint endpoint);
 
-	@DeleteMapping("/internal/didman/v1/did/{did}/endpoint/{type}")
-	void deleteServiceEndpoint(@PathVariable String did, @PathVariable String type);
+    @DeleteMapping("/internal/didman/v1/did/{did}/endpoint/{type}")
+    void deleteServiceEndpoint(@PathVariable String did, @PathVariable String type);
 
-	@PostMapping("/internal/didman/v1/did/{did}/compoundservice")
-	CreatedCompoundService addCompoundService(@PathVariable String did, @RequestBody CompoundService service);
+    @PostMapping("/internal/didman/v1/did/{did}/compoundservice")
+    CreatedCompoundService addCompoundService(@PathVariable String did, @RequestBody CompoundService service);
 
-	@GetMapping("/internal/didman/v1/did/{did}/compoundservice")
-	List<CreatedCompoundService> listCompountServices(@PathVariable String did);
+    @GetMapping("/internal/didman/v1/did/{did}/compoundservice")
+    List<CreatedCompoundService> listCompountServices(@PathVariable String did);
 
-	@DeleteMapping("/internal/didman/v1/service/{id}")
-	void deleteService(@PathVariable String id);
+    @DeleteMapping("/internal/didman/v1/service/{id}")
+    void deleteService(@PathVariable String id);
 }
