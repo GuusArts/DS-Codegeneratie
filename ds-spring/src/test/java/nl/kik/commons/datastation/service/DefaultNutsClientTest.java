@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,7 @@ import nl.kik.commons.datastation.dto.nuts.credential.PresentationVerificationRe
 import nl.kik.commons.datastation.dto.nuts.credential.SearchOptions;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchResult;
 import nl.kik.commons.datastation.dto.nuts.credential.SearchVerifiableCredential;
+import nl.kik.commons.datastation.dto.nuts.credential.VerifiableCredentialSearchResult;
 import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.credential.Visibility;
 import nl.kik.commons.datastation.dto.nuts.crypto.SignResultSet;
@@ -113,52 +115,60 @@ public class DefaultNutsClientTest {
 	@Test
 	void testFindCredentials() {
 		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
-				.query(VerifiableCredential.builder() //
-						.type(NutsOrganizationCredential.TYPE) //
-						.credentialSubject(CredentialSubject.builder() //
-								.id(URI.create(DID)) //
-								.build()) //
+				.query(NutsOrganizationCredential.builder() //
+						.orgId(URI.create(DID)) //
 						.build())
 				.searchOptions(SearchOptions.builder() //
 						.allowUntrustedIssuer(false) //
 						.build())
 				.build());
 		log.info("Search {}", result);
-		assertEquals(1, result.getVerifiableCredentials().size());
+		List<? extends VerifiableCredential> vcs = result.getVerifiableCredentials().stream() //
+				.map(VerifiableCredentialSearchResult::getVerifiableCredential) //
+				.map(NutsOrganizationCredential::fromJsonLDObject) //
+				.filter(Objects::nonNull) //
+				.toList();
+		assertEquals(1, vcs.size());
+
+		log.info("Q: {}", ValidatedQueryCredential.builder() //
+				.subjectId(URI.create(ADID)) //
+				.build().toJson(true));
 		result = client.searchVC(SearchVerifiableCredential.builder() //
 				.query(ValidatedQueryCredential.builder() //
-						.type(NutsOrganizationCredential.TYPE) //
-						.credentialSubject(CredentialSubject.builder() //
-								.id(URI.create(ADID)) //
-								.build()) //
+						.subjectId(URI.create(ADID)) //
 						.build())
 				.searchOptions(SearchOptions.builder() //
 						.allowUntrustedIssuer(false) //
 						.build())
 				.build());
 		log.info("Search {}", result);
-		assertFalse(result.getVerifiableCredentials().isEmpty());
-		result.getVerifiableCredentials()
-				.forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
+		vcs = result.getVerifiableCredentials().stream() //
+				.map(VerifiableCredentialSearchResult::getVerifiableCredential) //
+				.map(ValidatedQueryCredential::fromJsonLDObject) //
+				.filter(Objects::nonNull) //
+				.toList();
+
+		assertFalse(vcs.isEmpty());
+		vcs.forEach(c -> log.info("Credential {}", c.toJson(true)));
 	}
 
 	@Test
 	void testIssueAndValidateCredentials() {
 		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
-				.query(VerifiableCredential.builder() //
-						.type(NutsOrganizationCredential.TYPE) //
-						.credentialSubject(CredentialSubject.builder() //
-								.id(URI.create(DID)) //
-								.build()) //
+				.query(NutsOrganizationCredential.builder() //
+						.orgId(URI.create(DID)) //
 						.build())
 				.searchOptions(SearchOptions.builder() //
 						.allowUntrustedIssuer(false) //
 						.build())
 				.build());
 		log.info("Search {}", result);
-		assertEquals(1, result.getVerifiableCredentials().size());
-		result.getVerifiableCredentials()
-				.forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
+		List<? extends VerifiableCredential> vcs = result.getVerifiableCredentials().stream() //
+				.map(VerifiableCredentialSearchResult::getVerifiableCredential) //
+				.map(NutsOrganizationCredential::fromJsonLDObject) //
+				.filter(Objects::nonNull) //
+				.toList();
+		assertEquals(1, vcs.size());
 
 		VerifiableCredential vc = client.issueVC(CreateVerifiableCredential.from(ValidatedQueryCredential.builder() //
 				.subjectId(URI.create(ADID)) //
@@ -177,7 +187,7 @@ public class DefaultNutsClientTest {
 		log.info("VC {}", vc.toJson(true));
 
 		VerifiablePresentation vp = client.issueVP(CreateVerifiablePresentation.builder() //
-				.verifiableCredential(result.getVerifiableCredentials().iterator().next().getVerifiableCredential()) //
+				.verifiableCredential(vcs.iterator().next()) //
 				.verifiableCredential(vc) //
 				.signerDID(URI.create(DID)) //
 				.build());

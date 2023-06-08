@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 
 import com.apicatalog.jsonld.JsonLdError;
@@ -73,7 +74,7 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 		public ValidatedQueryCredential build() {
 			super.build();
 
-			if (MapUtils.isNotEmpty(claims)) {
+			if (MapUtils.isNotEmpty(claims) || subjectId != null) {
 				CredentialSubject credentialSubject = CredentialSubject.builder() //
 						.id(subjectId) //
 						.claims(claims) //
@@ -92,6 +93,7 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 
 		@SuppressWarnings("unchecked")
 		public B subjectId(URI subjectId) {
+			ensureQuery();
 			this.subjectId = subjectId;
 			return (B) this;
 		}
@@ -173,7 +175,11 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 	}
 
 	public static ValidatedQueryCredential fromJsonObject(Map<String, Object> jsonObject) {
-		return new ValidatedQueryCredential(jsonObject);
+		ValidatedQueryCredential result = new ValidatedQueryCredential(jsonObject);
+		if (!CollectionUtils.emptyIfNull(result.getTypes()).contains(TYPE)) {
+			return null;
+		}
+		return result;
 	}
 
 	public static ValidatedQueryCredential fromJsonLDObject(JsonLDObject jsonLDObject) {
@@ -181,15 +187,15 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 	}
 
 	public static ValidatedQueryCredential fromJson(Reader reader) {
-		return new ValidatedQueryCredential(readJson(reader));
+		return fromJsonObject(readJson(reader));
 	}
 
 	public static ValidatedQueryCredential fromJson(String json) {
-		return new ValidatedQueryCredential(readJson(json));
+		return fromJsonObject(readJson(json));
 	}
 
 	public static ValidatedQueryCredential fromMap(Map<String, Object> map) {
-		return new ValidatedQueryCredential(map);
+		return fromJsonObject(map);
 	}
 
 	private <T> Optional<T> getFromSubject(String claim, Class<T> clazz) {

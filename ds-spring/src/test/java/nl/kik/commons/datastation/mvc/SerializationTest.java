@@ -3,7 +3,6 @@ package nl.kik.commons.datastation.mvc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
-import java.util.UUID;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;

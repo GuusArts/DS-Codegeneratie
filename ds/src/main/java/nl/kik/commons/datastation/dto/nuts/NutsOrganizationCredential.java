@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 
 import com.apicatalog.jsonld.JsonLdError;
@@ -135,7 +136,11 @@ public class NutsOrganizationCredential extends VerifiableCredential {
 	}
 
 	public static NutsOrganizationCredential fromJsonObject(Map<String, Object> jsonObject) {
-		return new NutsOrganizationCredential(jsonObject);
+		NutsOrganizationCredential result = new NutsOrganizationCredential(jsonObject);
+		if (!CollectionUtils.emptyIfNull(result.getTypes()).contains(TYPE)) {
+			return null;
+		}
+		return result;
 	}
 
 	public static NutsOrganizationCredential fromJsonLDObject(JsonLDObject jsonLDObject) {
@@ -143,15 +148,15 @@ public class NutsOrganizationCredential extends VerifiableCredential {
 	}
 
 	public static NutsOrganizationCredential fromJson(Reader reader) {
-		return new NutsOrganizationCredential(readJson(reader));
+		return fromJsonObject(readJson(reader));
 	}
 
 	public static NutsOrganizationCredential fromJson(String json) {
-		return new NutsOrganizationCredential(readJson(json));
+		return fromJsonObject(readJson(json));
 	}
 
 	public static NutsOrganizationCredential fromMap(Map<String, Object> map) {
-		return new NutsOrganizationCredential(map);
+		return fromJsonObject(map);
 	}
 
 	@SuppressWarnings("unchecked")
