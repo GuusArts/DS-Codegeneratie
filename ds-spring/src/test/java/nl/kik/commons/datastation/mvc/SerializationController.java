@@ -64,8 +64,9 @@ public class SerializationController {
 	public ValidatedQueryCredential query() {
 		return ValidatedQueryCredential.builder() //
 				.id(URI.create("did:nuts:HmTTxp5FxJLFtnfjxs1U9FUChrP5j7GpToivqdFt7Mnm")) //
+				.subjectId(URI.create("did:example:afnemer")) //
 				.identifier("b7285a98-507c-49d0-9a96-3b76d197c99b") //
-				.issuer(URI.create("did:example:76e12ec712ebc6f1c221ebfeb1f")) //
+				.issuer(URI.create("did:example:beheer")) //
 				.issuanceDate(JsonLDUtils.stringToDate("2019-06-16T18:56:59Z"))//
 				.expirationDate(JsonLDUtils.stringToDate("2019-06-17T18:56:59Z")) //
 				.name("2.3.1 Ziekteverzuimpercentage")//
@@ -84,7 +85,7 @@ public class SerializationController {
 
 	@GetMapping("/nuts/createvc")
 	public CreateVerifiableCredential createVC() {
-		return CreateVerifiableCredential.builder(query()) //
+		return CreateVerifiableCredential.from(query()) //
 				.visibility(Visibility.Private) //
 				.publishToNetwork(true) //
 				.build();
@@ -165,7 +166,7 @@ public class SerializationController {
 	@GetMapping("/nuts/createvp")
 	public CreateVerifiablePresentation createVP() {
 		return CreateVerifiablePresentation.builder() //
-				.verifiableCredential(createVC()) //
+				.verifiableCredential(query()) //
 				.signerDID(URI.create("urn:signer")) //
 				.challenge("challenge") //
 				.domain("domain") //

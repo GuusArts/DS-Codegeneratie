@@ -1,15 +1,18 @@
 package nl.kik.commons.datastation.dto.nuts.credential;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Visibility {
-    Private("private"), Public("public");
+	Private("private"), Public("public");
 
-    private String name;
+	private String name;
 
-    Visibility(String name) {
-        this.name = name;
-    }
+	Visibility(String name) {
+		this.name = name;
+	}
 
-    public String toString() {
-        return name;
-    }
+	@JsonValue
+	public String toString() {
+		return name;
+	}
 }

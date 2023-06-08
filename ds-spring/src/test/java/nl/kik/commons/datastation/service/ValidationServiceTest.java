@@ -51,7 +51,7 @@ public class ValidationServiceTest {
 	private ValidatedQueryCredential query() {
 		return ValidatedQueryCredential.builder() //
 				.id(URI.create("urn:whatever")) //
-				.queryId(URI.create("urn:from")) //
+				.subjectId(URI.create("urn:from")) //
 				.identifier("b7285a98-507c-49d0-9a96-3b76d197c99b") //
 				.issuer(URI.create("did:example:76e12ec712ebc6f1c221ebfeb1f")) //
 				.issuanceDate(JsonLDUtils.stringToDate("2019-06-16T18:56:59Z"))//

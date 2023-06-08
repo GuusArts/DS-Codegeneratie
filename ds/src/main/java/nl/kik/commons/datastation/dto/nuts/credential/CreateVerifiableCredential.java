@@ -1,96 +1,83 @@
 package nl.kik.commons.datastation.dto.nuts.credential;
 
-import java.io.Reader;
-import java.util.Map;
-import java.util.Objects;
+import java.net.URI;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
+import com.danubetech.verifiablecredentials.CredentialSubject;
 import com.danubetech.verifiablecredentials.VerifiableCredential;
+import com.danubetech.verifiablecredentials.jsonld.VerifiableCredentialContexts;
+import com.danubetech.verifiablecredentials.jsonld.VerifiableCredentialKeywords;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import foundation.identity.jsonld.JsonLDObject;
-import foundation.identity.jsonld.JsonLDUtils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
-public class CreateVerifiableCredential extends VerifiableCredential {
-    public static String VISIBILITY = "visibility";
-    public static final String PUBLISH_TO_NETWORK = "publishToNetwork";
+@Getter
+@SuperBuilder(toBuilder = true)
+@EqualsAndHashCode
+@ToString
+@Jacksonized
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CreateVerifiableCredential {
+	@JsonProperty("@context")
+	private URI context;
+	private String type;
+	private URI issuer;
+	private ZonedDateTime expirationDate;
+	private Boolean publishToNetwork;
+	private Visibility visibility;
+	private CredentialSubject credentialSubject;
 
-    public static class Builder<B extends Builder<B>> extends VerifiableCredential.Builder<B> {
-        private Visibility visibility = Visibility.Private;
-        private boolean publishToNetwork = true;
+	public static CreateVerifiableCredentialBuilder<?, ?> from(VerifiableCredential vc) {
+		return CreateVerifiableCredential.builder() //
+				.context(guessContext(vc.getContexts()))//
+				.type(guessTypes(vc.getTypes())) //
+				.credentialSubject(vc.getCredentialSubject()) //
+				.expirationDate(vc.getExpirationDate() == null ? null
+						: ZonedDateTime.ofInstant(vc.getExpirationDate().toInstant(), ZoneId.of("UTC"))
+								.toOffsetDateTime().toZonedDateTime()) //
+				.issuer(vc.getIssuer()) //
+		;
+	}
 
-        public Builder(VerifiableCredential jsonLdObject) {
-            super(fromJsonLDObject(jsonLdObject));
-        }
+	private static String guessTypes(List<String> types) {
+		if (CollectionUtils.isEmpty(types)) {
+			return null;
+		}
+		if (types.size() == 1) {
+			return types.iterator().next();
+		}
+		types = types.stream() //
+				.filter(Predicate.not(VerifiableCredentialKeywords.JSONLD_TERM_VERIFIABLE_CREDENTIAL::equals)) //
+				.toList();
+		if (types.size() == 1) {
+			return types.iterator().next();
+		}
+		throw new IllegalArgumentException("Cannot guess type from " + types);
+	}
 
-        @Override
-        public CreateVerifiableCredential build() {
-            super.build();
-            if (this.visibility != null)
-                JsonLDUtils.jsonLdAdd(this.jsonLdObject, VISIBILITY, visibility.toString());
-            JsonLDUtils.jsonLdAdd(this.jsonLdObject, PUBLISH_TO_NETWORK, publishToNetwork);
-            return (CreateVerifiableCredential) this.jsonLdObject;
-        }
-
-        @SuppressWarnings("unchecked")
-        public B visibility(Visibility visibility) {
-            this.visibility = visibility;
-            return (B) this;
-        }
-
-        @SuppressWarnings("unchecked")
-        public B publishToNetwork(boolean publishToNetwork) {
-            this.publishToNetwork = publishToNetwork;
-            return (B) this;
-        }
-
-    }
-
-    public static Builder<? extends Builder<?>> builder(VerifiableCredential base) {
-        return new Builder<>(base);
-    }
-
-    public CreateVerifiableCredential(Map<String, Object> jsonObject) {
-        super(jsonObject);
-    }
-
-    public CreateVerifiableCredential() {
-        super();
-    }
-
-    public static CreateVerifiableCredential fromJsonObject(Map<String, Object> jsonObject) {
-        return new CreateVerifiableCredential(jsonObject);
-    }
-
-    public static CreateVerifiableCredential fromJsonLDObject(JsonLDObject jsonLDObject) {
-        return fromJsonObject(jsonLDObject.getJsonObject());
-    }
-
-    public static CreateVerifiableCredential fromJson(Reader reader) {
-        return new CreateVerifiableCredential(readJson(reader));
-    }
-
-    public static CreateVerifiableCredential fromJson(String json) {
-        return new CreateVerifiableCredential(readJson(json));
-    }
-
-    public static CreateVerifiableCredential fromMap(Map<String, Object> map) {
-        return new CreateVerifiableCredential(map);
-    }
-
-    public Visibility getVisibility() {
-        return switch (StringUtils.lowerCase(JsonLDUtils.jsonLdGetString(this.getJsonObject(), VISIBILITY))) {
-        case "private" -> Visibility.Private;
-        case "public" -> Visibility.Public;
-        default -> null;
-        };
-    }
-
-    public boolean getPublishToNetwork() {
-        return switch (Objects.requireNonNullElse(this.getJsonObject().get(PUBLISH_TO_NETWORK), "false").toString()
-                .toLowerCase()) {
-        case "true" -> true;
-        default -> false;
-        };
-    }
+	private static URI guessContext(List<URI> contexts) {
+		if (CollectionUtils.isEmpty(contexts)) {
+			return null;
+		}
+		if (contexts.size() == 1) {
+			return contexts.iterator().next();
+		}
+		contexts = contexts.stream() //
+				.filter(Predicate.not(VerifiableCredentialContexts.JSONLD_CONTEXT_W3C_2018_CREDENTIALS_V1::equals)) //
+				.toList();
+		if (contexts.size() == 1) {
+			return contexts.iterator().next();
+		}
+		throw new IllegalArgumentException("Cannot guess context from " + contexts);
+	}
 }

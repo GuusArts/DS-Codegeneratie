@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.apache.commons.collections4.MapUtils;
 
@@ -24,8 +23,9 @@ import foundation.identity.jsonld.JsonLDObject;
 
 public class ValidatedQueryCredential extends VerifiableCredential {
 	public static final String TYPE = "ValidatedQueryCredential";
-	public static final URI URL = URI.create("https://kik-v-nuts.ams3.cdn.digitaloceanspaces.com");
+	public static final URI URL = URI.create("https://kik-v.nl/context/v1.json");
 
+	public static final String VALIDATED_QUERY = "validatedQuery";
 	public static final String IDENTIFIER = "identifier";
 	public static final String NAME = "name";
 	public static final String PARAMS_SHACL = "paramsSHACL";
@@ -62,7 +62,8 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 
 	public static class Builder<B extends Builder<B>> extends VerifiableCredential.Builder<B> {
 		private Map<String, Object> claims;
-		private URI queryId;
+		private Map<String, Object> query;
+		private URI subjectId;
 
 		public Builder(ValidatedQueryCredential jsonLdObject) {
 			super(jsonLdObject);
@@ -74,7 +75,7 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 
 			if (MapUtils.isNotEmpty(claims)) {
 				CredentialSubject credentialSubject = CredentialSubject.builder() //
-						.id(queryId) //
+						.id(subjectId) //
 						.claims(claims) //
 						.build();
 				credentialSubject.addToJsonLDObject(this.jsonLdObject);
@@ -90,63 +91,71 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 		}
 
 		@SuppressWarnings("unchecked")
-		public B queryId(URI queryId) {
-			this.queryId = queryId;
+		public B subjectId(URI subjectId) {
+			this.subjectId = subjectId;
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B name(String name) {
-			ensureClaims();
-			claims.put(NAME, name);
+			ensureQuery();
+			query.put(NAME, name);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B identifier(String identifier) {
-			ensureClaims();
-			claims.put(IDENTIFIER, identifier);
+			ensureQuery();
+			query.put(IDENTIFIER, identifier);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B description(String description) {
-			ensureClaims();
-			claims.put(DESCRIPTION, description);
+			ensureQuery();
+			query.put(DESCRIPTION, description);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B profile(String profile) {
-			ensureClaims();
-			claims.put(PROFILE, profile);
+			ensureQuery();
+			query.put(PROFILE, profile);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B ontology(String ontology) {
-			ensureClaims();
-			claims.put(ONTOLOGY, ontology);
+			ensureQuery();
+			query.put(ONTOLOGY, ontology);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B sparql(String sparql) {
-			ensureClaims();
-			claims.put(SPARQL, sparql);
+			ensureQuery();
+			query.put(SPARQL, sparql);
 			return (B) this;
 		}
 
 		@SuppressWarnings("unchecked")
 		public B paramsSHACL(String paramsSHACL) {
-			ensureClaims();
-			claims.put(PARAMS_SHACL, paramsSHACL);
+			ensureQuery();
+			query.put(PARAMS_SHACL, paramsSHACL);
 			return (B) this;
 		}
 
 		private void ensureClaims() {
 			if (claims == null) {
 				claims = new LinkedHashMap<>();
+			}
+		}
+
+		private void ensureQuery() {
+			ensureClaims();
+			if (query == null) {
+				query = new LinkedHashMap<>();
+				claims.put(VALIDATED_QUERY, query);
 			}
 		}
 	}
@@ -183,47 +192,55 @@ public class ValidatedQueryCredential extends VerifiableCredential {
 		return new ValidatedQueryCredential(map);
 	}
 
-	private <T> T getFromSubject(Function<CredentialSubject, T> extractor) {
-		return Optional.ofNullable(getCredentialSubject()) //
-				.map(extractor) //
-				.orElse(null);
-	}
-
-	private <T> T getFromSubject(String claim, Class<T> clazz) {
+	private <T> Optional<T> getFromSubject(String claim, Class<T> clazz) {
 		return Optional.ofNullable(getCredentialSubject()) //
 				.map(CredentialSubject::getClaims) // //
 				.map(claims -> claims.get(claim)) //
 				.filter(clazz::isInstance) //
 				.map(clazz::cast) //
+		;
+	}
+
+	private <T> Optional<T> getFromQuery(String claim, Class<T> clazz) {
+		return getFromSubject(VALIDATED_QUERY, Map.class) //
+				.map(query -> query.get(claim)) //
+				.filter(clazz::isInstance) //
+				.map(clazz::cast) //
+		;
+	}
+
+	public URI getSubjectId() {
+		return Optional.of(getCredentialSubject()) //
+				.map(subject -> subject.getId()) //
 				.orElse(null);
 	}
 
 	public String getIdentifier() {
-		return getFromSubject(IDENTIFIER, String.class);
+		return getFromQuery(IDENTIFIER, String.class).orElse(null);
 	}
 
 	public String getName() {
-		return getFromSubject(NAME, String.class);
+		return getFromQuery(NAME, String.class).orElse(null);
 	}
 
 	public String getDescription() {
-		return getFromSubject(DESCRIPTION, String.class);
+		return getFromQuery(DESCRIPTION, String.class).orElse(null);
 	}
 
 	public String getProfile() {
-		return getFromSubject(PROFILE, String.class);
+		return getFromQuery(PROFILE, String.class).orElse(null);
 	}
 
 	public String getOntology() {
-		return getFromSubject(ONTOLOGY, String.class);
+		return getFromQuery(ONTOLOGY, String.class).orElse(null);
 	}
 
 	public String getSPARQL() {
-		return getFromSubject(SPARQL, String.class);
+		return getFromQuery(SPARQL, String.class).orElse(null);
 	}
 
 	public String getParamsSHACL() {
-		return getFromSubject(PARAMS_SHACL, String.class);
+		return getFromQuery(PARAMS_SHACL, String.class).orElse(null);
 	}
 
 }

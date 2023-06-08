@@ -1,5 +1,10 @@
 package nl.kik.commons.datastation.mvc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.net.URI;
+import java.util.UUID;
+
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import lombok.extern.slf4j.Slf4j;
+import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
 
 @SpringBootTest(classes = SerializationController.class)
 @AutoConfigureMockMvc
@@ -31,6 +37,9 @@ class SerializationTest {
 				.andReturn();
 		final String request = result.getResponse().getContentAsString();
 		SerializationTest.log.info("query: {}", new JSONObject(request).toString(2));
+		ValidatedQueryCredential q = ValidatedQueryCredential.fromJson(request);
+		assertEquals("b7285a98-507c-49d0-9a96-3b76d197c99b", q.getIdentifier());
+		assertEquals(URI.create("did:example:afnemer"), q.getSubjectId());
 
 		result = mockMvc.perform(
 				MockMvcRequestBuilders.post("/kikv/query").content(request).contentType(MediaType.APPLICATION_JSON)) //
