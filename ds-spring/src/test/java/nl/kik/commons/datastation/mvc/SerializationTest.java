@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
+import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 
 @SpringBootTest(classes = SerializationController.class)
 @AutoConfigureMockMvc

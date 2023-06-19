@@ -14,7 +14,7 @@ import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.nimbusds.jose.JOSEException;
 
 import foundation.identity.jsonld.JsonLDUtils;
-import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
+import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 class VCTest {

@@ -31,7 +31,7 @@ import nl.kik.commons.datastation.dto.kikv.Request;
 import nl.kik.commons.datastation.dto.kikv.Response;
 import nl.kik.commons.datastation.dto.kikv.Result;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
-import nl.kik.commons.datastation.dto.kikv.ValidatedQueryCredential;
+import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 import nl.kik.commons.datastation.json.JWSSignedResultSet;
 

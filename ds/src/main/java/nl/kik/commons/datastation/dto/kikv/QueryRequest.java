@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
+import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 import nl.kik.commons.datastation.json.Base64EncodedJSONLD;
 
