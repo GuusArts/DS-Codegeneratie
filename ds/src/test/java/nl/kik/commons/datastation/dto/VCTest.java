@@ -14,12 +14,17 @@ import com.danubetech.verifiablecredentials.VerifiableCredential;
 import com.nimbusds.jose.JOSEException;
 
 import foundation.identity.jsonld.JsonLDUtils;
+import nl.kik.commons.datastation.dto.kikv.credential.HealthcareproviderDetailsExcerptCredential;
 import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
+import nl.kik.commons.datastation.dto.nuts.NutsOrganizationCredential;
+import nl.kik.commons.datastation.dto.nuts.NutsOrganizationCredential.Builder;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
 class VCTest {
 
 	private ValidatedQueryCredential query;
+	private NutsOrganizationCredential organization;
+	private HealthcareproviderDetailsExcerptCredential provider;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -36,6 +41,18 @@ class VCTest {
 				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/kik-v.owl") //
 				.sparql("...") //
 				.build();
+
+		organization = NutsOrganizationCredential.builder() //
+				.orgId(URI.create("urn:did")) //
+				.city("Eindhoven") //
+				.name("Testcare") //
+				.build();
+
+		provider = HealthcareproviderDetailsExcerptCredential.builder() //
+				.subjectId(URI.create("urn:did")) //
+				.name("Aanbieder") //
+				.kvk("12345678") //
+				.build();
 	}
 
 	@Test
@@ -46,6 +63,28 @@ class VCTest {
 		System.out.println("VC JSON" + vc.toJson(true));
 
 		ValidatedQueryCredential q = ValidatedQueryCredential.fromJsonLDObject(vc);
+		System.out.println("Parsed JSON" + q.toJson(true));
+	}
+
+	@Test
+	void testOrganization() throws DecoderException, JOSEException, ParseException {
+		System.out.println("Original JSON" + organization.toJson(true));
+		String json = organization.toJson();
+		VerifiableCredential vc = VerifiableCredential.fromJson(json);
+		System.out.println("VC JSON" + vc.toJson(true));
+
+		NutsOrganizationCredential q = NutsOrganizationCredential.fromJsonLDObject(vc);
+		System.out.println("Parsed JSON" + q.toJson(true));
+	}
+
+	@Test
+	void testProvider() throws DecoderException, JOSEException, ParseException {
+		System.out.println("Original JSON" + provider.toJson(true));
+		String json = provider.toJson();
+		VerifiableCredential vc = VerifiableCredential.fromJson(json);
+		System.out.println("VC JSON" + vc.toJson(true));
+
+		HealthcareproviderDetailsExcerptCredential q = HealthcareproviderDetailsExcerptCredential.fromJsonLDObject(vc);
 		System.out.println("Parsed JSON" + q.toJson(true));
 	}
 

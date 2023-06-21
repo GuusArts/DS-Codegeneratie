@@ -49,6 +49,7 @@ import nl.kik.commons.datastation.dto.ds.SelectBody;
 import nl.kik.commons.datastation.dto.ds.SelectResult;
 import nl.kik.commons.datastation.dto.kikv.Result;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
+import nl.kik.commons.datastation.dto.kikv.credential.HealthcareproviderDetailsExcerptCredential;
 import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 import nl.kik.commons.datastation.dto.nuts.NutsDIDDocument;
 import nl.kik.commons.datastation.dto.nuts.NutsOrganizationCredential;
@@ -113,6 +114,46 @@ public class DefaultNutsClientTest {
 
 	@Autowired
 	private DefaultNutsClient client;
+
+	@Test
+	void testCreateAndFindAanbieder() {
+		NutsDIDDocument document = client.createDID(CreateDID.builder() //
+				.selfControl(false) //
+				.controller(VDID) //
+				.assertionMethod(true) //
+				.capabilityInvocation(false) //
+				.build());
+		log.info("Created {}", document.getId());
+		log.info("DID Document {}", document.toJson(true));
+
+		VerifiableCredential vc = HealthcareproviderDetailsExcerptCredential.builder() //
+				.issuer(URI.create(VDID)) //
+				.subjectId(document.getId()) //
+				.name("Test Org") //
+				.kvk("12345678").build();
+		log.info("Organisation {}", vc.toJson(true));
+		vc = client.issueVC(CreateVerifiableCredential.from(vc) //
+				.visibility(Visibility.Public) //
+				.build());
+		HealthcareproviderDetailsExcerptCredential organisation = HealthcareproviderDetailsExcerptCredential
+				.fromJsonLDObject(vc);
+		log.info("Signed organisation {}", organisation.toJson(true));
+
+		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
+				.query(HealthcareproviderDetailsExcerptCredential.builder() //
+						.subjectId(document.getId()) //
+						.build()) //
+				.searchOptions(SearchOptions.builder() //
+						.allowUntrustedIssuer(false) //
+						.build())
+				.build());
+		log.info("Search {}", result);
+		assertEquals(1, result.getVerifiableCredentials().size());
+		HealthcareproviderDetailsExcerptCredential organization = HealthcareproviderDetailsExcerptCredential
+				.fromJsonLDObject(result.getVerifiableCredentials().iterator().next().getVerifiableCredential());
+		log.info("Organisation {}, KVK {}", organization.getName(), organization.getKVK());
+
+	}
 
 	@Test
 	void testCreateOrganiation() {

@@ -24,14 +24,16 @@ import foundation.identity.jsonld.JsonLDObject;
 
 /**
  * Pre-release; name as well as properties are not definite
+ * 
  * @author michael
  *
  */
-public class OrganisationCredential extends VerifiableCredential {
-	public static final String TYPE = "OrganisationCredential";
-	public static final URI URL = URI.create("https://kik-v.nl/organisation/v1.json");
+public class HealthcareproviderDetailsExcerptCredential extends VerifiableCredential {
+	public static final String TYPE = "HealthcareproviderDetailsExcerptCredential";
+	public static final URI URL = URI.create("https://kik-v.nl/provider/v1.json");
 
-	public static final String VALIDATED_QUERY = "kvk";
+	public static final String ORGANIZATION = "organization";
+	public static final String KVK = "chamberOfCommerceNumber";
 	public static final String NAME = "name";
 
 	public static final URI[] DEFAULT_JSONLD_CONTEXTS = {
@@ -47,8 +49,8 @@ public class OrganisationCredential extends VerifiableCredential {
 			CONTEXTS = new HashMap<>();
 			CONTEXTS.putAll(VerifiableCredentialContexts.CONTEXTS);
 
-			CONTEXTS.put(URL, JsonDocument.of(MediaType.JSON_LD,
-					OrganisationCredential.class.getResourceAsStream("OrganisationCredential.ldjson")));
+			CONTEXTS.put(URL, JsonDocument.of(MediaType.JSON_LD, HealthcareproviderDetailsExcerptCredential.class
+					.getResourceAsStream("HealthcareproviderDetailsExcerptCredential.ldjson")));
 
 			for (Map.Entry<URI, JsonDocument> context : CONTEXTS.entrySet()) {
 				context.getValue().setDocumentUrl(context.getKey());
@@ -63,13 +65,14 @@ public class OrganisationCredential extends VerifiableCredential {
 	public static class Builder<B extends Builder<B>> extends VerifiableCredential.Builder<B> {
 		private Map<String, Object> claims;
 		private URI subjectId;
+		private Map<String, Object> organization;
 
-		public Builder(OrganisationCredential jsonLdObject) {
+		public Builder(HealthcareproviderDetailsExcerptCredential jsonLdObject) {
 			super(jsonLdObject);
 		}
 
 		@Override
-		public OrganisationCredential build() {
+		public HealthcareproviderDetailsExcerptCredential build() {
 			super.build();
 
 			if (MapUtils.isNotEmpty(claims) || subjectId != null) {
@@ -80,7 +83,7 @@ public class OrganisationCredential extends VerifiableCredential {
 				credentialSubject.addToJsonLDObject(this.jsonLdObject);
 			}
 
-			return (OrganisationCredential) this.jsonLdObject;
+			return (HealthcareproviderDetailsExcerptCredential) this.jsonLdObject;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -98,8 +101,15 @@ public class OrganisationCredential extends VerifiableCredential {
 
 		@SuppressWarnings("unchecked")
 		public B name(String name) {
-			ensureClaims();
-			claims.put(NAME, name);
+			ensureOrganisation();
+			organization.put(NAME, name);
+			return (B) this;
+		}
+
+		@SuppressWarnings("unchecked")
+		public B kvk(String kvk) {
+			ensureOrganisation();
+			organization.put(KVK, kvk);
 			return (B) this;
 		}
 
@@ -108,60 +118,79 @@ public class OrganisationCredential extends VerifiableCredential {
 				claims = new LinkedHashMap<>();
 			}
 		}
+
+		private void ensureOrganisation() {
+			ensureClaims();
+			if (organization == null) {
+				organization = new HashMap<>();
+				claims.put(ORGANIZATION, organization);
+			}
+		}
+
 	}
 
-	public OrganisationCredential(Map<String, Object> jsonObject) {
+	public HealthcareproviderDetailsExcerptCredential(Map<String, Object> jsonObject) {
 		super(jsonObject);
 	}
 
-	public OrganisationCredential() {
+	public HealthcareproviderDetailsExcerptCredential() {
 		super();
 	}
 
 	public static Builder<? extends Builder<?>> builder() {
-		return new Builder<>(new OrganisationCredential());
+		return new Builder<>(new HealthcareproviderDetailsExcerptCredential());
 	}
 
-	public static OrganisationCredential fromJsonObject(Map<String, Object> jsonObject) {
-		OrganisationCredential result = new OrganisationCredential(jsonObject);
+	public static HealthcareproviderDetailsExcerptCredential fromJsonObject(Map<String, Object> jsonObject) {
+		HealthcareproviderDetailsExcerptCredential result = new HealthcareproviderDetailsExcerptCredential(jsonObject);
 		if (!CollectionUtils.emptyIfNull(result.getTypes()).contains(TYPE)) {
 			return null;
 		}
 		return result;
 	}
 
-	public static OrganisationCredential fromJsonLDObject(JsonLDObject jsonLDObject) {
+	public static HealthcareproviderDetailsExcerptCredential fromJsonLDObject(JsonLDObject jsonLDObject) {
 		return fromJsonObject(jsonLDObject.getJsonObject());
 	}
 
-	public static OrganisationCredential fromJson(Reader reader) {
+	public static HealthcareproviderDetailsExcerptCredential fromJson(Reader reader) {
 		return fromJsonObject(readJson(reader));
 	}
 
-	public static OrganisationCredential fromJson(String json) {
+	public static HealthcareproviderDetailsExcerptCredential fromJson(String json) {
 		return fromJsonObject(readJson(json));
 	}
 
-	public static OrganisationCredential fromMap(Map<String, Object> map) {
+	public static HealthcareproviderDetailsExcerptCredential fromMap(Map<String, Object> map) {
 		return fromJsonObject(map);
 	}
 
-	private <T> Optional<T> getFromSubject(String claim, Class<T> clazz) {
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getOrganisation() {
 		return Optional.ofNullable(getCredentialSubject()) //
 				.map(CredentialSubject::getClaims) // //
-				.map(claims -> claims.get(claim)) //
-				.filter(clazz::isInstance) //
-				.map(clazz::cast) //
-		;
+				.map(claims -> claims.get(ORGANIZATION)) //
+				.stream() //
+				.filter(Map.class::isInstance) //
+				.map(Map.class::cast) //
+				.findFirst() //
+				.orElse(Map.of());
 	}
 
-	public URI getSubjectId() {
-		return Optional.of(getCredentialSubject()) //
-				.map(subject -> subject.getId()) //
+	private <T> T getFromOrganisation(String claim, Class<T> clazz) {
+		return Optional.ofNullable(getOrganisation()) //
+				.map(o -> o.get(claim)) //
+				.filter(clazz::isInstance) //
+				.map(clazz::cast) //
 				.orElse(null);
 	}
 
 	public String getName() {
-		return getFromSubject(NAME, String.class).orElse(null);
+		return getFromOrganisation(NAME, String.class);
 	}
+
+	public String getKVK() {
+		return getFromOrganisation(KVK, String.class);
+	}
+
 }
