@@ -191,14 +191,23 @@ public class ValidationService {
 
 	public void validateFull(JWT oauth, Request request, Message<?> m) throws Exception {
 		validateFull(oauth, m);
-		if (m instanceof Request r) {
-			throw new IllegalArgumentException("Received request in response to request");
-		}
-		if (m instanceof Response r) {
-			validate(request, r);
-		}
-		if (m instanceof nl.kik.commons.datastation.dto.didcomm.Error e) {
-			validate(request, e);
+		if (request == null) {
+			if (m instanceof Response r) {
+				throw new IllegalArgumentException("Received response without request");
+			}
+			if (m instanceof nl.kik.commons.datastation.dto.didcomm.Error e) {
+				throw new IllegalArgumentException("Received error without request");
+			}
+		} else {
+			if (m instanceof Request r) {
+				throw new IllegalArgumentException("Received request in response to request");
+			}
+			if (m instanceof Response r) {
+				validate(request, r);
+			}
+			if (m instanceof nl.kik.commons.datastation.dto.didcomm.Error e) {
+				validate(request, e);
+			}
 		}
 	}
 
