@@ -32,7 +32,7 @@ public class DatastationConfig {
 
 	@Bean
 	@ConditionalOnMissingBean
-	CryptoService validationService() {
+	CryptoService cryptoService() {
 		return new NoopCryptoService();
 	}
 

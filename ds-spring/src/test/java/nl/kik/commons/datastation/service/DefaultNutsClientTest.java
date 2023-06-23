@@ -93,6 +93,8 @@ public class DefaultNutsClientTest {
 	private static final String ENDPOINT = "http://localhost:8080/";
 	private static final String NUTS = "https://nuts-internal.acceptance.zin.ocs.nu";
 	private static final String NUTS_N2N = "https://nuts-n2n.acceptance.zin.ocs.nu";
+//	private static final String NUTS = "https://nuts-internal.acceptance.daas.ocs.nu";
+//	private static final String NUTS_N2N = "https://nuts-n2n.acceptance.daas.ocs.nu";
 
 	@SpringBootApplication(scanBasePackages = "nl.kik.commons.datastation")
 	public static class Context {
@@ -114,6 +116,29 @@ public class DefaultNutsClientTest {
 
 	@Autowired
 	private DefaultNutsClient client;
+
+	@Test
+	void testFindForeignCredentials() {
+		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
+				.query(NutsOrganizationCredential.builder() //
+						.orgId(URI.create("did:nuts:DZx5TChA4QmTF5iBtYGyTgcmyjuWqEjm7Zas9hXbSF7F")).build())
+				.searchOptions(SearchOptions.builder() //
+						.allowUntrustedIssuer(true) //
+						.build())
+				.build());
+		log.info("Search {}", result);
+		List<NutsOrganizationCredential> vcs = result.getVerifiableCredentials().stream() //
+				.map(VerifiableCredentialSearchResult::getVerifiableCredential) //
+				.peek(vc -> log.info("Found {}", vc.toJson(true))) //
+				.map(NutsOrganizationCredential::fromJsonLDObject) //
+				.filter(Objects::nonNull) //
+				.toList();
+
+		assertEquals(1, vcs.size());
+
+		assertFalse(vcs.isEmpty());
+		vcs.forEach(c -> log.info("Credential {}", c.toJson(true)));
+	}
 
 	@Test
 	void testCreateAndFindAanbieder() {

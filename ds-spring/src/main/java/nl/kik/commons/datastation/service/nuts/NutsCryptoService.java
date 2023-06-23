@@ -4,6 +4,7 @@ import java.net.URI;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +29,8 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.kikv.ResultSet;
 import nl.kik.commons.datastation.dto.nuts.NutsDIDDocument;
+import nl.kik.commons.datastation.dto.nuts.credential.PresentationVerificationResult;
+import nl.kik.commons.datastation.dto.nuts.credential.VerifyVerifiablePresentation;
 import nl.kik.commons.datastation.dto.nuts.crypto.SignResultSet;
 import nl.kik.commons.datastation.dto.nuts.vdr.DIDResolutionResult;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
@@ -77,9 +80,15 @@ public class NutsCryptoService implements CryptoService {
 	}
 
 	@Override
-	public void check(VerifiablePresentation vp) throws Exception {
-		// TODO Auto-generated method stub
-
+	public void check(VerifiablePresentation vp, ZonedDateTime at) throws Exception {
+		PresentationVerificationResult result = nuts.verifyVP(VerifyVerifiablePresentation.builder() //
+				.validAt(at == null ? ZonedDateTime.now() : at) //
+				.verifiablePresentation(vp) //
+				.verifyCredentials(true) //
+				.build());
+		if (!result.isValidity()) {
+			throw new IllegalArgumentException("Invalid VP " + result.getMessage());
+		}
 	}
 
 	private ECPublicKey getKey(String kid) {

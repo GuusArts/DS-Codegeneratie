@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.service;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 
 import javax.annotation.PostConstruct;
 
@@ -60,7 +61,7 @@ public class NoopCryptoService implements CryptoService {
 	}
 
 	@Override
-	public void check(VerifiablePresentation vp) throws Exception {
+	public void check(VerifiablePresentation vp, ZonedDateTime at) throws Exception {
 		log.warn("Not actually validating vp; please only use {} for testing", NoopCryptoService.class.getSimpleName());
 	}
 

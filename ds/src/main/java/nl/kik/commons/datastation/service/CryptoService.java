@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.service;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 
 import com.nimbusds.jose.JWSObject;
 
@@ -13,6 +14,6 @@ public interface CryptoService {
 
 	ResultSet validate(JWSObject value) throws Exception;
 
-	void check(VerifiablePresentation vp) throws Exception;
+	void check(VerifiablePresentation vp, ZonedDateTime at) throws Exception;
 
 }

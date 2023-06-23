@@ -136,7 +136,7 @@ public class ValidationService {
 			if (vp == null) {
 				throw new IllegalArgumentException("VP is missing");
 			}
-			crypto.check(vp);
+			crypto.check(vp, request.getCreated_time());
 			if (vp.getHolder() == null) {
 				throw new IllegalArgumentException("VP holder is empty");
 			}
