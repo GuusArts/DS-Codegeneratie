@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 
@@ -137,14 +138,17 @@ public class ValidationService {
 				throw new IllegalArgumentException("VP is missing");
 			}
 			crypto.check(vp, request.getCreated_time());
-			if (vp.getHolder() == null) {
-				throw new IllegalArgumentException("VP holder is empty");
+			if (vp.getLdProof() == null || vp.getLdProof().getJws() == null) {
+				throw new IllegalArgumentException("No JWS found");
 			}
-			if (!vp.getHolder().equals(request.getFrom())) {
+			JWSObject jws = JWSObject.parse(vp.getLdProof().getJws());
+			String signingParty = StringUtils
+					.substringBefore(jws.getHeader() == null ? null : jws.getHeader().getKeyID(), '#');
+			if (!StringUtils.equals(signingParty, request.getFrom().toString())) {
 				throw new IllegalArgumentException("VP is not from message sender");
 			}
 			vp.getVerifiableCredentials().forEach(c -> {
-				if (!vp.getHolder().equals(c.getCredentialSubject().getId())) {
+				if (!StringUtils.equals(signingParty, c.getCredentialSubject().getId().toString())) {
 					throw new IllegalArgumentException("VC id does not match VP holder");
 				}
 			});

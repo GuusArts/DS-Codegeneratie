@@ -120,18 +120,20 @@ public class DefaultNutsClientTest {
 	@Test
 	void testFindForeignCredentials() {
 		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
-				.query(NutsOrganizationCredential.builder() //
-						.orgId(URI.create("did:nuts:DZx5TChA4QmTF5iBtYGyTgcmyjuWqEjm7Zas9hXbSF7F")).build())
+				.query(ValidatedQueryCredential.builder() //
+						.build())
 				.searchOptions(SearchOptions.builder() //
 						.allowUntrustedIssuer(true) //
 						.build())
 				.build());
 		log.info("Search {}", result);
-		List<NutsOrganizationCredential> vcs = result.getVerifiableCredentials().stream() //
+		List<ValidatedQueryCredential> vcs = result.getVerifiableCredentials().stream() //
 				.map(VerifiableCredentialSearchResult::getVerifiableCredential) //
-				.peek(vc -> log.info("Found {}", vc.toJson(true))) //
-				.map(NutsOrganizationCredential::fromJsonLDObject) //
+				.map(ValidatedQueryCredential::fromJsonLDObject) //
 				.filter(Objects::nonNull) //
+				.filter(vc -> vc.getIssuer().toString()
+						.startsWith("did:nuts:AXFwxMC5MD8rHeHcsEZUW6RLa67Gjen6vWAnc4mjUsCa")) //
+				.peek(vc -> log.info("Found {}", vc.toJson(true))) //
 				.toList();
 
 		assertEquals(1, vcs.size());
