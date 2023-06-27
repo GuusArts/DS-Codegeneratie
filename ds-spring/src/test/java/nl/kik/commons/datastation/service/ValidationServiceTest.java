@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.service;
 
 import java.net.URI;
+import java.security.SecureRandom;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -10,10 +11,22 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 
 import foundation.identity.jsonld.JsonLDUtils;
+import info.weboftrust.ldsignatures.LdProof;
 import nl.kik.commons.datastation.dto.didcomm.Code;
 import nl.kik.commons.datastation.dto.didcomm.Error;
 import nl.kik.commons.datastation.dto.didcomm.ProblemReport;
@@ -65,13 +78,22 @@ public class ValidationServiceTest {
 				.build();
 	}
 
-	private VerifiablePresentation vp() {
+	private VerifiablePresentation vp() throws JOSEException {
+		ECKey ecJWK = new ECKeyGenerator(Curve.P_256).keyID("urn:from#blah").generate();
+		JWSSigner signer = new ECDSASigner(ecJWK);
+		JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(ecJWK.getKeyID()).build();
+		JWSObject jwsObject = new JWSObject(header, new Payload("Bleh"));
+		jwsObject.sign(signer);
+		jwsObject.serialize(true);
 		return VerifiablePresentation.builder() //
-				.holder(URI.create("urn:from")).verifiableCredential(query()) //
+				.ldProof(LdProof.builder() //
+						.jws(header.toBase64URL() + ".." + header.toBase64URL()) //
+						.build()) //
+				.verifiableCredential(query()) //
 				.build();
 	}
 
-	private Request request() {
+	private Request request() throws JOSEException {
 		return Request.builder() //
 				.id(UUID.fromString("547429be-0b8c-4eb0-966d-6e1ab858127c")) //
 				.from(URI.create("urn:from")) //

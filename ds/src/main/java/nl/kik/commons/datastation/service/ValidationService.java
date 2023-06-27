@@ -13,6 +13,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.datastation.dto.didcomm.Code;
 import nl.kik.commons.datastation.dto.didcomm.Message;
 import nl.kik.commons.datastation.dto.didcomm.ProblemReport;
@@ -27,6 +28,7 @@ import nl.kik.commons.datastation.dto.kikv.ResultSet;
 import nl.kik.commons.datastation.dto.kikv.credential.ValidatedQueryCredential;
 import nl.kik.commons.datastation.dto.vc.VerifiablePresentation;
 
+@Slf4j
 public class ValidationService {
 	private CryptoService crypto;
 	private boolean ignoreVP;
