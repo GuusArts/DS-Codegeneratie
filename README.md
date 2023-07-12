@@ -26,7 +26,7 @@ Provides DTO + service for communicating with the ZA Gids in KIK-Starter.
 
 # Using
 
-Use the [maven repository](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/packages).  Make sure you have set up a key to access.
+Use the [maven repository](https://gitlab.opencirclesolutions.nl/os/kik-commons/-/packages).  Make sure you have set up a key to access.
 
 # Building
 
@@ -36,18 +36,10 @@ Should build using Maven 3.8 using
 mvn clean install
 ```
 
-# Branching
-
-`master`: old version; ignore
-
-`nuts`: fase 1 code; not actively developed
-
-`fase2`: fase 2 code; backwards compatible with fase 1; active development goes here, strongly suggest using, also for phase 1
-
 # Error reports
 
-Create [issues](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/issues) in Gitlab.
+Create [issues](https://gitlab.opencirclesolutions.nl/os/kik-commons/-/issues) in Gitlab.
 
 # Contributing
 
-Make a [merge request](https://gitlab.opencirclesolutions.nl/zin/kik-v/datastation/-/merge_requests)
+Make a [merge request](https://gitlab.opencirclesolutions.nl/os/kik-commons/-/merge_requests)
