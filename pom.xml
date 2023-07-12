@@ -40,9 +40,9 @@
 				https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
 		</repository>
 		<repository>
-			<id>gitlab-maven-zin</id>
+			<id>gitlab-maven-os</id>
 			<url>
-				https://gitlab.opencirclesolutions.nl/api/v4/groups/zin/-/packages/maven</url>
+				https://gitlab.opencirclesolutions.nl/api/v4/groups/os/-/packages/maven</url>
 		</repository>
 		<repository>
 			<id>danubetech-maven-releases</id>
@@ -53,13 +53,6 @@
 			<url>https://repo.danubetech.com/repository/maven-public/</url>
 		</repository>
 	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>gitlab-maven-ocs</id>
-			<url>
-				https://gitlab.opencirclesolutions.nl/api/v4/groups/ocs/-/packages/maven</url>
-		</pluginRepository>
-	</pluginRepositories>
 	<distributionManagement>
 		<repository>
 			<id>gitlab-maven-ocs</id>
