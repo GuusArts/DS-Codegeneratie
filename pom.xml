@@ -18,7 +18,7 @@
 		<spring.boot.version>2.7.13</spring.boot.version>
 		<nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
 		<junit.version>5.9.2</junit.version>
-		<jena.version>4.8.0</jena.version>
+		<jena.version>4.9.0</jena.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -242,7 +242,7 @@
 					<dependency>
 						<groupId>org.postgresql</groupId>
 						<artifactId>postgresql</artifactId>
-						<version>42.5.1</version>
+						<version>42.6.0</version>
 					</dependency>
 				</dependencies>
 				<configuration>

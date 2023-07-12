@@ -146,6 +146,20 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		return getModel();
 	}
 
+	public Model export(final Shape root, Shapes shapes) {
+		ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
+		if (!CollectionUtils.isEmpty(shapes.getImports())) {
+			model.add(ontology, RDF.type, OWL.Ontology);
+			CollectionUtils.emptyIfNull(shapes.getImports())
+					.forEach(i -> model.add(ontology, OWL.imports, toResource(i)));
+		}
+		if (shapes.getGraph() != null && shapes.getGraph().getPrefixMapping() != null) {
+			model.setNsPrefixes(shapes.getGraph().getPrefixMapping());
+		}
+		root.visit(this);
+		return getModel();
+	}
+
 	public Model export(final Shapes shapes) {
 		ontology = shapes.getBase() == null ? model.createResource() : toResource(shapes.getBase());
 		if (!CollectionUtils.isEmpty(shapes.getImports())) {
