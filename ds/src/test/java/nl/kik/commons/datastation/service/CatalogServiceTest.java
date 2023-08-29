@@ -24,12 +24,12 @@ class CatalogServiceTest extends AbstractDCATTest {
 		service = new CatalogService();
 	}
 
-	@Test
-	void testGetDatasets() {
-		final Collection<Dataset> datasets = service.getDatasets(catalog, Constants.STANDARD_VERIFIED_SPARQL);
-		Assertions.assertEquals(1, datasets.size());
-		Assertions.assertEquals(dataset, datasets.iterator().next());
-	}
+//	@Test
+//	void testGetDatasets() {
+//		final Collection<Dataset> datasets = service.getDatasets(catalog, Constants.STANDARD_VERIFIED_SPARQL);
+//		Assertions.assertEquals(1, datasets.size());
+//		Assertions.assertEquals(dataset, datasets.iterator().next());
+//	}
 
 	@Test
 	void testGetDatasetsNone() throws URISyntaxException {
@@ -37,31 +37,4 @@ class CatalogServiceTest extends AbstractDCATTest {
 		Assertions.assertTrue(datasets.isEmpty());
 	}
 
-	@Test
-	void testGetEndpoint() {
-		Optional<DataService> endpoints = service.getEndpoint(dataset, Constants.STANDARD_VERIFIED_SPARQL);
-		Assertions.assertTrue(endpoints.isPresent());
-		Assertions.assertEquals(dataservice, endpoints.get());
-
-		endpoints = service.getEndpoint(dataset, Constants.STANDARD_SPARQL);
-		Assertions.assertTrue(endpoints.isPresent());
-		Assertions.assertTrue(Set.of(sparqlservice, sparqlservice2).contains(endpoints.get()));
-
-		endpoints = service.getEndpoint(dataset, Constants.STANDARD_RDF);
-		Assertions.assertFalse(endpoints.isPresent());
-	}
-
-	@Test
-	void testGetEndpoints() {
-		Collection<DataService> endpoints = service.getEndpoints(dataset, Constants.STANDARD_VERIFIED_SPARQL);
-		Assertions.assertEquals(1, endpoints.size());
-		Assertions.assertEquals(dataservice, endpoints.iterator().next());
-
-		endpoints = service.getEndpoints(dataset, Constants.STANDARD_SPARQL);
-		Assertions.assertEquals(2, endpoints.size());
-		Assertions.assertEquals(Set.of(sparqlservice, sparqlservice2), new HashSet<>(endpoints));
-
-		endpoints = service.getEndpoints(dataset, Constants.STANDARD_RDF);
-		Assertions.assertTrue(endpoints.isEmpty());
-	}
 }

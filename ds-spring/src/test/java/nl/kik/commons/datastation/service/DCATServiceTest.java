@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Optional;
 
 import org.apache.jena.rdf.model.Model;
@@ -30,7 +31,7 @@ class DCATServiceTest extends AbstractDCATTest {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		model.forEach(o -> service.save(g, o));
 		final Collection<? extends Catalog> catalogs = service.getAllCatalogs(g);
-		DCATServiceTest.log.trace("Found {} catalogs: {}", catalogs.size(), catalogs);
+		DCATServiceTest.log.info("Found {} catalogs: {}", catalogs.size(), catalogs);
 		Assertions.assertEquals(1, catalogs.size());
 		Assertions.assertEquals(catalog, catalogs.iterator().next());
 	}
@@ -40,11 +41,11 @@ class DCATServiceTest extends AbstractDCATTest {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		model.forEach(o -> service.save(g, o));
 		for (final RDFObject m : model) {
-			final Optional<RDFObject> o = service.lookupById(g, m.getId());
+			final Optional<RDFObject> o = service.lookupById(g, new HashMap<>(), m.getId());
 			if (o.isEmpty()) {
 				Assertions.fail("Not found " + m);
 			} else {
-				DCATServiceTest.log.trace("Comparing");
+				DCATServiceTest.log.info("Comparing");
 				DCATServiceTest.log.trace("{}", m);
 				DCATServiceTest.log.trace("{}", o.get());
 				Assertions.assertEquals(m, o.get());
@@ -56,6 +57,7 @@ class DCATServiceTest extends AbstractDCATTest {
 	void testSave() {
 		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
 		model.forEach(o -> service.save(g, o));
+		RDFService.emitRDF(g, "dcat.rdf");
 		RDFService.snapshot(g, true, null);
 	}
 }

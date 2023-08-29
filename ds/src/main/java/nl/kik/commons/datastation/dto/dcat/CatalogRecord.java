@@ -2,6 +2,7 @@ package nl.kik.commons.datastation.dto.dcat;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -21,6 +22,6 @@ public class CatalogRecord extends DCATObject {
 	String description;
 	ZonedDateTime issued;
 	ZonedDateTime modified;
-//	foaf:Resource primaryTopic;
-	URI conformsTo; // Standard
+	Resource primaryTopic;
+	Set<URI> conformsTo; // Standard
 }

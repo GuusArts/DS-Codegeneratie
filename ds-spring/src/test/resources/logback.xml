@@ -16,5 +16,6 @@
     <logger name="uniresolver" level="warn"/>
     <logger name="nl.kik.commons.datastation.service.DIDWeb" level="info"/>
    <logger name="org.apache.http.wire" level="warn" />
+   <logger name="org.apache.jena.shared" level="warn"/>
     
 </configuration>

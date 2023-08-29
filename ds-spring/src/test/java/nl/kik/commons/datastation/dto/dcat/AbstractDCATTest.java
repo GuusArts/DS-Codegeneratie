@@ -17,9 +17,8 @@ public abstract class AbstractDCATTest {
 	protected static final ZoneId ZONE = ZoneId.systemDefault();
 	protected List<RDFObject> model;
 	protected Catalog catalog;
-	protected Dataset dataset;
-	protected Distribution distribution;
-	protected DataService dataservice, sparqlservice, sparqlservice2, graphstoreservice, shaclservice;
+	protected Dataset dataset1, dataset2, dataset3;
+	protected CatalogRecord record1, record2;
 	protected Agent publisher;
 
 	@BeforeEach
@@ -28,54 +27,70 @@ public abstract class AbstractDCATTest {
 				.name("Voorbeeldzorg") //
 				.type(new URI("http://purl.org/adms/publishertype/NonProfitOrganisation")) //
 				.build();
-		dataservice = DataService.builder() //
-				.conformsTo(Set.of(Constants.STANDARD_VERIFIED_SPARQL)) //
-				.title("Gevalideerde vragen") //
-				.description("Service voor het uitvoeren van gevalideerde vragen via sparql") //
-				.endpointURL(new URI("http://data.example.com/api/verifiedsparql")).build();
-		sparqlservice = DataService.builder() //
-				.conformsTo(Set.of(Constants.STANDARD_SPARQL)) //
-				.title("SPARQL") //
-				.description("Service voor het uitvoeren van vragen via sparql") //
-				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
-		sparqlservice2 = DataService.builder() //
-				.conformsTo(Set.of(Constants.STANDARD_SPARQL)) //
-				.title("SPARQL 2") //
-				.description("Service voor het uitvoeren van vragen via sparql") //
-				.endpointURL(new URI("http://data.example.com/api/sparql")).build();
-		graphstoreservice = DataService.builder() //
-				.conformsTo(Set.of(Constants.STANDARD_GRAPHSTORE)) //
-				.title("GRAPHSTORE") //
-				.description("Service voor graph store") //
-				.endpointURL(new URI("http://data.example.com/api/graphstore")).build();
-		shaclservice = DataService.builder() //
-				.conformsTo(Set.of(Constants.STANDARD_SHACL)) //
-				.title("SHACL") //
-				.description("Service voor graph store") //
-				.endpointURL(new URI("http://data.example.com/api/shacl")).build();
-		distribution = Distribution.builder() //
-				.accessService(Set.of(dataservice, sparqlservice, sparqlservice2, graphstoreservice, shaclservice)) //
-				.conformsTo(Set.of(Constants.STANDARD_RDF)) //
-				.build();
-		dataset = Dataset.builder() //
-				.title("Linked data personeel") //
+		dataset1 = Dataset.builder() //
+				.id("https://daas.example.com/2021/ds1") //
+				.title("Linked data personeel 1") //
 				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
 				.keyword(Set.of("Personeel")) //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
-				.conformsTo(Set.of(new URI("http://purl.org/ozo/hr"))) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.conformsTo(Set.of(new URI("http://purl.org/ozo/hr#2.0.0"))) //
 				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
-				.distribution(Set.of(distribution)) //
 				.build();
+		dataset2 = Dataset.builder() //
+				.id("https://daas.example.com/2022/ds2") //
+				.title("Linked data personeel 2") //
+				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
+				.keyword(Set.of("Personeel")) //
+				.publisher(publisher) //
+				.issued(ZonedDateTime.of(2022, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.conformsTo(Set.of(new URI("http://purl.org/ozo/hr#2.0.0"))) //
+				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
+				.build();
+		dataset3 = Dataset.builder() //
+				.id("https://daas.example.com/2022/ds3") //
+				.title("Linked data personeel 3") //
+				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
+				.keyword(Set.of("Personeel")) //
+				.publisher(publisher) //
+				.issued(ZonedDateTime.of(2022, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.conformsTo(Set.of(new URI("http://purl.org/ozo/hr#2.0.1"))) //
+				.accrualPeriodicity(Constants.FREQUENCY_DAILY) //
+				.build();
+
+		record1 = CatalogRecord.builder() //
+				.id("https://daas.example.com/2021/r1") //
+				.title("Linked data personeel record") //
+				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.modified(ZonedDateTime.of(2022, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.primaryTopic(dataset2).build();
+		record2 = CatalogRecord.builder() //
+				.id("https://daas.example.com/2021/r2") //
+				.title("Linked data personeel record") //
+				.description("Deze dataset bevat alle personeelsleden van voorbeeldzorg") //
+				.issued(ZonedDateTime.of(2022, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.modified(ZonedDateTime.of(2022, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
+				.build();
+
 		catalog = Catalog.builder() //
 				.title("Datacatalogus voorbeeldzorg") //
 				.description("Een beschrijving van de datasets in het datastation van voorbeeldzorg") //
 				.publisher(publisher) //
-				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime().toZonedDateTime()) //
+				.issued(ZonedDateTime.of(2021, 1, 25, 0, 0, 0, 0, AbstractDCATTest.ZONE).toOffsetDateTime()
+						.toZonedDateTime()) //
 				.license(new URI("https://creativecommons.org/licenses/by/4.0/")) //
-				.dataset(Set.of(dataset)) //
+				.dataset(Set.of(dataset1, dataset2, dataset3)) //
+				.record(Set.of(record1, record2)) //
 				.build();
-		model = List.of(catalog, publisher, dataset, distribution, dataservice);
+		model = List.of(catalog, publisher, dataset1, dataset2, record2);
 	}
 
 }
