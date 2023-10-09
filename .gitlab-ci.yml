@@ -12,6 +12,9 @@ default:
 stop test:
   rules:
     - when: never
+license compliance scan:
+  rules:
+    - when: never
 
 pages:
   rules:
