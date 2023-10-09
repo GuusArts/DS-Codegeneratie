@@ -38,9 +38,9 @@ public abstract class Message<T> {
 	@Singular(value = "singleTo", ignoreNullCollections = true)
 	@JsonFormat(with = { Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY, Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED })
 	private List<URI> to;
-	@JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+	@JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
 	private ZonedDateTime created_time;
-	@JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+	@JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "s")
 	private ZonedDateTime expires_time;
 	private T body;
 }

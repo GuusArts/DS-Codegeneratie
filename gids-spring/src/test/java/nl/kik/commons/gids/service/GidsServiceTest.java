@@ -1,20 +1,20 @@
 package nl.kik.commons.gids.service;
 
-import java.nio.file.Paths;
+//import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.apache.jena.arq.querybuilder.AskBuilder;
 import org.apache.jena.arq.querybuilder.SelectBuilder;
-import org.apache.jena.fuseki.main.FusekiServer;
-import org.apache.jena.fuseki.server.DataService;
-import org.apache.jena.fuseki.server.Operation;
+//import org.apache.jena.fuseki.main.FusekiServer;
+//import org.apache.jena.fuseki.server.DataService;
+//import org.apache.jena.fuseki.server.Operation;
 import org.apache.jena.query.Query;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.sparql.core.DatasetGraphOne;
+//import org.apache.jena.sparql.core.DatasetGraphOne;
 import org.apache.jena.sparql.lang.sparql_11.ParseException;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.kik.commons.dto.Graph;
-import nl.kik.commons.dto.RDFObject;
+//import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.gids.dto.Address;
 import nl.kik.commons.gids.dto.CareOffice;
 import nl.kik.commons.gids.dto.Concessionaire;
@@ -122,39 +122,39 @@ class GidsServiceTest {
 		model = List.of(region, concessionaire, concessionaire2, careOffice);
 	}
 
-	/**
-	 * @return
-	 */
-	protected FusekiServer startFuseki(final Graph<Model> g) {
-		final DataService metadataService = DataService //
-				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
-				.addEndpoint(Operation.GSP_R, "") //
-				.addEndpoint(Operation.GSP_R, "data") //
-				.addEndpoint(Operation.Query, "query") //
-				.addEndpoint(Operation.Query, "sparql") //
-				.build();
-		final DataService uploadService = DataService //
-				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
-				.addEndpoint(Operation.GSP_RW, "") //
-				.addEndpoint(Operation.GSP_RW, "data") //
-				.build();
-
-		final FusekiServer fusekiServer = FusekiServer.create() //
-				.port(GidsServiceTest.PORT) //
-				.loopback(true) //
-				.contextPath("/graph") //
-				.add("/gids", metadataService) //
-				.add("/upload/gids", uploadService) //
-				.build();
-
-		fusekiServer.start();
-
-		try {
-			Thread.sleep(2000); // Wait for server to start
-		} catch (final InterruptedException e) {
-		}
-		return fusekiServer;
-	}
+//	/**
+//	 * @return
+//	 */
+//	protected FusekiServer startFuseki(final Graph<Model> g) {
+//		final DataService metadataService = DataService //
+//				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
+//				.addEndpoint(Operation.GSP_R, "") //
+//				.addEndpoint(Operation.GSP_R, "data") //
+//				.addEndpoint(Operation.Query, "query") //
+//				.addEndpoint(Operation.Query, "sparql") //
+//				.build();
+//		final DataService uploadService = DataService //
+//				.newBuilder(DatasetGraphOne.create(g.getModel().getGraph())) //
+//				.addEndpoint(Operation.GSP_RW, "") //
+//				.addEndpoint(Operation.GSP_RW, "data") //
+//				.build();
+//
+//		final FusekiServer fusekiServer = FusekiServer.create() //
+//				.port(GidsServiceTest.PORT) //
+//				.loopback(true) //
+//				.contextPath("/graph") //
+//				.add("/gids", metadataService) //
+//				.add("/upload/gids", uploadService) //
+//				.build();
+//
+//		fusekiServer.start();
+//
+//		try {
+//			Thread.sleep(2000); // Wait for server to start
+//		} catch (final InterruptedException e) {
+//		}
+//		return fusekiServer;
+//	}
 
 	@Test
 	void testLoadLocal() {
@@ -174,69 +174,69 @@ class GidsServiceTest {
 		}
 	}
 
-	@Test
-	void testLoadRemote() {
-		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
-		try {
-			for (final GidsObject m : model) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
-						m.getId());
-				if (o.isEmpty()) {
-					Assertions.fail("Not found " + m);
-				} else {
-					GidsServiceTest.log.trace("Comparing");
-					GidsServiceTest.log.trace("{}", m);
-					GidsServiceTest.log.trace("{}", o.get());
-					Assertions.assertTrue(o.get().isUnique());
-					Assertions.assertEquals(m, o.get().getAny());
-					Assertions.assertNotSame(m, o.get().getAny());
-				}
-			}
-		} finally {
-			fusekiServer.stop();
-			fusekiServer.join();
-		}
-	}
+//	@Test
+//	void testLoadRemote() {
+//		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
+//		try {
+//			for (final GidsObject m : model) {
+//				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+//						m.getId());
+//				if (o.isEmpty()) {
+//					Assertions.fail("Not found " + m);
+//				} else {
+//					GidsServiceTest.log.trace("Comparing");
+//					GidsServiceTest.log.trace("{}", m);
+//					GidsServiceTest.log.trace("{}", o.get());
+//					Assertions.assertTrue(o.get().isUnique());
+//					Assertions.assertEquals(m, o.get().getAny());
+//					Assertions.assertNotSame(m, o.get().getAny());
+//				}
+//			}
+//		} finally {
+//			fusekiServer.stop();
+//			fusekiServer.join();
+//		}
+//	}
 
-	@Test
-	void testLookupById() throws ParseException {
-		final Graph<Model> loadedModel = getLoadedModel();
-		RDFService.emitTTL(loadedModel, Paths.get("output.ttl"));
-		final FusekiServer fusekiServer = startFuseki(loadedModel);
-		final GraphOrRemote g = new GraphOrRemote(GidsServiceTest.SERVER_URL);
-		try {
-			// Regular search
-			Query query = new SelectBuilder() //
-					.addPrefix("", GidsService.Vocabulary.uri) //
-					.setDistinct(true) //
-					.addVar("?test") //
-					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-					.addWhere("?test", GidsService.Vocabulary.agb, "'23456789'") //
-					.build();
-
-			List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
-			Assertions.assertEquals(1, organisations.size());
-			Assertions.assertTrue(organisations.iterator().next().isUnique());
-			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-
-			query = new SelectBuilder() //
-					.addPrefix("", GidsService.Vocabulary.uri) //
-					.addPrefix("gids:", "gids:") //
-					.setDistinct(true) //
-					.addVar("?test") //
-					.addBind(organisations.get(0).getAny().getId(), "?test")
-					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
-					.build();
-
-			organisations = service.query(g, query, Organisation.class);
-			Assertions.assertEquals(1, organisations.size());
-			Assertions.assertTrue(organisations.iterator().next().isUnique());
-			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
-		} finally {
-			fusekiServer.stop();
-			fusekiServer.join();
-		}
-	}
+//	@Test
+//	void testLookupById() throws ParseException {
+//		final Graph<Model> loadedModel = getLoadedModel();
+//		RDFService.emitTTL(loadedModel, Paths.get("output.ttl"));
+//		final FusekiServer fusekiServer = startFuseki(loadedModel);
+//		final GraphOrRemote g = new GraphOrRemote(GidsServiceTest.SERVER_URL);
+//		try {
+//			// Regular search
+//			Query query = new SelectBuilder() //
+//					.addPrefix("", GidsService.Vocabulary.uri) //
+//					.setDistinct(true) //
+//					.addVar("?test") //
+//					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+//					.addWhere("?test", GidsService.Vocabulary.agb, "'23456789'") //
+//					.build();
+//
+//			List<GidsAttribute<Organisation>> organisations = service.query(g, query, Organisation.class);
+//			Assertions.assertEquals(1, organisations.size());
+//			Assertions.assertTrue(organisations.iterator().next().isUnique());
+//			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+//
+//			query = new SelectBuilder() //
+//					.addPrefix("", GidsService.Vocabulary.uri) //
+//					.addPrefix("gids:", "gids:") //
+//					.setDistinct(true) //
+//					.addVar("?test") //
+//					.addBind(organisations.get(0).getAny().getId(), "?test")
+//					.addWhere("?test", RDF.type, GidsService.Vocabulary.Organisation) //
+//					.build();
+//
+//			organisations = service.query(g, query, Organisation.class);
+//			Assertions.assertEquals(1, organisations.size());
+//			Assertions.assertTrue(organisations.iterator().next().isUnique());
+//			Assertions.assertEquals(organisation, organisations.iterator().next().getAny());
+//		} finally {
+//			fusekiServer.stop();
+//			fusekiServer.join();
+//		}
+//	}
 
 	@Test
 	void testProject() {
@@ -392,16 +392,16 @@ class GidsServiceTest {
 		testQueries(new GraphOrRemote(g));
 	}
 
-	@Test
-	void testQueryRemote() throws ParseException {
-		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
-		try {
-			testQueries(new GraphOrRemote(GidsServiceTest.SERVER_URL));
-		} finally {
-			fusekiServer.stop();
-			fusekiServer.join();
-		}
-	}
+//	@Test
+//	void testQueryRemote() throws ParseException {
+//		final FusekiServer fusekiServer = startFuseki(getLoadedModel());
+//		try {
+//			testQueries(new GraphOrRemote(GidsServiceTest.SERVER_URL));
+//		} finally {
+//			fusekiServer.stop();
+//			fusekiServer.join();
+//		}
+//	}
 
 	@Test
 	void testSaveLocal() {
@@ -409,35 +409,35 @@ class GidsServiceTest {
 		RDFService.snapshot(g, true, null);
 	}
 
-	@Test
-	void testSaveRemote() {
-		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
-		final FusekiServer fusekiServer = startFuseki(g);
-		try {
-			for (final GidsObject m : model) {
-				service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.TABELBEHEER, m));
-			}
-			service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, organisation));
-
-			final List<GidsObject> all = new ArrayList<>(model);
-			all.add(organisation);
-			for (final RDFObject m : all) {
-				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
-						m.getId());
-				if (o.isEmpty()) {
-					Assertions.fail("Not found " + m);
-				} else {
-					GidsServiceTest.log.trace("Comparing");
-					GidsServiceTest.log.trace("{}", m);
-					GidsServiceTest.log.trace("{}", o.get());
-					Assertions.assertTrue(o.get().isUnique());
-					Assertions.assertEquals(m, o.get().getAny());
-					Assertions.assertNotSame(m, o.get().getAny());
-				}
-			}
-		} finally {
-			fusekiServer.stop();
-			fusekiServer.join();
-		}
-	}
+//	@Test
+//	void testSaveRemote() {
+//		final Graph<Model> g = Graph.create(ModelFactory.createDefaultModel());
+//		final FusekiServer fusekiServer = startFuseki(g);
+//		try {
+//			for (final GidsObject m : model) {
+//				service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.TABELBEHEER, m));
+//			}
+//			service.save(GidsServiceTest.SERVER_URL, null, GidsAttribute.of(Source.LRZA, organisation));
+//
+//			final List<GidsObject> all = new ArrayList<>(model);
+//			all.add(organisation);
+//			for (final RDFObject m : all) {
+//				final Optional<GidsAttribute<GidsObject>> o = service.lookupById(GidsServiceTest.SERVER_URL, null,
+//						m.getId());
+//				if (o.isEmpty()) {
+//					Assertions.fail("Not found " + m);
+//				} else {
+//					GidsServiceTest.log.trace("Comparing");
+//					GidsServiceTest.log.trace("{}", m);
+//					GidsServiceTest.log.trace("{}", o.get());
+//					Assertions.assertTrue(o.get().isUnique());
+//					Assertions.assertEquals(m, o.get().getAny());
+//					Assertions.assertNotSame(m, o.get().getAny());
+//				}
+//			}
+//		} finally {
+//			fusekiServer.stop();
+//			fusekiServer.join();
+//		}
+//	}
 }

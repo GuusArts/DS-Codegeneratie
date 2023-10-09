@@ -3,7 +3,7 @@ package nl.kik.commons.datastation.service;
 import java.net.URI;
 import java.time.ZonedDateTime;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;

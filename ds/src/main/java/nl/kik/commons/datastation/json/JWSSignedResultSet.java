@@ -3,7 +3,7 @@ package nl.kik.commons.datastation.json;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
