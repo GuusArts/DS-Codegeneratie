@@ -299,6 +299,15 @@
 					<downloadJavadocs>true</downloadJavadocs>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jkube</groupId>
+				<artifactId>kubernetes-maven-plugin</artifactId>
+				<version>0.13.1</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
