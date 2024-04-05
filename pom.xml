@@ -18,7 +18,7 @@
 		<spring.boot.version>3.2.0-M3</spring.boot.version>
 		<nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
 		<junit.version>5.10.0</junit.version>
-		<jena.version>4.9.0</jena.version>
+		<jena.version>5.0.0</jena.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
