@@ -1,6 +1,7 @@
 package nl.kik.commons.datastation.mvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import java.net.URI;
 
@@ -64,7 +65,7 @@ class SerializationTest {
 	@Test
 	void request() throws Exception {
 		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/didcomm/request")) //
-//				.andDo(print()) //
+				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
 		final String request = result.getResponse().getContentAsString();
@@ -72,19 +73,19 @@ class SerializationTest {
 
 		result = mockMvc.perform(MockMvcRequestBuilders.post("/didcomm/request").content(request)
 				.contentType(MediaType.APPLICATION_JSON)) //
-//				.andDo(print()) //
+				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 1: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
 		result = mockMvc.perform(MockMvcRequestBuilders.post("/didcomm/request").content(request)
 				.contentType(MediaType.APPLICATION_JSON)) //
-//				.andDo(print()) //
+				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 2: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -93,7 +94,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 3: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -116,7 +117,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 1: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -125,7 +126,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 2: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -134,7 +135,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 3: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -157,7 +158,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 1: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -166,7 +167,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 2: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 
@@ -175,7 +176,7 @@ class SerializationTest {
 //				.andDo(print()) //
 				.andExpect(MockMvcResultMatchers.status().isOk()) //
 				.andReturn();
-//        Assertions.assertEquals(request, result.getResponse().getContentAsString());
+		Assertions.assertEquals(request, result.getResponse().getContentAsString());
 		SerializationTest.log.info("received 3: {}",
 				new JSONObject(result.getResponse().getContentAsString()).toString(2));
 

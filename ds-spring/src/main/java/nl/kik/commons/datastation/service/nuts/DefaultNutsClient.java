@@ -201,7 +201,10 @@ public class DefaultNutsClient implements NutsNode {
 			}
 			return Optional.empty();
 		}
-		throw new NutsException(entity.getStatusCodeValue(), entity.getStatusCode().getReasonPhrase());
+		if (entity.getStatusCode() instanceof HttpStatus s) {
+			throw new NutsException(s.value(), s.getReasonPhrase());
+		}
+		throw new NutsException(entity.getStatusCode().value(), entity.getStatusCode().toString());
 	}
 
 	private URI url(String path, Map<String, String> pathParameters) {

@@ -39,6 +39,7 @@ class VCTest {
 						"CBS/Vernet: Het ziekteverzuimpercentage is het totaal aantal ziektedagen van de personeelsleden, in procenten van het totaal aantal beschikbare (werk-/kalender) dagen van de werknemers in de verslagperiode. Het ziekteverzuimpercentage is inclusief het verzuim langer dan een jaar en exclusief zwangerschaps- en bevallingsverlof.")//
 				.profile("https://kik-v.gitlab.io/uitwisselprofielen/uitwisselprofiel-odb/") //
 				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/kik-v.owl") //
+				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/pers.owl") //
 				.sparql("...") //
 				.build();
 

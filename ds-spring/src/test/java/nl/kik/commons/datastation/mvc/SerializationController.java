@@ -73,7 +73,8 @@ public class SerializationController {
 				.description(
 						"CBS/Vernet: Het ziekteverzuimpercentage is het totaal aantal ziektedagen van de personeelsleden, in procenten van het totaal aantal beschikbare (werk-/kalender) dagen van de werknemers in de verslagperiode. Het ziekteverzuimpercentage is inclusief het verzuim langer dan een jaar en exclusief zwangerschaps- en bevallingsverlof.")//
 				.profile("https://kik-v.gitlab.io/uitwisselprofielen/uitwisselprofiel-odb/") //
-				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/kik-v.owl") //
+				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/kik-v.owl#2.0.0") //
+				.ontology("https://raw.githubusercontent.com/kik-v/onto-kik/master/pers.owl#2.0.0") //
 				.sparql("...") //
 				.build();
 	}
@@ -303,7 +304,7 @@ public class SerializationController {
 				.body(QueryRequest.builder() //
 						.vp(vp()) //
 						.param_values("params") //
-						.build()) //
+		.build()) //
 				.build();
 	}
 
@@ -340,6 +341,7 @@ public class SerializationController {
 								.verifiableCredential(query()) //
 								.build()) //
 						.param_values("params") //
+						.dataset(URI.create("https://daas.example.com/dataset/2023/ds1"))
 						.build()) //
 				.build();
 	}

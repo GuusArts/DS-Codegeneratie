@@ -7,3 +7,4 @@ target
 *.iml
 output.ttl
 catalog-v001.xml
+dcat.rdf

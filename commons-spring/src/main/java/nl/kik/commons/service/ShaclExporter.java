@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Node_Blank;
-import org.apache.jena.graph.Node_Concrete;
 import org.apache.jena.graph.Node_Literal;
 import org.apache.jena.graph.Node_URI;
 import org.apache.jena.query.Query;
@@ -220,7 +219,7 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	}
 
 	private Literal toLiteral(final Node n) {
-		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank) {
+		if (n instanceof Node_Blank) {
 			throw new IllegalArgumentException();
 		}
 		if (n instanceof Node_Literal ni) {
@@ -245,7 +244,7 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 		if (properties.containsKey(n)) {
 			return properties.get(n);
 		}
-		if (!(n instanceof Node_Concrete) || n instanceof Node_Blank || n instanceof Node_Literal) {
+		if (n instanceof Node_Blank || n instanceof Node_Literal) {
 			throw new IllegalArgumentException();
 		}
 		if (n instanceof Node_URI ni) {
@@ -259,9 +258,6 @@ public class ShaclExporter implements ShapeVisitor, ConstraintVisitor, PathVisit
 	protected Resource toResource(final Node n) {
 		if (resources.containsKey(n)) {
 			return resources.get(n);
-		}
-		if (!(n instanceof Node_Concrete)) {
-			throw new IllegalArgumentException();
 		}
 		if (n instanceof Node_Blank) {
 			final Resource resource = model.createResource(

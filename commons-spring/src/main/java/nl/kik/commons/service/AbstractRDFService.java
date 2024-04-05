@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -116,10 +116,10 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 		return Optional.empty();
 	}
 
-	protected <T extends RDFObject> T getObject(final L graph, final MultiValuedMap<Property, RDFNode> properties,
-			final Property property, final Class<T> clazz) {
+	protected <T extends RDFObject> T getObject(final L graph, Map<Resource, RDFObject> existing,
+			final MultiValuedMap<Property, RDFNode> properties, final Property property, final Class<T> clazz) {
 		final List<T> result = properties.get(property).stream() //
-				.map(n -> getObject(graph, n, clazz)) //
+				.map(n -> getObject(graph, existing, n, clazz)) //
 				.filter(Objects::nonNull) //
 				.collect(Collectors.toList());
 		if (result.size() != 1) {
@@ -132,23 +132,37 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <U extends RDFObject> U getObject(final L graph, final MultiValuedMap<Property, RDFNode> properties,
-			final Resource resource) {
-		return getMostSpecificType(getObjectTypes(), properties, resource).map(t -> {
+	protected <U extends RDFObject> U getObject(final L graph, Map<Resource, RDFObject> existing,
+			final MultiValuedMap<Property, RDFNode> properties, final Resource resource) {
+		RDFObject e = existing.get(resource);
+		if (e != null) {
+			return (U) e;
+		}
+		e = getMostSpecificType(getObjectTypes(), properties, resource).map(t -> {
 			AbstractRDFService.log.trace("Loading {} of type {}", resource, t);
-			return getObject(graph, properties, resource, (Class<U>) t);
+			return getObject(graph, existing, properties, resource, (Class<U>) t);
 		}).orElse(null);
+		if (e != null) {
+			existing.put(resource, e);
+		}
+		return (U) e;
 	}
 
-	protected abstract <U extends RDFObject> U getObject(L graph, MultiValuedMap<Property, RDFNode> properties,
-			Resource resource, Class<U> t);
+//	protected <U extends RDFObject> U getObject(final L graph, final MultiValuedMap<Property, RDFNode> properties,
+//			final Resource resource) {
+//		return getObject(graph, new HashMap<>(), properties, resource);
+//	}
 
-	protected <T extends RDFObject> T getObject(final L graph, final RDFNode n, final Class<T> clazz) {
+	protected abstract <U extends RDFObject> U getObject(L graph, Map<Resource, RDFObject> existing,
+			MultiValuedMap<Property, RDFNode> properties, Resource resource, Class<U> t);
+
+	protected <T extends RDFObject> T getObject(final L graph, Map<Resource, RDFObject> existing, final RDFNode n,
+			final Class<T> clazz) {
 		return Optional.ofNullable(n) //
 				.filter(RDFNode::isResource) //
 				.map(RDFNode::asResource) //
 				.filter(Resource::isURIResource) //
-				.map(r -> lookupById(graph, r.getURI())) //
+				.map(r -> lookupById(graph, existing, r.getURI())) //
 				.filter(Optional::isPresent) //
 				.map(Optional::get) //
 				.filter(clazz::isInstance) //
@@ -181,18 +195,19 @@ public abstract class AbstractRDFService<L extends Source> extends RDFService {
 	 * @param member
 	 * @return
 	 */
-	protected <T extends RDFObject> Set<T> getSet(final L graph, final MultiValuedMap<Property, RDFNode> properties,
-			final Property property, final Class<T> clazz) {
-		return RDFService.getSet(properties, property, n -> getObject(graph, n, clazz));
+	protected <T extends RDFObject> Set<T> getSet(final L graph, Map<Resource, RDFObject> existing,
+			final MultiValuedMap<Property, RDFNode> properties, final Property property, final Class<T> clazz) {
+		return RDFService.getSet(properties, property, n -> getObject(graph, existing, n, clazz));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <U extends RDFObject> Optional<U> lookupById(final L graph, @NotNull final String id) {
+	public <U extends RDFObject> Optional<U> lookupById(final L graph, Map<Resource, RDFObject> existing,
+			@NotNull final String id) {
 		graph.beginRead();
 		try {
 			return Optional.ofNullable(graph.getResource(id)).stream()//
 					.map(r -> Pair.of(r, getProperties(graph, r))) //
-					.map(p -> Pair.of(p.getRight(), (U) getObject(graph, p.getRight(), p.getLeft()))) //
+					.map(p -> Pair.of(p.getRight(), (U) getObject(graph, existing, p.getRight(), p.getLeft()))) //
 					.filter(p -> p.getRight() != null) //
 					.map(Pair::getRight) //
 					.findFirst();

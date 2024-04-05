@@ -24,5 +24,4 @@ public class Catalog extends Dataset {
 	Set<DataService> service;
 	Set<Catalog> catalog;
 	Set<CatalogRecord> record;
-
 }

@@ -1,15 +1,18 @@
 include:
       - project: 'ocs/cicd/parent'
-        ref: parent-1.1
+        ref: parent-1.2
         file: '/.gitlab-ci.yml'
 
 default:
-      image: maven:3.8-openjdk-17-slim
+      image: maven:3.9-amazoncorretto-21-debian
 
 .testphase:
   rules:
     - when: never
 stop test:
+  rules:
+    - when: never
+license compliance scan:
   rules:
     - when: never
 

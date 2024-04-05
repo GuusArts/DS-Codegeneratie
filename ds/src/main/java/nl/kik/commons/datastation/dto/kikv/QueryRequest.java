@@ -1,5 +1,6 @@
 package nl.kik.commons.datastation.dto.kikv;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +35,8 @@ public class QueryRequest {
 	@JsonDeserialize(using = Base64EncodedJSONLD.Deserialize.class)
 	private VerifiablePresentation vp;
 	private CredentialSubject credentialSubject;
+	private URI dataset;
+	private URI record;
 	private String param_values;
 
 	@JsonIgnore
