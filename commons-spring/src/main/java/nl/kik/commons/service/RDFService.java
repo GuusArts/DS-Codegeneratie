@@ -81,7 +81,7 @@ public class RDFService {
 		model.beginRead();
 		try {
 			try (OutputStream f = Files.newOutputStream(name)) {
-				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_EXPAND_PRETTY);
+				RDFDataMgr.write(f, model.getModel(), RDFFormat.JSONLD_PRETTY);
 			} catch (final IOException e) {
 			}
 			return model;

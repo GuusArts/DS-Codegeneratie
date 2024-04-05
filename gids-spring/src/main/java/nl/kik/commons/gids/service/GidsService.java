@@ -516,7 +516,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				if (r != null) {
 					final Statement s = g.getModel().createStatement(resource, property, r);
 					g.getModel().add(s);
-					final Resource rs = g.getModel().createReifiedStatement(s);
+					final Resource rs = g.getModel().createResource(s);
 					g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
 					super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 					super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
@@ -576,7 +576,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 					}
 					final Statement s = super.addObject(g, resource, property, e.getValue().getRight());
 					if (s != null) {
-						final Resource rs = g.getModel().createReifiedStatement(s);
+						final Resource rs = g.getModel().createResource(s);
 						g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
 						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
@@ -601,7 +601,7 @@ public class GidsService extends AbstractRDFService<GraphOrRemote> {
 				attribute.getValues().entries().forEach(e -> {
 					final Statement s = super.addProperty(g, resource, property, e.getValue().getRight());
 					if (s != null) {
-						final Resource rs = g.getModel().createReifiedStatement(s);
+						final Resource rs = g.getModel().createResource(s);
 						g.getModel().add(rs, Vocabulary.source, GidsService.sources.get(e.getKey()));
 						super.addProperty(g, rs, Vocabulary.from, e.getValue().getLeft());
 						super.addProperty(g, rs, Vocabulary.to, e.getValue().getMiddle());
