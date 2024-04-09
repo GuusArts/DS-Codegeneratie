@@ -53,7 +53,7 @@ public class NutsDIDDocument extends DIDDocument {
 
     public static class Builder<B extends Builder<B>> extends DIDDocument.Builder<B> {
         private Map<String, Object> claims;
-        private List<String> controllers;
+        private List<URI> controllers;
 
         public Builder(NutsDIDDocument jsonLdObject) {
             super(jsonLdObject);
@@ -83,14 +83,14 @@ public class NutsDIDDocument extends DIDDocument {
         }
 
         @SuppressWarnings("unchecked")
-        public B controllers(List<String> controllers) {
+        public B controllers(List<URI> controllers) {
             ensureControllers();
             this.controllers.addAll(controllers);
             return (B) this;
         }
 
         @SuppressWarnings("unchecked")
-        public B controller(String controller) {
+        public B controller(URI controller) {
             ensureControllers();
             this.controllers.add(controller);
             return (B) this;
@@ -135,8 +135,9 @@ public class NutsDIDDocument extends DIDDocument {
         return new NutsDIDDocument(map);
     }
 
-    public List<String> getControllers() {
-        return JsonLDUtils.jsonLdGetStringList(this.getJsonObject(), CONTROLLER);
+    public List<URI> getControllers() {
+        return JsonLDUtils.jsonLdGetStringList(this.getJsonObject(), CONTROLLER)
+                .stream().map(URI::create).toList();
     }
 
 }
