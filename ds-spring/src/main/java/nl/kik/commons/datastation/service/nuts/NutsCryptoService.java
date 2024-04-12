@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import foundation.identity.did.VerificationMethod;
+import foundation.identity.jsonld.JsonLDObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +60,8 @@ public class NutsCryptoService implements CryptoService {
 
 	@Override
 	public JWSObject sign(URI sender, ResultSet value) {
-		URI keyId = getDID(sender.toString()).getKeyAgreementVerificationMethods().stream() //
-				.map(k -> k.getId()) //
+		URI keyId = getDID(sender.toString()).getKeyAgreementVerificationMethodsInline().stream() //
+				.map(JsonLDObject::getId) //
 				.findFirst().orElseThrow();
 
 		return nuts.signJws(SignResultSet.builder() //
@@ -92,9 +94,9 @@ public class NutsCryptoService implements CryptoService {
 	}
 
 	private ECPublicKey getKey(String kid) {
-		return getViaCache(keycache, "key", kid, k -> getDID(didPart(k)).getKeyAgreementVerificationMethods().stream() //
+		return getViaCache(keycache, "key", kid, k -> getDID(didPart(k)).getKeyAgreementVerificationMethodsInline().stream() //
 				.filter(key -> key.getId().toString().equals(k)) //
-				.map(key -> key.getPublicKeyJwk()) //
+				.map(VerificationMethod::getPublicKeyJwk) //
 				.findFirst() //
 				.map(FunctionWrapper.<Map<String, Object>, JWK, ParseException>wrapper(JWK::parse)) //
 				.map(JWK::toECKey) //
@@ -136,7 +138,7 @@ public class NutsCryptoService implements CryptoService {
 
 		cache.entrySet().stream() //
 				.filter(e -> e.getValue().getRight().isBefore(grace)) //
-				.map(e -> e.getKey()) //
+				.map(Map.Entry::getKey) //
 				.toList().forEach(cache::remove);
 
 		int after = cache.size();
