@@ -100,12 +100,6 @@
 				<artifactId>gids-spring</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.apache.jena</groupId>
-				<artifactId>apache-jena-libs</artifactId>
-				<version>{jena.version}</version>
-				<type>pom</type>
-			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
