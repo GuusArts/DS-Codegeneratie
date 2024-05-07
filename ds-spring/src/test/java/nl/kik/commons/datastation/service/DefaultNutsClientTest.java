@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import foundation.identity.jsonld.JsonLDObject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +79,6 @@ import nl.kik.commons.datastation.service.nuts.DefaultNutsClient;
 
 @Slf4j
 @SpringBootTest(classes = DefaultNutsClientTest.Context.class)
-@Disabled
 public class DefaultNutsClientTest {
 
 	static {
@@ -87,12 +87,13 @@ public class DefaultNutsClientTest {
 		System.setProperty("javax.net.ssl.trustStorePassword", "simulatie");
 	}
 
-	private static final String VDID = "did:nuts:HXWJzajdPSmCGk6vboiBM4wEhJKJmYSBrrakMsnVnyC6";
-	private static final String DID = "did:nuts:AoQrzMTiLLfCqmK8CK1nkKShPdi4QUv2869oJzT2nAFt";
-	private static final String ADID = "did:nuts:DZx5TChA4QmTF5iBtYGyTgcmyjuWqEjm7Zas9hXbSF7F";
+
+	private static final String VDID = "did:nuts:6f4658EzfQZesigKXvEQ4zmCp14YLHZEkaviNY66YTtk";
+	private static final String DID = "did:nuts:6rGiAmeWYQYWYz2unYizxx5eGG8PLbSnACyqrsGSHQb9";
+	private static final String ADID = "did:nuts:6rGiAmeWYQYWYz2unYizxx5eGG8PLbSnACyqrsGSHQb9";
 	private static final String ENDPOINT = "http://localhost:8080/";
-	private static final String NUTS = "https://nuts-internal.acceptance.zin.ocs.nu";
-	private static final String NUTS_N2N = "https://nuts-n2n.acceptance.zin.ocs.nu";
+	private static final String NUTS = "http://nuts-internal.development.private.daas.nu:31558";
+	private static final String NUTS_N2N = "https://nuts-n2n.development.daas.nu";
 //	private static final String NUTS = "https://nuts-internal.acceptance.daas.ocs.nu";
 //	private static final String NUTS_N2N = "https://nuts-n2n.acceptance.daas.ocs.nu";
 
@@ -118,6 +119,7 @@ public class DefaultNutsClientTest {
 	private DefaultNutsClient client;
 
 	@Test
+	@Disabled
 	void testFindForeignCredentials() {
 		SearchResult result = client.searchVC(SearchVerifiableCredential.builder() //
 				.query(ValidatedQueryCredential.builder() //
@@ -183,6 +185,7 @@ public class DefaultNutsClientTest {
 	}
 
 	@Test
+	@Disabled
 	void testCreateOrganiation() {
 		NutsDIDDocument document = client.createDID(CreateDID.builder() //
 				.selfControl(false) //
@@ -315,7 +318,7 @@ public class DefaultNutsClientTest {
 	void testSign() throws JOSEException, ParseException {
 		DIDResolutionResult resolveDID = client.resolveDID(DID);
 		URI keyId = resolveDID.getDocument().getKeyAgreementVerificationMethods().stream() //
-				.map(k -> k.getId()) //
+				.map(JsonLDObject::getId) //
 				.findFirst().orElseThrow();
 
 		JWSObject jws = client.signJws(SignResultSet.builder() //
@@ -383,6 +386,7 @@ public class DefaultNutsClientTest {
 	}
 
 	@Test
+	@Disabled
 	void testContactInfo() {
 		DIDResolutionResult resolveDID = client.resolveDID(DID);
 		log.info("DID {}", resolveDID);
@@ -403,7 +407,7 @@ public class DefaultNutsClientTest {
 						.build())
 				.build());
 		log.info("Search {}", result);
-		assertEquals(1, result.getVerifiableCredentials().size());
+		assertEquals(6, result.getVerifiableCredentials().size());
 		result = client.searchVC(SearchVerifiableCredential.builder() //
 				.query(NutsOrganizationCredential.builder() //
 						.orgId(URI.create(DID)) //
@@ -413,12 +417,12 @@ public class DefaultNutsClientTest {
 						.build())
 				.build());
 		log.info("Search {}", result);
-		assertEquals(1, result.getVerifiableCredentials().size());
+		assertEquals(6, result.getVerifiableCredentials().size());
 		result.getVerifiableCredentials()
 				.forEach(c -> log.info("Credential {}", c.getVerifiableCredential().toJson(true)));
 
 		NutsOrganizationCredential organization = NutsOrganizationCredential
-				.fromJsonLDObject(result.getVerifiableCredentials().iterator().next().getVerifiableCredential());
+				.fromJsonLDObject(result.getVerifiableCredentials().get(3).getVerifiableCredential());
 		log.info("Organisation {}, City {}", organization.getName(), organization.getCity());
 
 		ContactInformation contact = client.getContactInfo(VDID);
