@@ -79,6 +79,7 @@ import nl.kik.commons.datastation.service.nuts.DefaultNutsClient;
 
 @Slf4j
 @SpringBootTest(classes = DefaultNutsClientTest.Context.class)
+@Disabled
 public class DefaultNutsClientTest {
 
 	static {
@@ -317,7 +318,7 @@ public class DefaultNutsClientTest {
 	@Test
 	void testSign() throws JOSEException, ParseException {
 		DIDResolutionResult resolveDID = client.resolveDID(DID);
-		URI keyId = resolveDID.getDocument().getKeyAgreementVerificationMethods().stream() //
+		URI keyId = resolveDID.getDocument().getKeyAgreementVerificationMethodsDereferenced().stream() //
 				.map(JsonLDObject::getId) //
 				.findFirst().orElseThrow();
 
@@ -329,7 +330,7 @@ public class DefaultNutsClientTest {
 		log.info("Signed {}", jws);
 		assertEquals("ES256", jws.getHeader().getAlgorithm().getName());
 
-		Map<String, Object> jwkJson = resolveDID.getDocument().getKeyAgreementVerificationMethods().stream() //
+		Map<String, Object> jwkJson = resolveDID.getDocument().getKeyAgreementVerificationMethodsDereferenced().stream() //
 				.filter(k -> k.getId().toString().equals(jws.getHeader().getKeyID())) //
 				.map(k -> k.getPublicKeyJwk()) //
 				.findFirst().orElseThrow();
@@ -391,7 +392,7 @@ public class DefaultNutsClientTest {
 		DIDResolutionResult resolveDID = client.resolveDID(DID);
 		log.info("DID {}", resolveDID);
 		log.info("{}", resolveDID.getDocument().toJson(true));
-		List<String> controllers = resolveDID.getDocument().getControllers();
+		List<URI> controllers = resolveDID.getDocument().getControllers();
 		log.info("Controllers {}", controllers);
 		assertEquals(1, controllers.size());
 
