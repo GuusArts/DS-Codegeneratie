@@ -90,7 +90,7 @@ public class DefaultNutsClientTest {
 		System.setProperty("javax.net.ssl.trustStorePassword", "simulatie");
 	}
 
-
+	private static final String NutsOrganisation = "NutsOrganizationCredential";
 	private static final String VDID = "did:nuts:6f4658EzfQZesigKXvEQ4zmCp14YLHZEkaviNY66YTtk";
 	private static final String DID = "did:nuts:6rGiAmeWYQYWYz2unYizxx5eGG8PLbSnACyqrsGSHQb9";
 	private static final String ADID = "did:nuts:6rGiAmeWYQYWYz2unYizxx5eGG8PLbSnACyqrsGSHQb9";
@@ -426,11 +426,11 @@ public class DefaultNutsClientTest {
 		VerifiableCredential verifiableCredential = result.getVerifiableCredentials()
 				.stream()
 				.filter(x ->
-						((ArrayList<String>) x.getVerifiableCredential().getJsonObject().get("type")).contains("NutsOrganizationCredential"))
+						((ArrayList<String>) x.getVerifiableCredential().getJsonObject().get("type")).contains(NutsOrganisation))
 				.collect(Collectors.toList())
 				.getFirst()
 				.getVerifiableCredential();
-		
+
 		NutsOrganizationCredential organization = NutsOrganizationCredential
 				.fromJsonLDObject(verifiableCredential);
 		log.info("Organisation {}, City {}", organization.getName(), organization.getCity());
