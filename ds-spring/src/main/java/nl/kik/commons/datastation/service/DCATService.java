@@ -639,7 +639,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	public void createCatalog(String catalogUri, String title) {
 		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
 		Resource catalog = graph.getModel().createResource(catalogUri)
-				.addProperty(RDF.type, DCAT.Catalog)
+				.addProperty(RDF.type, org.apache.jena.vocabulary.DCAT.Catalog)
 				.addProperty(DCTerms.title, title);
 		saveCatalog(graph, catalog, Catalog.builder().id(catalogUri).title(title).build());
 	}
@@ -653,16 +653,20 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	 */
 	public void addDatasetToCatalog(String catalogUri, String datasetUri, String title) {
 		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
-		Resource catalog = graph.getModel().getResource(catalogUri);
-		if (catalog == null) {
-			throw new IllegalArgumentException("Catalog with URI " + catalogUri + " does not exist.");
-		}
 
+		// Create the catalog resource
+		Resource catalog = graph.getModel().createResource(catalogUri)
+				.addProperty(RDF.type, org.apache.jena.vocabulary.DCAT.Catalog);
+
+		// Create the dataset resource
 		Resource dataset = graph.getModel().createResource(datasetUri)
-				.addProperty(RDF.type, DCAT.Dataset)
+				.addProperty(RDF.type, org.apache.jena.vocabulary.DCAT.Dataset)
 				.addProperty(DCTerms.title, title);
 
-		catalog.addProperty(DCAT.dataset, dataset);
+		// Link dataset to catalog
+		catalog.addProperty(org.apache.jena.vocabulary.DCAT.dataset, dataset);
+
+		// Save the dataset
 		saveDataset(graph, dataset, Dataset.builder().id(datasetUri).title(title).build());
 	}
 
@@ -676,17 +680,32 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	 */
 	public void addDistributionToDataset(String datasetUri, String distributionUri, String accessUrl, String mediaType) {
 		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
-		Resource dataset = graph.getModel().getResource(datasetUri);
-		if (dataset == null) {
-			throw new IllegalArgumentException("Dataset with URI " + datasetUri + " does not exist.");
+
+		// Create the dataset resource
+		Resource dataset = graph.getModel().createResource(datasetUri)
+				.addProperty(RDF.type, org.apache.jena.vocabulary.DCAT.Dataset);
+
+		// Create the distribution resource
+		Resource distribution = graph.getModel().createResource(distributionUri)
+				.addProperty(RDF.type, org.apache.jena.vocabulary.DCAT.Distribution)
+				.addProperty(org.apache.jena.vocabulary.DCAT.accessURL, graph.getModel().createResource(accessUrl))
+				.addProperty(org.apache.jena.vocabulary.DCAT.mediaType, mediaType);
+
+		// Link distribution to dataset
+		dataset.addProperty(org.apache.jena.vocabulary.DCAT.distribution, distribution);
+
+		// Create a Distribution object with the access URL
+		java.util.Set<java.net.URI> accessUrls = new java.util.HashSet<>();
+		try {
+			accessUrls.add(new java.net.URI(accessUrl));
+		} catch (java.net.URISyntaxException e) {
+			// Handle invalid URI
 		}
 
-		Resource distribution = graph.getModel().createResource(distributionUri)
-				.addProperty(RDF.type, DCAT.Distribution)
-				.addProperty(DCAT.accessURL, graph.getModel().createResource(accessUrl))
-				.addProperty(DCTerms.format, mediaType);
-
-		dataset.addProperty(DCAT.distribution, distribution);
-		saveDistribution(graph, distribution, Distribution.builder().id(distributionUri).build());
+		// Save the distribution
+		saveDistribution(graph, distribution, Distribution.builder()
+				.id(distributionUri)
+				.accessURL(accessUrls)
+				.build());
 	}
 }
