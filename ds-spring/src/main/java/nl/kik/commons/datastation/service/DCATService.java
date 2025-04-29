@@ -630,4 +630,63 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		}
 	}
 
+	/**
+	 * Creates a catalog with the given URI and title.
+	 *
+	 * @param catalogUri URI of the catalog
+	 * @param title      Title of the catalog
+	 */
+	public void createCatalog(String catalogUri, String title) {
+		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
+		Resource catalog = graph.getModel().createResource(catalogUri)
+				.addProperty(RDF.type, DCAT.Catalog)
+				.addProperty(DCTerms.title, title);
+		saveCatalog(graph, catalog, Catalog.builder().id(catalogUri).title(title).build());
+	}
+
+	/**
+	 * Adds a dataset to a catalog.
+	 *
+	 * @param catalogUri URI of the catalog
+	 * @param datasetUri URI of the dataset
+	 * @param title      Title of the dataset
+	 */
+	public void addDatasetToCatalog(String catalogUri, String datasetUri, String title) {
+		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
+		Resource catalog = graph.getModel().getResource(catalogUri);
+		if (catalog == null) {
+			throw new IllegalArgumentException("Catalog with URI " + catalogUri + " does not exist.");
+		}
+
+		Resource dataset = graph.getModel().createResource(datasetUri)
+				.addProperty(RDF.type, DCAT.Dataset)
+				.addProperty(DCTerms.title, title);
+
+		catalog.addProperty(DCAT.dataset, dataset);
+		saveDataset(graph, dataset, Dataset.builder().id(datasetUri).title(title).build());
+	}
+
+	/**
+	 * Adds a distribution to a dataset.
+	 *
+	 * @param datasetUri      URI of the dataset
+	 * @param distributionUri URI of the distribution
+	 * @param accessUrl       Access URL of the distribution
+	 * @param mediaType       Media type of the distribution
+	 */
+	public void addDistributionToDataset(String datasetUri, String distributionUri, String accessUrl, String mediaType) {
+		Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
+		Resource dataset = graph.getModel().getResource(datasetUri);
+		if (dataset == null) {
+			throw new IllegalArgumentException("Dataset with URI " + datasetUri + " does not exist.");
+		}
+
+		Resource distribution = graph.getModel().createResource(distributionUri)
+				.addProperty(RDF.type, DCAT.Distribution)
+				.addProperty(DCAT.accessURL, graph.getModel().createResource(accessUrl))
+				.addProperty(DCTerms.format, mediaType);
+
+		dataset.addProperty(DCAT.distribution, distribution);
+		saveDistribution(graph, distribution, Distribution.builder().id(distributionUri).build());
+	}
 }
