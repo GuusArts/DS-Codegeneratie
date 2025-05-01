@@ -1,5 +1,6 @@
 package nl.kik.commons.datastation.dto.dcat;
 
+import java.net.URI;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,4 +25,9 @@ public class Catalog extends Dataset {
 	Set<DataService> service;
 	Set<Catalog> catalog;
 	Set<CatalogRecord> record;
+
+	public URI getUri() {
+	    // Placeholder implementation, replace with actual URI logic
+	    return URI.create("http://example.com/catalog/" + this.hashCode());
+	}
 }

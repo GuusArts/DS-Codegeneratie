@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.io.StringWriter;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -22,6 +23,8 @@ import org.apache.jena.vocabulary.DCTerms;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.VCARD4;
 import org.springframework.stereotype.Service;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
 
 import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.Catalog.CatalogBuilder;
@@ -63,6 +66,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	public static class Vocabulary extends DCAT {
 		private static final Model m = ModelFactory.createDefaultModel();
 
+		// Define the namespace for DCAT
+		public static final String DCAT_NS = "http://www.w3.org/ns/dcat#";
+
 		public static final String FOAF_NS = "http://xmlns.com/foaf/0.1/";
 		public static final Resource FOAF_NAMESPACE = Vocabulary.m.createResource(Vocabulary.FOAF_NS);
 
@@ -74,21 +80,27 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		public static final Property member = Vocabulary.m.createProperty(Vocabulary.FOAF_NS + "member");
 		public static final Property name = Vocabulary.m.createProperty(Vocabulary.FOAF_NS + "name");
 
+		// Rename fields to avoid clashes
+		public static final Resource CatalogResource = m.createResource(DCAT_NS + "Catalog");
+		public static final Resource DatasetResource = m.createResource(DCAT_NS + "Dataset");
+		public static final Resource DistributionResource = m.createResource(DCAT_NS + "Distribution");
+		public static final Property DistributionProperty = m.createProperty(DCAT_NS + "distribution");
+		public static final Property DatasetProperty = m.createProperty(DCAT_NS + "dataset");
 	}
 
 	public static final String DCAT = "dcat";
 
 	private static Map<Resource, Class<? extends RDFObject>> objectTypes = Map.ofEntries( //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.CatalogRecord, CatalogRecord.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Distribution, Distribution.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.CatalogRecord, CatalogRecord.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Distribution, Distribution.class), //
 			Map.<Resource, Class<? extends RDFObject>>entry(DCTerms.PeriodOfTime, PeriodOfTime.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Relationship, Relationship.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Resource,
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Relationship, Relationship.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Resource,
 					nl.kik.commons.datastation.dto.dcat.Resource.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.DataService, DataService.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Dataset, Dataset.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Catalog, Catalog.class), //
-			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Role, Role.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.DataService, DataService.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Dataset, Dataset.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Catalog, Catalog.class), //
+			Map.<Resource, Class<? extends RDFObject>>entry(org.apache.jena.vocabulary.DCAT.Role, Role.class), //
 
 			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Agent, Agent.class), //
 			Map.<Resource, Class<? extends RDFObject>>entry(Vocabulary.Group, Group.class), //
@@ -107,7 +119,7 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	@Override
 	protected void deleteDetails(final Graph<? extends Model> g, final Resource resource, final RDFObject object,
 			final boolean purge) {
-
+		// This method is intentionally left empty as deletion logic is not required for this implementation.
 	}
 
 	private <B extends AgentBuilder<?, ?>> B getAgent(final Graph<Model> graph,
@@ -116,9 +128,9 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		;
 	}
 
-	public Collection<? extends Catalog> getAllCatalogs(final Graph<Model> graph) {
+	public Collection<Catalog> getAllCatalogs(final Graph<Model> graph) {
 		Map<Resource, RDFObject> existing = new HashMap<>();
-		return RDFService.search(graph, null, RDF.type, org.apache.jena.vocabulary.DCAT.Catalog, Statement::getSubject) //
+		return RDFService.search(graph, null, RDF.type, Vocabulary.CatalogResource, Statement::getSubject) //
 				.map(r -> Pair.of(r, getProperties(graph, r))) //
 				.map(p -> getObject(graph, existing, p.getRight(), p.getLeft())) //
 				.filter(Catalog.class::isInstance) //
@@ -448,24 +460,24 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 	}
 
 	protected void saveDetails(final Graph<? extends Model> g, final Resource resource, final DCATObject object) {
-		if (object instanceof Catalog) {
-			saveCatalog(g, resource, (Catalog) object);
-		} else if (object instanceof Dataset) {
-			saveDataset(g, resource, (Dataset) object);
-		} else if (object instanceof DataService) {
-			saveDataService(g, resource, (DataService) object);
-		} else if (object instanceof nl.kik.commons.datastation.dto.dcat.Resource) {
-			saveResource(g, resource, (nl.kik.commons.datastation.dto.dcat.Resource) object);
-		} else if (object instanceof CatalogRecord) {
-			saveCatalogRecord(g, resource, (CatalogRecord) object);
-		} else if (object instanceof Distribution) {
-			saveDistribution(g, resource, (Distribution) object);
-		} else if (object instanceof PeriodOfTime) {
-			savePeriodOfTime(g, resource, (PeriodOfTime) object);
-		} else if (object instanceof Relationship) {
-			saveRelationship(g, resource, (Relationship) object);
-		} else if (object instanceof Role) {
-			saveRole(g, resource, (Role) object);
+		if (object instanceof Catalog catalog) {
+			saveCatalog(g, resource, catalog);
+		} else if (object instanceof Dataset dataset) {
+			saveDataset(g, resource, dataset);
+		} else if (object instanceof DataService dataService) {
+			saveDataService(g, resource, dataService);
+		} else if (object instanceof nl.kik.commons.datastation.dto.dcat.Resource resourceObj) {
+			saveResource(g, resource, resourceObj);
+		} else if (object instanceof CatalogRecord catalogRecord) {
+			saveCatalogRecord(g, resource, catalogRecord);
+		} else if (object instanceof Distribution distribution) {
+			saveDistribution(g, resource, distribution);
+		} else if (object instanceof PeriodOfTime periodOfTime) {
+			savePeriodOfTime(g, resource, periodOfTime);
+		} else if (object instanceof Relationship relationship) {
+			saveRelationship(g, resource, relationship);
+		} else if (object instanceof Role role) {
+			saveRole(g, resource, role);
 		} else {
 			throw new IllegalArgumentException("Cannot save DCAT objects of type " + object.getClass().getSimpleName());
 		}
@@ -628,6 +640,41 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		} finally {
 			g.end();
 		}
+	}
+
+	public String generateCatalogOutput(Catalog catalog, RDFFormat format) {
+		Model model = ModelFactory.createDefaultModel();
+
+		// Create the catalog resource
+		Resource catalogResource = model.createResource(catalog.getUri().toString())
+			.addProperty(RDF.type, Vocabulary.CatalogResource)
+			.addProperty(DCTerms.title, catalog.getTitle())
+			.addProperty(DCTerms.description, catalog.getDescription());
+
+		// Add datasets to the catalog
+		catalog.getDataset().forEach(dataset -> {
+			Resource datasetResource = model.createResource(dataset.getUri().toString())
+				.addProperty(RDF.type, Vocabulary.DatasetResource)
+				.addProperty(DCTerms.title, dataset.getTitle())
+				.addProperty(DCTerms.description, dataset.getDescription());
+
+			// Add distributions to the dataset
+			dataset.getDistribution().forEach(distribution -> {
+				Resource distributionResource = model.createResource(distribution.getUri().toString())
+					.addProperty(RDF.type, Vocabulary.DistributionResource)
+					.addProperty(DCTerms.title, distribution.getTitle())
+					.addProperty(DCTerms.description, distribution.getDescription());
+
+				datasetResource.addProperty(Vocabulary.DistributionProperty, distributionResource);
+			});
+
+			catalogResource.addProperty(Vocabulary.DatasetProperty, datasetResource);
+		});
+
+		// Write the model to the specified RDF format
+		StringWriter writer = new StringWriter();
+		RDFDataMgr.write(writer, model, format);
+		return writer.toString();
 	}
 
 }

@@ -25,4 +25,9 @@ public class Dataset extends Resource {
 	PeriodOfTime temporal;
 	Duration temporalResolution;
 //	prov:Activity wasGeneratedBy;
+
+	public URI getUri() {
+	    // Placeholder implementation, replace with actual URI logic
+	    return URI.create("http://example.com/dataset/" + this.hashCode());
+	}
 }

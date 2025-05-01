@@ -11,6 +11,7 @@ import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.DataService;
 import nl.kik.commons.datastation.dto.dcat.Dataset;
 import nl.kik.commons.datastation.dto.dcat.Distribution;
+import org.apache.jena.riot.RDFFormat;
 
 public class CatalogService {
 	/**
@@ -65,6 +66,18 @@ public class CatalogService {
 								dataservice -> dataservice.getConformsTo() != null && dataservice.getConformsTo().contains(provides)) //
 				) //
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Publish the catalog in the specified RDF format.
+	 *
+	 * @param catalog
+	 * @param format
+	 * @return
+	 */
+	public String publishCatalog(Catalog catalog, RDFFormat format) {
+		DCATService dcatService = new DCATService();
+		return dcatService.generateCatalogOutput(catalog, format);
 	}
 
 }

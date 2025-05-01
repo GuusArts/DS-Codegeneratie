@@ -37,4 +37,9 @@ public class Distribution extends DCATObject {
 //	List<MediaType> mediaType;
 //	List<MediaTypeOrExtent> format;
 //	List<MediaType> packageFormat;
+
+	public URI getUri() {
+	    // Placeholder implementation, replace with actual URI logic
+	    return URI.create("http://example.com/distribution/" + this.hashCode());
+	}
 }
