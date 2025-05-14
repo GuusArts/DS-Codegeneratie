@@ -11,6 +11,9 @@ import nl.kik.commons.datastation.dto.dcat.Catalog;
 import nl.kik.commons.datastation.dto.dcat.DataService;
 import nl.kik.commons.datastation.dto.dcat.Dataset;
 import nl.kik.commons.datastation.dto.dcat.Distribution;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class CatalogService {
 	/**
@@ -65,6 +68,42 @@ public class CatalogService {
 								dataservice -> dataservice.getConformsTo() != null && dataservice.getConformsTo().contains(provides)) //
 				) //
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Serialize the given Catalog to DCAT2-compliant JSON-LD.
+	 *
+	 * @param catalog the Catalog to serialize
+	 * @return JSON-LD string
+	 * @throws JsonProcessingException if serialization fails
+	 */
+	public String publishCatalogAsJsonLD(Catalog catalog) throws JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		// If you have the JSON-LD module, register it here
+		// mapper.registerModule(new JsonldModule());
+		return mapper.writeValueAsString(catalog);
+	}
+
+	/**
+	 * Example: Construct a sample Catalog with one Dataset and one Distribution.
+	 */
+	public static Catalog exampleCatalog() {
+		Distribution distribution = Distribution.builder()
+			.title("Example Distribution")
+			.description("A sample distribution for demonstration.")
+			.build();
+		Dataset dataset = Dataset.builder()
+			.title("Example Dataset")
+			.description("A sample dataset for demonstration.")
+			.distribution(Collections.singleton(distribution))
+			.build();
+		Catalog catalog = Catalog.builder()
+			.title("Example Catalog")
+			.description("A sample DCAT2 catalog.")
+			.dataset(Collections.singleton(dataset))
+			.build();
+		return catalog;
 	}
 
 }

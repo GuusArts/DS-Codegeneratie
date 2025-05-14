@@ -57,6 +57,9 @@ import nl.kik.commons.dto.Graph;
 import nl.kik.commons.dto.RDFObject;
 import nl.kik.commons.service.AbstractRDFService;
 import nl.kik.commons.service.RDFService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Service
 public class DCATService extends AbstractRDFService<Graph<Model>> {
@@ -628,6 +631,25 @@ public class DCATService extends AbstractRDFService<Graph<Model>> {
 		} finally {
 			g.end();
 		}
+	}
+
+	/**
+	 * Fetch the first available Catalog from the given Jena Model, serialize it to JSON-LD, and return as String.
+	 * @param graph the Jena Model graph containing DCAT data
+	 * @return JSON-LD string of the first Catalog, or null if none found
+	 * @throws JsonProcessingException if serialization fails
+	 */
+	public String getCatalogAsJsonLD(Graph<Model> graph) throws JsonProcessingException {
+		Collection<? extends Catalog> catalogs = getAllCatalogs(graph);
+		if (catalogs.isEmpty()) {
+			return null;
+		}
+		Catalog catalog = catalogs.iterator().next();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		// If you have the JSON-LD module, register it here
+		// mapper.registerModule(new JsonldModule());
+		return mapper.writeValueAsString(catalog);
 	}
 
 }
