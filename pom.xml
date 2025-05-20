@@ -94,10 +94,19 @@
 				<groupId>nl.kik-v.commons</groupId>
 				<artifactId>gids</artifactId>
 				<version>${project.version}</version>
+			</dependency>			<dependency>
+				<groupId>nl.kik-v.commons</groupId>
+				<artifactId>gids-spring</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>nl.kik-v.commons</groupId>
-				<artifactId>gids-spring</artifactId>
+				<artifactId>dcat2</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.kik-v.commons</groupId>
+				<artifactId>dcat2-spring</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
@@ -118,14 +127,15 @@
 			<artifactId>junit-jupiter-engine</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
-	<modules>
+	</dependencies>	<modules>
 		<module>commons</module>
 		<module>commons-spring</module>
 		<module>ds</module>
 		<module>ds-spring</module>
 		<module>gids</module>
 		<module>gids-spring</module>
+		<module>dcat2</module>
+		<module>dcat2-spring</module>
 	</modules>
 	<build>
 		<pluginManagement>
