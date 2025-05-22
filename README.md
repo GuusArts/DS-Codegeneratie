@@ -1,6 +1,6 @@
 # Introduction
 
-This module aims to give access to shared KIK-V resources in a uniform way.  The module comprises functionality to access to zorgaanbieder Gids (used by KIK-Starter and KIK-Registratie) and a datastation + NUTS nodes.
+This module aims to give access to shared KIK-V resources in a uniform way.  The module comprises functionality to access to zorgaanbieder Gids (used by KIK-Starter and KIK-Registratie), a datastation + NUTS nodes, and DCAT2 metadata.
 
 Modules are set up to provide maximal support while pulling in minimal dependencies; as such each sub-module exists as `<name>` as well as `<name>-spring`, where the latter pulls in Spring and Jena dependencies.
 
@@ -18,7 +18,63 @@ The NUTS functionality should optimally be extracted to a generic library suppor
 
 The VerifiablePresentation in the used library does not allow multiple VerifiableCredentials; there is an alternative used here that does.
 
-This code includes partial DCAT implementation that is not used presently; it is not used presently, but the spec contains a mention so it may come back.
+This code now includes a full implementation of DCAT2 (Data Catalog Vocabulary) to support semantic interoperability for data catalogs.
+
+# DCAT2
+
+The `dcat` and `dcat-spring` modules provide support for the [DCAT2 (Data Catalog Vocabulary)](https://www.w3.org/TR/vocab-dcat-2/) standard, which is a W3C recommendation for describing data catalogs.
+
+`dcat` provides Java models for DCAT2 entities (Catalog, Dataset, Distribution, DataService, CatalogRecord) and vocabulary constants. These can be used to create and manipulate DCAT2 metadata in Java applications.
+
+`dcat-spring` provides Spring integration for DCAT2, including services for converting DCAT2 objects to and from RDF using Apache Jena. This enables applications to serialize and deserialize DCAT2 metadata in various formats (RDF/XML, Turtle, JSON-LD, etc.).
+
+## Usage Example
+
+```java
+// Create a catalog
+Catalog catalog = Catalog.builder()
+        .id("http://example.org/catalog/1")
+        .title("Example Catalog")
+        .description("An example catalog")
+        .build();
+
+// Create a dataset
+Dataset dataset = Dataset.builder()
+        .id("http://example.org/dataset/1")
+        .title("Example Dataset")
+        .description("An example dataset")
+        .build();
+
+// Create a distribution
+Distribution distribution = Distribution.builder()
+        .id("http://example.org/distribution/1")
+        .title("Example Distribution")
+        .description("An example distribution")
+        .accessURL(URI.create("http://example.org/dataset/1/access"))
+        .downloadURL(URI.create("http://example.org/dataset/1/download"))
+        .mediaType("application/json")
+        .format("JSON")
+        .build();
+
+// Add the distribution to the dataset
+dataset.addDistribution(distribution);
+
+// Add the dataset to the catalog
+catalog.addDataset(dataset);
+
+// In a Spring application, use DCAT2Service to convert to RDF
+@Autowired
+private DCAT2Service dcat2Service;
+
+// Save the catalog to RDF
+Graph<Model> graph = Graph.create(ModelFactory.createDefaultModel());
+dcat2Service.save(graph, catalog);
+
+// Serialize to Turtle
+StringWriter writer = new StringWriter();
+graph.getModel().write(writer, "TURTLE");
+String turtleOutput = writer.toString();
+```
 
 # ZA Gids
 

@@ -124,6 +124,8 @@
 		<module>commons-spring</module>
 		<module>ds</module>
 		<module>ds-spring</module>
+		<module>dcat</module>
+		<module>dcat-spring</module>
 	</modules>
 	<build>
 		<pluginManagement>
