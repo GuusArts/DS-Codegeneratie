@@ -43,3 +43,43 @@ Create [issues](https://gitlab.opencirclesolutions.nl/os/kik-commons/-/issues) i
 # Contributing
 
 Make a [merge request](https://gitlab.opencirclesolutions.nl/os/kik-commons/-/merge_requests)
+
+## DCAT2 Support
+
+This project provides modular support for [DCAT2](https://www.w3.org/TR/vocab-dcat-2/) (W3C Data Catalog Vocabulary) for semantic interoperability of data catalogs.
+
+### Modules
+- **dcat**: Java DTOs for DCAT2 (no dependencies)
+- **dcat-spring**: Spring and Jena integration for serialization, deserialization, and validation
+
+### Features
+- Java models for Catalog, Dataset, Distribution, Agent
+- Jena-based RDF and JSON-LD serialization/deserialization
+- Spring Boot auto-configuration for easy integration
+- SHACL-based validation for DCAT2 compliance
+
+### Usage Example
+```java
+// Create a Catalog
+Catalog catalog = new Catalog();
+catalog.setId("urn:mycatalog");
+catalog.setTitle("My Catalog");
+// ... add datasets, distributions, etc.
+
+// Serialize to RDF/JSON-LD
+Dcat2RdfService rdfService = new Dcat2RdfServiceImpl();
+String jsonld = rdfService.toJsonLd(catalog);
+
+// Validate
+Dcat2Validator validator = new Dcat2Validator();
+boolean isValid = validator.validate(catalog);
+```
+
+### Integration
+- Add `dcat` and `dcat-spring` as dependencies in your Maven project.
+- Use Spring Boot for auto-configuration, or instantiate services directly.
+
+### Extending
+- Add more DCAT2 fields or SHACL shapes as needed for your use case.
+
+---
