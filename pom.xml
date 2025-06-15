@@ -126,6 +126,8 @@
 		<module>ds-spring</module>
 		<module>gids</module>
 		<module>gids-spring</module>
+		<module>dcat</module>
+		<module>dcat-spring</module>
 	</modules>
 	<build>
 		<pluginManagement>
